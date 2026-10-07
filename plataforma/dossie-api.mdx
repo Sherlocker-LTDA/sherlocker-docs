@@ -1,192 +1,190 @@
 ---
-title: "Dossiê: modos e matriz de risco"
-description: "Configure módulos e graus de conexão, envie seus próprios dados e defina regras de classificação de risco"
+title: "Dossiê: módulos, dados e PDF"
+description: "Selecione consultas, envie dados tipados ou combine os dois no mesmo relatório"
 icon: "sliders"
 ---
 
-A API de Dossiê aceita três modos de geração no mesmo `POST /dossies`.
-A geração é assíncrona: a resposta `202` retorna o ID; consulte
-`GET /dossies/{dossie_id}` para acompanhar o trabalho e obter PDF/DOCX.
-
-<Note>
-  Os modos personalizados e a matriz de risco têm liberação controlada por conta.
-  Use um ambiente em que a versão esteja disponível e o workspace tenha sido
-  habilitado. Uma chave com escopos de Dossiê não ativa esses recursos por si só.
-</Note>
-
-| `mode` | Entrada | Comportamento |
-|---|---|---|
-| `standard` (padrão quando omitido) | CPF/CNPJ em `document` e `kind` opcional | Investigação padrão existente |
-| `modular` | CPF/CNPJ e `modules` | Consulta somente os módulos selecionados |
-| `provided_data` | `data` com conteúdo do relatório | Estrutura o JSON em documento, sem investigação ou enriquecimento |
-
-## Acesso por conta
-
-Envie `Authorization: Bearer <chave slhk_…>` e `Content-Type: application/json`. A API exige uma chave com entitlement `dossies`, escopo `dossies:write` para criar/repetir e `dossies:read` para consultar, além da liberação `public_api_dossies` já existente. `modular`, `provided_data` e qualquer `risk_matrix` exigem também **`public_api_dossies_custom`**, desligada por padrão.
-
-A liberação é configurada por um administrador para a conta/workspace.
-Solicite a habilitação ao time responsável pelo acesso à API. Não envie a flag
-no JSON de criação: ela é verificada a partir da conta autenticada.
-
-O workspace vem da chave autenticada; a requisição de geração não escolhe outra conta. A ausência da liberação retorna `403`, código `dossie_custom_not_enabled`, antes de aceitar, cobrar ou enfileirar o job. O retry também verifica a liberação vigente. Não é necessário habilitar a flag para continuar usando a investigação padrão sem matriz.
-
-## 1. Investigação padrão
+Envie `POST /dossies` com os módulos que deseja consultar. **Não é necessário enviar `mode`.**
 
 ```json
 {
   "document": "52998224725",
-  "kind": "basic"
+  "modules": ["processos", "dividas"]
 }
 ```
 
-Pode explicitar `"mode": "standard"`. `subject_type` é opcional (`cpf` ou `cnpj`), inferido e validado contra o documento. `kind` é `basic` (padrão) ou `advanced`; `context`, até 2.000 caracteres, é permitido neste modo. O contrato anterior e sua idempotência continuam válidos.
+Este pedido consulta processos e dívidas do alvo, não uma investigação completa.
+A resposta `202` confirma o aceite. Acompanhe `GET /dossies/{dossie_id}/status`
+e obtenha o resultado e o PDF em `GET /dossies/{dossie_id}`.
 
-## 2. Investigação modular
+## Escolha a entrada
+
+| Caso | Envie | O que acontece |
+| --- | --- | --- |
+| Só consultas | `document` + `modules` | Consulta os módulos selecionados. |
+| Só seus dados | `data` | Gera o relatório com o conteúdo enviado, sem consultas externas. |
+| Consultas + seus dados | `document` + `modules` + `data` | Combina os resultados consultados e os dados enviados, identificando suas origens. |
+
+`document` é um CPF/CNPJ válido em string. É obrigatório quando há módulos.
+Em pedidos somente com `data`, pode ser informado para identificar o alvo, sem iniciar consultas.
+Enviar apenas `document`, sem `modules` nem `data`, mantém a investigação padrão existente.
+
+### 1. Só módulos
+
+`modules` é uma lista. Use strings para selecionar módulos ou objetos para configurar processos e conexões:
 
 ```json
 {
-  "mode": "modular",
   "document": "52998224725",
-  "kind": "basic",
-  "modules": {
-    "connections": {"max_degree": 1},
-    "lawsuits": {
-      "filters": {
-        "categories": ["criminal"],
-        "case_numbers": ["0000000-00.2025.8.26.0000"]
-      }
-    }
-  }
+  "modules": [
+    "dividas",
+    {"nome": "processos", "config": {"categorias": ["criminal", "civel"]}},
+    {"nome": "conexoes", "config": {"graus": 1}}
+  ]
 }
 ```
 
-Ao incluir apenas `"lawsuits": {"filters": {"categories": ["criminal"]}}`, o gerador consulta somente processos criminais, sem expandir conexões. Adicione somente as chaves desejadas; um objeto vazio habilita um módulo sem filtros. Não use booleanos nem `enabled`.
+Não repita um módulo, mesmo misturando string e objeto. `modules: []` é inválido.
 
-| Módulo | Configuração e alcance |
-|---|---|
-| `connections` | `max_degree` obrigatório, inteiro de 1 a 3. Grau 1: parentes e participações societárias diretas; os próximos graus repetem essa expansão. Limite de 200 entidades; excedê-lo falha o job e exige reduzir a profundidade. Não expande conexões por processos ou redes sociais. |
-| `social_media` | `{}`. Consulta registros e busca candidatos em LinkedIn, Instagram e Facebook. Candidatos não representam confirmação de titularidade. |
-| `lawsuits` | `{}` ou `filters`. Categorias: `criminal`, `civil`, `labor`, `tax`. Categorias selecionadas são combinadas; números de processos restringem o resultado dentro delas. |
-| `protests` | `{}`. Consulta a fonte de protestos disponível, atualmente São Paulo; não representa cobertura nacional. |
+| Seletores | Consulta |
+| --- | --- |
+| `cadastro` | Dados cadastrais do alvo. |
+| `empresas`, `empregos`, `beneficios` | Empresas relacionadas, vínculos e benefícios de pessoa física. |
+| `dividas`, `processos`, `protestos` | Dívidas, processos e protestos nas fontes disponíveis. |
+| `veiculos`, `imoveis` | Registros patrimoniais disponíveis, sem garantia de cobertura integral. |
+| `sancoes`, `restricoes` | Listas e restrições disponíveis, não uma certidão de regularidade fiscal. |
+| `telefones`, `emails` | Contatos de pessoa física. |
+| `funcionarios`, `compliance`, `historico` | Informações de pessoa jurídica. |
+| `conexoes`, `redes` | Relações e candidatos a perfis sociais. Um candidato não confirma titularidade. |
 
-Processos, redes sociais e protestos são consultados para o documento principal. O grau controla apenas a expansão do módulo `connections`; não solicita esses outros módulos para cada conexão. A seleção de processos aceita até 100 números CNJ, formatados ou com 20 dígitos, vinculados ao documento consultado. Não é uma consulta livre por número.
+`web` não está disponível: o servidor rejeita sua seleção por segurança.
 
-Processos são paginados até 500 registros da fonte. Se houver mais dados, o relatório informa o limite e `coverage.status` será `partial`. Falhas de fonte não viram resultado vazio ou baixo risco. O modo modular não executa o pipeline adaptativo padrão. `kind` mantém a política de cobrança existente e não acrescenta módulos omitidos.
+Configurações aceitas:
 
-## 3. Relatório com dados fornecidos
+- `processos`: `config.categorias` aceita `criminal`, `civel`, `trabalhista` e `tributario`; `config.numeros` aceita até 100 números CNJ em string, formatados ou com 20 dígitos. Os filtros se aplicam aos processos do alvo, não são uma busca livre por número.
+- `conexoes`: a string `"conexoes"` usa grau `1`; `config.graus` aceita `1`, `2` ou `3`. Expandir conexões não autoriza consultar todos os outros módulos para cada pessoa relacionada.
+- Demais módulos: selecione pelo nome, sem inventar opções de configuração.
 
-```json
-{
-  "mode": "provided_data",
-  "data": {
-    "title": "Avaliação de fornecedor",
-    "subject": {"name": "Empresa Exemplo"},
-    "summary": "Dados enviados pela equipe de compliance.",
-    "sections": [
-      {
-        "id": "processos",
-        "title": "Processos informados",
-        "items": [
-          {"category": "criminal", "case_number": "0000000-00.2025.8.26.0000", "amount": 50000}
-        ]
-      },
-      {
-        "id": "observacoes",
-        "title": "Observações da equipe",
-        "text": "Análise documental realizada em 06/10/2026."
-      }
-    ]
-  }
-}
-```
+A cobertura depende da fonte. Protestos não significa cobertura nacional. Consulte as limitações no resultado, inclusive truncamento ou indisponibilidade.
 
-`document` é opcional. Se informado, deve ser CPF/CNPJ válido e é usado para identificação e políticas de supressão; não dispara pesquisa. Sem documento, `subject_type` deve ser omitido e a resposta retorna `null`.
+### 2. Só dados personalizados
 
-Cada seção precisa de `text`, `items` ou ambos. `items` é uma lista de objetos JSON com chaves livres; objetos e listas aninhados são apresentados como conteúdo estruturado. O gerador preserva os dados e textos enviados como conteúdo literal; HTML/Markdown não executam instruções nem carregam imagens externas. O relatório identifica sua origem como dados fornecidos, sem afirmar que houve verificação ou investigação. A cobertura completa significa que o conteúdo enviado foi estruturado.
-
-## Matriz de risco opcional
-
-Adicione `risk_matrix` em qualquer um dos três modos, com a flag personalizada habilitada. A classificação é determinística, baseada nas regras enviadas. A versão identifica a política usada; a API não inventa uma matriz nem calcula risco quando ela não é enviada.
-
-Exemplo para os dados fornecidos acima:
+`data` é uma lista de blocos com origem e campos tipados. Não é necessário selecionar um módulo para usar seus próprios dados. Sem `document`, cada bloco precisa identificar o mesmo alvo em `referencia.documento` ou `referencia.nome`. Com `document`, referências documentais devem corresponder ao alvo.
 
 ```json
 {
-  "id": "compliance-fornecedor",
-  "version": "1",
-  "thresholds": {"medium_min": 30, "high_min": 70},
-  "rules": [
+  "data": [
     {
-      "id": "processo-criminal",
-      "path": "data.sections[].items[].category",
-      "operator": "eq",
-      "value": "criminal",
-      "score": 70,
-      "required": true,
-      "description": "Processo criminal informado"
-    },
-    {
-      "id": "valor-relevante",
-      "path": "data.sections[].items[].amount",
-      "operator": "gte",
-      "value": 100000,
-      "score": 30,
-      "required": false,
-      "description": "Valor informado igual ou superior a 100 mil"
+      "id": "avaliacao",
+      "titulo": "Avaliação interna",
+      "referencia": {"nome": "Fornecedor de exemplo"},
+      "origem": {"nome": "Equipe de compras"},
+      "campos": [
+        {"chave": "observacao", "dado": {"tipo": "texto", "valor": "Documentação recebida para revisão."}},
+        {"chave": "revisado", "dado": {"tipo": "booleano", "valor": false}}
+      ]
     }
   ]
 }
 ```
 
-`path` usa pontos para acessar chaves e `[]` para percorrer listas. Não aceita expressões, scripts, índices ou filtros de JSONPath. Raízes disponíveis:
+Nenhuma fonte externa é consultada nesse pedido. Os dados são apresentados como informações fornecidas pelo cliente, não como fatos verificados pelo Sherlocker.
 
-| Modo | Raiz e exemplos |
-|---|---|
-| `provided_data` | `data`, exatamente o objeto enviado. Ex.: `data.sections[].items[].amount`. |
-| `modular` | `modules`, resultado dos coletores selecionados. Ex.: `modules.lawsuits.source_total`, `modules.lawsuits.items[].categoria`, `modules.connections.items[].degree`, `modules.protests.found`. Processos mantêm as chaves da fonte; confira o conteúdo no `result.report_schema`. |
-| `standard` | `investigation`, dados estruturados dos módulos do pipeline existente. Chaves ausentes não são preenchidas artificialmente. |
+### 3. Seus dados + módulos Sherlocker
 
-| Operador | Regra |
-|---|---|
-| `eq` | Igualdade de valor e tipo; números inteiros/decimais podem ser comparados entre si. |
-| `contains` | Trecho de texto, sem diferenciar maiúsculas/minúsculas; exige `value` string. |
-| `exists` | Existe algum valor não nulo; não precisa de `value`. |
-| `gte`, `gt`, `lte`, `lt` | Comparação numérica; exigem `value` numérico. |
-
-Uma regra corresponde se qualquer valor encontrado satisfizer a condição. Cada regra adiciona seus pontos **uma única vez**, mesmo com várias correspondências. A soma é limitada a 100. `score < medium_min` gera `low` (baixo); `medium_min <= score < high_min` gera `medium` (médio); `score >= high_min` gera `high` (alto).
-
-`required` é `true` por padrão. Se uma regra obrigatória não encontrar valor não nulo (ou valor numérico para operadores numéricos), retorna `insufficient_data` com score/level nulos. Use `required: false` para campos opcionais e testes de presença que possam faltar. Uma coleção vazia não é evidência de baixo risco para uma regra obrigatória aplicada aos seus itens; para contagens use um campo numérico como `modules.lawsuits.source_total`. Dados parciais do coletor também impedem classificação, mesmo que algumas regras correspondam.
-
-No `GET` após a conclusão, a resposta inclui:
+Exemplo: o cliente envia dados do seu sistema interno e pede ao Sherlocker apenas os processos da pessoa analisada.
 
 ```json
 {
-  "risk_classification": {
-    "matrix_id": "compliance-fornecedor",
-    "matrix_version": "1",
-    "status": "classified",
-    "level": "high",
-    "score": 70,
-    "matched_rules": [
-      {"id": "processo-criminal", "score": 70, "description": "Processo criminal informado"}
-    ],
-    "missing_fields": []
-  }
+  "document": "52998224725",
+  "modules": ["processos"],
+  "data": [
+    {
+      "id": "cadastro_interno",
+      "titulo": "Dados fornecidos pelo cliente",
+      "referencia": {"documento": "52998224725", "nome": "Pessoa de exemplo"},
+      "origem": {"nome": "Sistema interno do cliente"},
+      "campos": [
+        {"chave": "codigo", "dado": {"tipo": "texto", "valor": "cliente-8472"}},
+        {"chave": "observacao", "dado": {"tipo": "texto", "valor": "Cadastro recebido para revisão."}},
+        {"chave": "proxima_revisao", "dado": {"tipo": "data", "valor": "2028-06-30"}},
+        {"chave": "documentacao_recebida", "dado": {"tipo": "booleano", "valor": true}},
+        {"chave": "situacao", "dado": {"tipo": "ausente", "motivo": "nao_informado"}}
+      ]
+    }
+  ]
 }
 ```
 
-Esse objeto também está em `result.risk_classification` e numa seção do relatório/PDF. Não está disponível enquanto a geração está pendente. `insufficient_data` descreve a classificação; o status do dossiê e `coverage` descrevem a geração do documento.
+O Sherlocker consulta processos e inclui os dados do cliente no mesmo relatório. **Os dados enviados não são verificados em uma fonte externa.** A existência de processo não significa condenação.
 
-## Validação, idempotência e retry
+## Tipos dos seus dados
 
-Envie `Idempotency-Key` no POST. Repetir a mesma chave e o mesmo conteúdo retorna o aceite anterior; mudar modo, módulos, dados ou matriz com a mesma chave retorna `409`. Use outra chave para uma nova geração.
+Cada campo tem `chave`, `rotulo` opcional e `dado`. O assunto é livre, mas o valor deve respeitar um destes tipos:
 
-`POST /dossies/{dossie_id}/retry`, com uma nova chave de idempotência, reutiliza a configuração original inteira, incluindo dados e matriz, e verifica novamente permissões/saldo. O retry não altera o conteúdo do dossiê.
+| `tipo` | Conteúdo |
+| --- | --- |
+| `texto` | `valor` string, inclusive registros e identificadores. |
+| `inteiro` | `valor` inteiro, sem converter texto em número. |
+| `decimal` | `valor` numérico finito. |
+| `booleano` | `valor` booleano: `true` ou `false`. |
+| `data` | `valor` com data real no formato `YYYY-MM-DD`. |
+| `instante` | `valor` com data/hora ISO 8601 e fuso. |
+| `dinheiro` | `valor` com `quantia` decimal em string e `moeda`: `BRL`, `USD` ou `EUR`. |
+| `ausente` | `motivo`: `nao_informado`, `desconhecido` ou `nao_aplicavel`, sem `valor`. |
+| `objeto` | `campos`: lista de campos tipados. |
+| `lista` | `itens`: lista de valores tipados. |
 
-- O corpo validado aceita até 256 KiB de JSON serializado e 20 níveis de objetos/listas.
-- Dados fornecidos: 1–50 seções com IDs únicos, até 500 itens por seção, títulos até 200 caracteres e textos/resumo até 20.000 caracteres.
-- Matriz: 1–100 regras com IDs únicos, score inteiro 0–100; `1 <= medium_min < high_min <= 100`.
-- Selecione pelo menos um módulo. Campos desconhecidos, combinações de modos (`modules` em `provided_data`, `data` em `modular`) e `context` nos modos personalizados são rejeitados com `400 validation_error`.
-- A cobrança, os artefatos, a reconciliação assíncrona e o isolamento entre contas usam a política pública existente. O erro de flag/validação acontece antes da aceitação/cobrança.
+Origem declarada pelo cliente não é certificação. Texto ou URL em um campo não provoca download, OCR ou execução de instruções. Não envie credenciais como conteúdo do relatório.
 
-A referência de `POST /dossies` nesta seção inclui os schemas de entrada e exemplos dos três modos. As condições entre campos (limiares, unicidade e obrigatoriedade de operandos) também são verificadas pela API. Consulte [Erros da Plataforma](/plataforma/erros) para tratar as respostas de falha.
+## Módulos não são seções
+
+**`modules` define o que consultar. Seções definem como apresentar o que já existe.**
+Selecionar processos não obriga a ter apenas uma seção, e pedir uma seção patrimonial não autoriza consultar imóveis ou veículos. Dados personalizados também podem aparecer no relatório sem um módulo correspondente.
+
+`secoes` permite apenas ordenar e renomear seções, com `id` e `titulo`. O ID
+corresponde ao `section.id` existente ou ao ID do bloco personalizado (renderizado
+como `provided-{id}`). Um ID desconhecido gera uma seção de conteúdo indisponível,
+sem nova consulta. Seções de origem e risco permanecem no relatório. Não é um campo para instruir a redação. **`descricao` é rejeitado: esta
+versão não oferece composição semântica, ênfase ou detalhamento por texto livre.**
+Sem `secoes`, a composição é padrão. Seções não substituem os dados e não autorizam
+novas buscas.
+
+## Risco automático: seis classes fixas
+
+O resultado estruturado inclui `result.risco`, sem exigir um campo de risco na entrada:
+
+`credito`, `endividamento`, `patrimonio`, `judicial`, `societario` e `compliance`.
+
+Cada classe informa `status`, `motivos`, `evidencias` e `cobertura`, com os módulos consultados, ausentes e limitações. A versão `evidence-only/1.0` retorna `dados_insuficientes` nas seis classes enquanto não houver política calibrada. Ela organiza evidências e insuficiências: **não determina risco baixo, médio ou alto**. `nao_avaliado` e `dados_insuficientes` não significam baixo risco. O campo `nivel` só pertence a uma classe com status `avaliado`.
+
+As seis classes são fixas mesmo quando o pedido consulta apenas um módulo. A ausência de dados não é preenchida como zero, falso ou aprovação. Não envie `risco` no POST.
+
+## Obter o PDF
+
+1. Crie com `POST /dossies`, `Authorization: Bearer <chave>` e `Idempotency-Key`.
+2. Guarde o `id` retornado no `202` e acompanhe `GET /dossies/{dossie_id}/status`, respeitando `poll_after_seconds`.
+3. Consulte `GET /dossies/{dossie_id}` para ler `coverage`, `result` e `artifacts`.
+4. Em `artifacts`, use `download_url` do item `type: "dossie_pdf"` quando `status` for `available`. Observe `expires_at` e `available_until`; consulte novamente se a URL expirar.
+
+Não há nova rota de PDF para dados personalizados. `needs_review` pode entregar resultado parcial e exige revisão, não aprovação automática. O PDF preserva a distinção entre fontes consultadas e conteúdo fornecido.
+
+## Avançado: acesso, validação e compatibilidade
+
+### Habilitação da conta
+
+Use uma versão que disponibilize o contrato e uma conta habilitada. A chave exige entitlement `dossies`, escopo `dossies:write` para criar/repetir e `dossies:read` para consultar, além de `public_api_dossies`. Módulos ou dados personalizados exigem também `public_api_dossies_custom`, desligada por padrão.
+
+A habilitação é administrativa e pertence à conta da chave. Não envie flags no JSON. Sem liberação, a API retorna `403 dossie_custom_not_enabled` antes de aceitar, cobrar ou enfileirar. O retry revalida a permissão.
+
+### Idempotência e limites
+
+Repetir `Idempotency-Key` com o mesmo conteúdo retorna o aceite anterior. Alterar módulos ou dados com a mesma chave retorna `409`. Para um novo conteúdo, use outra chave.
+
+`POST /dossies/{dossie_id}/retry` mantém a configuração original e usa uma nova chave de idempotência. Não altera os dados do relatório.
+
+O corpo aceita até 256 KiB. Campos desconhecidos, listas vazias de módulos/dados, duplicatas e tipos inválidos são rejeitados. `kind` mantém a política de cobrança existente e não adiciona módulos omitidos. Consulte os limites por campo na referência do POST e [os erros da API](/plataforma/erros).
+
+### Integrações legadas
+
+Os formatos anteriores com `mode`, `modules` em objeto e `data` em objeto continuam aceitos para compatibilidade, mas estão depreciados para novas integrações. A matriz opcional `risk_matrix`, aceita inclusive sem `mode`, e o retorno `risk_classification` pertencem a esse contrato legado; não são necessários para `result.risco`. Não use uma matriz de entrada como requisito do novo fluxo.

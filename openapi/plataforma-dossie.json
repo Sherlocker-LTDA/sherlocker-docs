@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "Dossiê API",
-    "description": "Geração assíncrona de Dossiês em três modos, com módulos selecionáveis, dados fornecidos e matriz determinística de risco. Modos personalizados e matriz têm acesso controlado por conta.",
+    "description": "Geração assíncrona: selecione modules em lista, envie data tipado ou combine ambos, sem mode obrigatório. Risco automático em seis classes fixas em result.risco. PDF nos artefatos existentes. Recursos personalizados exigem habilitação da conta.",
     "version": "1.0"
   },
   "servers": [
@@ -104,7 +104,7 @@
               null
             ],
             "nullable": true,
-            "description": "null para provided_data sem documento."
+            "description": "null para dados fornecidos sem documento."
           },
           "kind": {
             "type": "string",
@@ -132,6 +132,7 @@
                 },
                 "description": "Seções do relatório gerado."
               },
+              "risco": { "$ref": "#/components/schemas/DossieRiskSectors" },
               "risk_classification": {
                 "$ref": "#/components/schemas/DossieRiskClassification"
               }
@@ -390,6 +391,7 @@
         "description": "Cada regra soma score uma única vez se qualquer valor do path corresponder. IDs devem ser únicos. value é obrigatório, exceto para exists; operadores numéricos exigem número e contains exige string."
       },
       "DossieRiskMatrix": {
+        "deprecated": true,
         "type": "object",
         "properties": {
           "id": {
@@ -440,8 +442,16 @@
         "description": "Política determinística enviada pelo cliente; exige public_api_dossies_custom em qualquer modo. A soma é limitada a 100. Limiares exigem medium_min < high_min e IDs de regras únicos."
       },
       "DossieModules": {
+        "deprecated": true,
         "type": "object",
         "properties": {
+          "conexoes": {"$ref":"#/components/schemas/DossieModules/properties/connections"},
+          "redes_sociais": {"$ref":"#/components/schemas/DossieModules/properties/social_media"},
+          "processos": {"$ref":"#/components/schemas/DossieModules/properties/lawsuits"},
+          "protestos": {"$ref":"#/components/schemas/DossieModules/properties/protests"},
+          "dividas": {"type":"object","additionalProperties":false},
+          "veiculos": {"type":"object","additionalProperties":false},
+          "imoveis": {"type":"object","additionalProperties":false},
           "connections": {
             "type": "object",
             "properties": {
@@ -509,7 +519,7 @@
         },
         "additionalProperties": false,
         "minProperties": 1,
-        "description": "Selecione pelo menos um módulo. Chaves omitidas não são consultadas. Os outros módulos consultam apenas o documento principal; max_degree controla somente connections."
+        "description": "Formato legado em objeto. Selecione pelo menos um módulo e não combine um alias com sua chave original. Chaves omitidas não são consultadas. Os outros módulos consultam apenas o documento principal; max_degree controla somente connections."
       },
       "DossieProvidedSection": {
         "type": "object",
@@ -548,6 +558,7 @@
         "description": "Seção com id único no relatório; exige text, items ou ambos. items aceita objetos JSON com chaves livres."
       },
       "DossieProvidedData": {
+        "deprecated": true,
         "type": "object",
         "properties": {
           "title": {
@@ -613,6 +624,7 @@
             "default": "basic",
             "description": "Tipo e política de cobrança existentes; no modular não adiciona módulos omitidos."
           },
+          "secoes": {"$ref":"#/components/schemas/DossieSections"},
           "risk_matrix": {
             "$ref": "#/components/schemas/DossieRiskMatrix"
           },
@@ -634,10 +646,12 @@
           }
         },
         "required": [
+          "mode",
           "document"
         ],
         "additionalProperties": false,
-        "description": "Investigação padrão. mode é opcional e assume standard; context é aceito somente neste modo."
+        "deprecated": true,
+        "description": "Legado explícito. Sem mode, use CreateDossieUnified. context somente na investigação padrão."
       },
       "CreateDossieModular": {
         "type": "object",
@@ -659,6 +673,7 @@
             "default": "basic",
             "description": "Tipo e política de cobrança existentes; no modular não adiciona módulos omitidos."
           },
+          "secoes": {"$ref":"#/components/schemas/DossieSections"},
           "risk_matrix": {
             "$ref": "#/components/schemas/DossieRiskMatrix"
           },
@@ -674,7 +689,10 @@
             "description": "CPF/CNPJ válido em string, com ou sem pontuação. Opcional apenas em provided_data, sem disparar consultas nesse modo."
           },
           "modules": {
-            "$ref": "#/components/schemas/DossieModules"
+            "oneOf": [{"$ref":"#/components/schemas/DossiePublicModules"},{"$ref":"#/components/schemas/DossieModules"}]
+          },
+          "data": {
+            "oneOf": [{"$ref":"#/components/schemas/DossieCustomData"},{"$ref":"#/components/schemas/DossieProvidedData"}]
           }
         },
         "required": [
@@ -683,7 +701,8 @@
           "modules"
         ],
         "additionalProperties": false,
-        "description": "Investiga somente os módulos selecionados. Exige public_api_dossies_custom."
+        "deprecated": true,
+        "description": "Legado explícito: investiga módulos e permite data opcional. Exige public_api_dossies_custom."
       },
       "CreateDossieProvidedData": {
         "type": "object",
@@ -705,6 +724,7 @@
             "default": "basic",
             "description": "Tipo e política de cobrança existentes; no modular não adiciona módulos omitidos."
           },
+          "secoes": {"$ref":"#/components/schemas/DossieSections"},
           "risk_matrix": {
             "$ref": "#/components/schemas/DossieRiskMatrix"
           },
@@ -720,7 +740,7 @@
             "description": "CPF/CNPJ válido em string, com ou sem pontuação. Opcional apenas em provided_data, sem disparar consultas nesse modo."
           },
           "data": {
-            "$ref": "#/components/schemas/DossieProvidedData"
+            "oneOf": [{"$ref":"#/components/schemas/DossieCustomData"},{"$ref":"#/components/schemas/DossieProvidedData"}]
           }
         },
         "required": [
@@ -728,23 +748,134 @@
           "data"
         ],
         "additionalProperties": false,
-        "description": "Estrutura os dados enviados sem investigação. Exige public_api_dossies_custom. Não aceita context nem modules."
+        "deprecated": true,
+        "description": "Legado explícito: estrutura dados sem investigação. Exige public_api_dossies_custom. Não aceita context nem modules."
+      },
+      "DossiePublicModules": {
+        "type": "array", "minItems": 1, "maxItems": 19,
+        "description": "Nomes únicos, inclusive entre strings e objetos. web é reservado e rejeitado por segurança. empresas/empregos/beneficios/telefones/emails exigem CPF; funcionarios/compliance/historico exigem CNPJ.",
+        "items": { "oneOf": [
+          {"type":"string","enum":["cadastro","empresas","empregos","beneficios","dividas","processos","veiculos","imoveis","sancoes","restricoes","protestos","telefones","emails","funcionarios","compliance","historico","conexoes","redes"]},
+          {"type":"object","additionalProperties":false,"required":["nome","config"],"properties":{
+            "nome":{"type":"string","enum":["processos"]},
+            "config":{"type":"object","additionalProperties":false,"minProperties":1,"properties":{
+              "categorias":{"type":"array","minItems":1,"maxItems":4,"items":{"type":"string","enum":["criminal","civel","trabalhista","tributario"]}},
+              "numeros":{"type":"array","minItems":1,"maxItems":100,"items":{"type":"string","pattern":"^(?:\\d{20}|\\d{7}-\\d{2}\\.\\d{4}\\.\\d\\.\\d{2}\\.\\d{4})$"}}
+            }}
+          }},
+          {"type":"object","additionalProperties":false,"required":["nome","config"],"properties":{
+            "nome":{"type":"string","enum":["conexoes"]},
+            "config":{"type":"object","additionalProperties":false,"required":["graus"],"properties":{"graus":{"type":"integer","enum":[1,2,3]}}}
+          }}
+        ]}
+      },
+      "DossieCustomField": {
+        "type":"object","additionalProperties":false,"required":["chave","dado"],
+        "properties":{
+          "chave":{"type":"string","pattern":"^[a-zA-Z0-9_-]{1,64}$"},
+          "rotulo":{"type":"string","minLength":1,"maxLength":200},
+          "dado":{"$ref":"#/components/schemas/DossieCustomValue"}
+        }
+      },
+      "DossieCustomFields": {
+        "type":"array","minItems":1,"maxItems":100,
+        "description":"Chaves únicas em cada objeto. Valores personalizados com profundidade máxima de 5 níveis.",
+        "items":{"$ref":"#/components/schemas/DossieCustomField"}
+      },
+      "DossieCustomValue": {
+        "description":"Valor estritamente tipado. Sem coerção. Texto e referências não executam instruções nem downloads.",
+        "oneOf":[
+          {"type":"object","additionalProperties":false,"required":["tipo","valor"],"properties":{"tipo":{"type":"string","enum":["texto"]},"valor":{"type":"string","minLength":1,"maxLength":20000}}},
+          {"type":"object","additionalProperties":false,"required":["tipo","valor"],"properties":{"tipo":{"type":"string","enum":["inteiro"]},"valor":{"type":"integer","minimum":-9007199254740991,"maximum":9007199254740991}}},
+          {"type":"object","additionalProperties":false,"required":["tipo","valor"],"properties":{"tipo":{"type":"string","enum":["decimal"]},"valor":{"type":"number","description":"Número finito."}}},
+          {"type":"object","additionalProperties":false,"required":["tipo","valor"],"properties":{"tipo":{"type":"string","enum":["booleano"]},"valor":{"type":"boolean"}}},
+          {"type":"object","additionalProperties":false,"required":["tipo","valor"],"properties":{"tipo":{"type":"string","enum":["data"]},"valor":{"type":"string","format":"date"}}},
+          {"type":"object","additionalProperties":false,"required":["tipo","valor"],"properties":{"tipo":{"type":"string","enum":["instante"]},"valor":{"type":"string","format":"date-time"}}},
+          {"type":"object","additionalProperties":false,"required":["tipo","valor"],"properties":{"tipo":{"type":"string","enum":["dinheiro"]},"valor":{"type":"object","additionalProperties":false,"required":["quantia","moeda"],"properties":{"quantia":{"type":"string","pattern":"^-?\\d{1,30}(?:\\.\\d{1,10})?$"},"moeda":{"type":"string","enum":["BRL","USD","EUR"]}}}}},
+          {"type":"object","additionalProperties":false,"required":["tipo","motivo"],"properties":{"tipo":{"type":"string","enum":["ausente"]},"motivo":{"type":"string","enum":["nao_informado","desconhecido","nao_aplicavel"]}}},
+          {"type":"object","additionalProperties":false,"required":["tipo","campos"],"properties":{"tipo":{"type":"string","enum":["objeto"]},"campos":{"$ref":"#/components/schemas/DossieCustomFields"}}},
+          {"type":"object","additionalProperties":false,"required":["tipo","itens"],"properties":{"tipo":{"type":"string","enum":["lista"]},"itens":{"type":"array","maxItems":500,"items":{"$ref":"#/components/schemas/DossieCustomValue"}}}}
+        ]
+      },
+      "DossieCustomData": {
+        "type":"array","minItems":1,"maxItems":50,"description":"Blocos com IDs únicos e origem declarada pelo cliente, sem verificação implícita. Sem document, cada bloco deve identificar o mesmo alvo em referencia.documento ou referencia.nome. Com document, referencias documentais devem corresponder ao alvo.",
+        "items":{"type":"object","additionalProperties":false,"required":["id","titulo","origem","campos"],"properties":{
+          "id":{"type":"string","pattern":"^[a-zA-Z0-9_-]{1,64}$"},
+          "titulo":{"type":"string","minLength":1,"maxLength":200},
+          "referencia":{"type":"object","additionalProperties":false,"properties":{"documento":{"type":"string","description":"CPF/CNPJ válido."},"nome":{"type":"string","minLength":1,"maxLength":200}}},
+          "origem":{"type":"object","additionalProperties":false,"required":["nome"],"properties":{"nome":{"type":"string","minLength":1,"maxLength":200},"referencia":{"type":"string","minLength":1,"maxLength":2000},"informado_em":{"type":"string","format":"date-time"}}},
+          "campos":{"$ref":"#/components/schemas/DossieCustomFields"}
+        }}
+      },
+      "DossieSections": {
+        "type":"array","minItems":1,"maxItems":50,
+        "description":"Somente ordenação e títulos. id corresponde a section.id ou ao bloco personalizado renderizado como provided-{id}. ID desconhecido gera conteúdo indisponível, sem coleta adicional. Origem/risco permanecem. Sem composição semântica, ênfase ou detalhamento por texto livre. descricao é rejeitado.",
+        "items":{"type":"object","additionalProperties":false,"required":["id","titulo"],"properties":{
+          "id":{"type":"string","pattern":"^[a-zA-Z0-9_-]{1,64}$"},
+          "titulo":{"type":"string","minLength":1,"maxLength":200}
+        }}
+      },
+      "DossieRiskSector": {
+        "type":"object","additionalProperties":false,
+        "required":["status","motivos","evidencias","cobertura"],
+        "description":"evidence-only/1.0 retorna dados_insuficientes nas seis classes enquanto não houver política calibrada. nivel é permitido e obrigatório somente quando status=avaliado, com uma política de avaliação implementada.",
+        "example":{"status":"dados_insuficientes","motivos":["Política de avaliação não calibrada."],"evidencias":[],"cobertura":{"modulos_consultados":[],"modulos_ausentes":["dividas"],"limitacoes":["Módulo não solicitado."]}},
+        "properties":{
+          "status":{"type":"string","enum":["nao_avaliado","dados_insuficientes","avaliado"]},
+          "nivel":{"type":"string","enum":["baixo","medio","alto"]},
+          "motivos":{"type":"array","items":{"type":"string"}},
+          "evidencias":{"type":"array","items":{"type":"string"}},
+          "cobertura":{"type":"object","additionalProperties":false,"required":["modulos_consultados","modulos_ausentes","limitacoes"],"properties":{
+            "modulos_consultados":{"type":"array","items":{"type":"string"}},
+            "modulos_ausentes":{"type":"array","items":{"type":"string"}},
+            "limitacoes":{"type":"array","items":{"type":"string"}}
+          }}
+        },
+        "oneOf":[
+          {"properties":{"status":{"enum":["avaliado"]}},"required":["nivel"]},
+          {"properties":{"status":{"enum":["nao_avaliado","dados_insuficientes"]}},"not":{"required":["nivel"]}}
+        ]
+      },
+      "DossieRiskSectors": {
+        "type":"object","additionalProperties":false,"required":["versao","credito","endividamento","patrimonio","judicial","societario","compliance"],
+        "description":"Saída automática em result.risco, sem matriz de entrada. Seis classes fixas. Ausência de dados não significa baixo risco.",
+        "properties":{
+          "versao":{"type":"string","minLength":1,"example":"evidence-only/1.0"},
+          "credito":{"$ref":"#/components/schemas/DossieRiskSector"},
+          "endividamento":{"$ref":"#/components/schemas/DossieRiskSector"},
+          "patrimonio":{"$ref":"#/components/schemas/DossieRiskSector"},
+          "judicial":{"$ref":"#/components/schemas/DossieRiskSector"},
+          "societario":{"$ref":"#/components/schemas/DossieRiskSector"},
+          "compliance":{"$ref":"#/components/schemas/DossieRiskSector"}
+        }
+      },
+      "CreateDossieUnified": {
+        "type":"object","additionalProperties":false,
+        "description":"Sem mode. modules e data podem coexistir. document obrigatório se houver modules ou não houver data. context somente sem modules/data. CPF/CNPJ, compatibilidade dos módulos, duplicatas e profundidade são validados no servidor.",
+        "properties":{
+          "document":{"type":"string","minLength":1,"description":"CPF/CNPJ válido."},
+          "subject_type":{"type":"string","enum":["cpf","cnpj"],"description":"Inferido do documento. Omitir quando não há documento."},
+          "kind":{"type":"string","enum":["basic","advanced"],"default":"basic"},
+          "risk_matrix":{"allOf":[{"$ref":"#/components/schemas/DossieRiskMatrix"}],"deprecated":true,"description":"Compatibilidade legada, inclusive sem mode. Não necessária para result.risco."},
+          "context":{"type":"string","maxLength":2000},
+          "modules":{"oneOf":[{"$ref":"#/components/schemas/DossiePublicModules"},{"$ref":"#/components/schemas/DossieModules"}]},
+          "data":{"oneOf":[{"$ref":"#/components/schemas/DossieCustomData"},{"$ref":"#/components/schemas/DossieProvidedData"}]},
+          "secoes":{"$ref":"#/components/schemas/DossieSections"}
+        },
+        "anyOf":[{"required":["document"]},{"required":["data"],"not":{"required":["modules"]}}],
+        "not":{"allOf":[{"required":["context"]},{"anyOf":[{"required":["modules"]},{"required":["data"]}]}]}
       },
       "CreateDossie": {
-        "description": "Três formatos mutuamente exclusivos. Até 256 KiB de JSON serializado e 20 níveis de profundidade. Campos desconhecidos são rejeitados. O modo padrão permanece compatível quando mode é omitido.",
+        "description": "Contrato unificado preferencial, sem mode obrigatório nem necessidade de entrada de risco. Formatos explícitos legados continuam aceitos. Até 256 KiB. Campos desconhecidos são rejeitados.",
         "oneOf": [
-          {
-            "$ref": "#/components/schemas/CreateDossieStandard"
-          },
-          {
-            "$ref": "#/components/schemas/CreateDossieModular"
-          },
-          {
-            "$ref": "#/components/schemas/CreateDossieProvidedData"
-          }
+          { "$ref": "#/components/schemas/CreateDossieUnified" },
+          { "$ref": "#/components/schemas/CreateDossieStandard" },
+          { "$ref": "#/components/schemas/CreateDossieModular" },
+          { "$ref": "#/components/schemas/CreateDossieProvidedData" }
         ]
       },
       "DossieRiskClassification": {
+        "deprecated": true,
         "type": "object",
         "required": [
           "matrix_id",
@@ -857,8 +988,8 @@
   "paths": {
     "/dossies": {
       "post": {
-        "summary": "Criar Dossiê padrão, modular ou com dados fornecidos",
-        "description": "Geração assíncrona: retorna 202 e o ID para consulta. standard (default) mantém a investigação existente; modular consulta somente módulos selecionados; provided_data gera relatório/PDF somente com o JSON enviado. A chave exige entitlement dossies, escopo dossies:write e a conta deve ter public_api_dossies. modular, provided_data e qualquer risk_matrix também exigem public_api_dossies_custom, desligada por padrão. Use apenas em ambiente onde a versão está disponível e a conta foi liberada. A matriz retorna score de 0 a 100, low/medium/high e justificativas em risk_classification após a avaliação; ausência de dados obrigatórios ou coleta parcial retorna insufficient_data. Requisição inválida ou flag ausente é rejeitada antes de aceitar/cobrar.",
+        "summary": "Criar Dossiê com módulos, dados ou ambos",
+        "description": "Geração assíncrona: retorna 202. Envie modules como lista de strings/objetos, data como lista tipada ou combine ambos, sem mode obrigatório. Só data não consulta fontes. modules não define seções. result.risco contém seis classes fixas automaticamente; evidence-only/1.0 não promete níveis baixo/médio/alto. PDF nos artifacts do GET existente. Exige entitlement dossies, escopo dossies:write e public_api_dossies; personalização exige public_api_dossies_custom. Use versão disponível e conta habilitada. Erros de validação/liberação ocorrem antes de aceitar/cobrar. risk_matrix é legado, opcional e aceito inclusive sem mode.",
         "operationId": "createDossie",
         "parameters": [
           {
@@ -873,88 +1004,20 @@
                 "$ref": "#/components/schemas/CreateDossie"
               },
               "examples": {
-                "standard": {
-                  "summary": "Investigação padrão por CPF/CNPJ",
-                  "value": {
-                    "document": "52998224725",
-                    "kind": "basic"
-                  }
+                "modules_only": {
+                  "summary": "Só módulos, sem mode",
+                  "value": {"document":"52998224725","modules":["dividas",{"nome":"processos","config":{"categorias":["criminal","civel"]}},{"nome":"conexoes","config":{"graus":1}}]}
                 },
-                "modular": {
-                  "summary": "Conexões até grau 1 e processos criminais selecionados",
-                  "value": {
-                    "mode": "modular",
-                    "document": "52998224725",
-                    "kind": "basic",
-                    "modules": {
-                      "connections": {
-                        "max_degree": 1
-                      },
-                      "lawsuits": {
-                        "filters": {
-                          "categories": [
-                            "criminal"
-                          ],
-                          "case_numbers": [
-                            "0000000-00.2025.8.26.0000"
-                          ]
-                        }
-                      }
-                    }
-                  }
+                "data_only": {
+                  "summary": "Só dados tipados, sem consultas externas",
+                  "value": {"data":[{"id":"avaliacao","titulo":"Avaliação interna","referencia":{"nome":"Fornecedor de exemplo"},"origem":{"nome":"Equipe de compras"},"campos":[{"chave":"observacao","dado":{"tipo":"texto","valor":"Documentação recebida para revisão."}},{"chave":"revisado","dado":{"tipo":"booleano","valor":false}}]}]}
                 },
-                "provided_data": {
-                  "summary": "Dados fornecidos sem documento, com matriz de risco",
+                "combined": {
+                  "summary": "Dados do sistema interno do cliente + processos Sherlocker",
                   "value": {
-                    "mode": "provided_data",
-                    "data": {
-                      "title": "Avaliação de fornecedor",
-                      "subject": {
-                        "name": "Empresa Exemplo"
-                      },
-                      "summary": "Dados enviados pela equipe de compliance.",
-                      "sections": [
-                        {
-                          "id": "processos",
-                          "title": "Processos informados",
-                          "items": [
-                            {
-                              "category": "criminal",
-                              "case_number": "0000000-00.2025.8.26.0000",
-                              "amount": 50000
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    "risk_matrix": {
-                      "id": "compliance-fornecedor",
-                      "version": "1",
-                      "thresholds": {
-                        "medium_min": 30,
-                        "high_min": 70
-                      },
-                      "rules": [
-                        {
-                          "id": "processo-criminal",
-                          "path": "data.sections[].items[].category",
-                          "operator": "eq",
-                          "value": "criminal",
-                          "score": 70,
-                          "required": true,
-                          "description": "Processo criminal informado"
-                        },
-                        {
-                          "id": "valor-relevante",
-                          "path": "data.sections[].items[].amount",
-                          "operator": "gte",
-                          "value": 100000,
-                          "score": 30,
-                          "required": false,
-                          "description": "Valor informado igual ou superior a 100 mil"
-                        }
-                      ]
-                    }
+                    "document":"52998224725",
+                    "modules":["processos"],
+                    "data":[{"id":"cadastro_interno","titulo":"Dados fornecidos pelo cliente","referencia":{"documento":"52998224725","nome":"Pessoa de exemplo"},"origem":{"nome":"Sistema interno do cliente"},"campos":[{"chave":"codigo","dado":{"tipo":"texto","valor":"cliente-8472"}},{"chave":"observacao","dado":{"tipo":"texto","valor":"Cadastro recebido para revisão."}},{"chave":"proxima_revisao","dado":{"tipo":"data","valor":"2028-06-30"}},{"chave":"documentacao_recebida","dado":{"tipo":"booleano","valor":true}},{"chave":"situacao","dado":{"tipo":"ausente","motivo":"nao_informado"}}]}]
                   }
                 }
               }
@@ -1071,7 +1134,7 @@
                 },
                 "examples": {
                   "provided_data_risk": {
-                    "summary": "Dados fornecidos classificados como alto risco",
+                    "summary": "Legado: resultado de matriz enviada pelo cliente, não risco automático",
                     "value": {
                       "id": "22222222-2222-4222-8222-222222222222",
                       "object": "dossie",
@@ -1184,7 +1247,7 @@
                 },
                 "examples": {
                   "provided_data_risk": {
-                    "summary": "Dados fornecidos classificados como alto risco",
+                    "summary": "Legado: resultado de matriz enviada pelo cliente, não risco automático",
                     "value": {
                       "id": "22222222-2222-4222-8222-222222222222",
                       "object": "dossie",

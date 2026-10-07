@@ -7,8 +7,9 @@ icon: "key"
 **Status HTTP:** `403`
 
 A flag `public_api_dossies_custom` não está habilitada para a conta/workspace da
-chave autenticada. Ela é exigida para `mode: "modular"`, `mode: "provided_data"`
-e para qualquer `risk_matrix`, inclusive no modo `standard`.
+chave autenticada. Ela é exigida ao selecionar `modules`, enviar `data` ou
+combinar os dois, mesmo sem `mode`. Também se aplica aos formatos legados
+personalizados e à matriz legada `risk_matrix`.
 
 A requisição é recusada antes da aceitação, cobrança e enfileiramento. O retry
 revalida a liberação vigente. Solicite a habilitação administrativa da conta antes
@@ -33,5 +34,5 @@ obrigatórios nos modos personalizados.
 
 ## Relacionado
 
-- [Modos e matriz de risco](/plataforma/dossie-api)
+- [Módulos, dados e PDF](/plataforma/dossie-api)
 - [Erros da Plataforma](/plataforma/erros)

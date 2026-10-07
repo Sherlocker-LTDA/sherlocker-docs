@@ -72,9 +72,10 @@ possa ler o estado, a cobertura, a cobrança e a causa da falha.
 ## Dossiês personalizados
 
 `403 dossie_custom_not_enabled` indica que a conta não tem a flag
-`public_api_dossies_custom` ativa para `modular`, `provided_data` ou `risk_matrix`.
+`public_api_dossies_custom` ativa para módulos, dados personalizados ou ambos,
+mesmo sem `mode`. Também vale para os formatos personalizados e a matriz legados.
 A chamada é recusada antes de aceitar ou cobrar a geração. Solicite a liberação
 antes de repetir a requisição; alterar o JSON não habilita a conta.
 
 Veja [o erro e seu tratamento](/problems/dossie_custom_not_enabled) e
-[os modos de Dossiê](/plataforma/dossie-api).
+[módulos, dados e PDF](/plataforma/dossie-api).

@@ -126,19 +126,20 @@ execuções.
 ## Usar via API
 
 Esta jornada é indicada quando o Dossiê deve ser iniciado pelo seu sistema, portal,
-esteira ou operação interna. A API oferece investigação padrão (`standard`),
-consulta dos módulos escolhidos (`modular`) e estruturação de dados enviados
-(`provided_data`), sem investigação. Os dois modos personalizados e qualquer
-`risk_matrix` exigem a flag `public_api_dossies_custom` na conta.
+esteira ou operação interna. Envie `modules` como lista de nomes ou objetos de
+configuração, `data` como lista de blocos tipados, ou combine os dois.
+**Não é necessário enviar `mode`.** Dados sem módulos geram o relatório sem
+consultas externas, mesmo quando `document` está presente.
 
-Veja [modos e matriz de risco](/plataforma/dossie-api) para os exemplos JSON completos
-antes de escolher a entrada da sua integração.
+Veja [módulos, dados e PDF](/plataforma/dossie-api) para os três exemplos completos,
+incluindo dados do sistema interno do cliente junto com processos consultados pelo Sherlocker.
+Módulos definem consultas, não as seções visuais do relatório.
 
 ### 1. Crie com segurança
 
-No modo padrão, envie o CPF ou CNPJ para `POST /dossies`, escolha `basic` ou `advanced`
-e, se necessário, adicione um contexto curto sobre o caso. Omitir `mode` preserva
-esse comportamento. A criação é assíncrona e exige:
+Envie o CPF ou CNPJ para `POST /dossies` e selecione as consultas em `modules`.
+Sem `modules` nem `data`, o documento inicia a investigação padrão existente.
+A criação é assíncrona e exige:
 
 - um token com o escopo `dossies:write`;
 - uma `Idempotency-Key` estável para aquela tentativa de criação;
@@ -152,9 +153,7 @@ curl --request POST \
   --header "Idempotency-Key: caso-8472-dossie-v1" \
   --data '{
     "document": "11222333000181",
-    "subject_type": "cnpj",
-    "kind": "advanced",
-    "context": "Revisão de fornecedor antes da renovação contratual"
+    "modules": ["processos", "dividas"]
   }'
 ```
 
@@ -179,12 +178,16 @@ automaticamente.
 
 Use `GET /dossies/{dossie_id}` para recuperar a visão atual do Dossiê:
 
-- `mode` identifica a forma de geração;
+- `mode` identifica a forma de geração por compatibilidade; consultas + dados retornam `modular`;
 - `coverage` informa o alcance e as limitações observadas;
 - `result` contém o relatório estruturado disponível;
-- `risk_classification`, quando uma matriz foi enviada, retorna nível, pontuação, regras correspondentes e campos faltantes;
+- `result.risco` organiza automaticamente seis classes fixas: `credito`, `endividamento`, `patrimonio`, `judicial`, `societario` e `compliance`, sem risco na entrada;
 - `artifacts` lista documentos como PDF ou DOCX e sua disponibilidade;
 - `stale` sinaliza que a representação pode não refletir o estado mais recente.
+
+Use o `download_url` do artefato `dossie_pdf` disponível. Não há uma rota nova de PDF.
+A política `evidence-only/1.0` informa evidências, cobertura e insuficiências, não
+promete níveis baixo/médio/alto. Falta de dados não significa baixo risco.
 
 URLs de download podem expirar. Consuma `expires_at` ou `available_until` e obtenha uma
 resposta atualizada quando precisar entregar o artefato depois desse prazo.
@@ -193,8 +196,8 @@ resposta atualizada quando precisar entregar o artefato depois desse prazo.
 
 Seu sistema deve encaminhar `needs_review` para uma fila humana em vez de convertê-lo
 em aprovação ou reprovação. Para trabalhos elegíveis, `POST /dossies/{dossie_id}/retry`
-cria uma nova tentativa e preserva o identificador, modo, módulos, dados e matriz
-originais. O retry verifica novamente a liberação da conta. O cancelamento só é
+cria uma nova tentativa e preserva o identificador e a configuração original,
+incluindo módulos e dados. O retry verifica novamente a liberação da conta. O cancelamento só é
 aceito enquanto o estado permitir a transição.
 
 Consulte a [visão geral e a referência do Dossiê](/plataforma/dossie) para ver os
