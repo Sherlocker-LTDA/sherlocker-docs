@@ -440,6 +440,7 @@
             "openapi": "/openapi/plataforma-dossie.json",
             "pages": [
               "plataforma/dossie",
+              "plataforma/dossie-api",
               "POST /dossies",
               "GET /dossies",
               "GET /dossies/{dossie_id}",
@@ -484,7 +485,8 @@
               "problems/gateway_timeout",
               "problems/scoped_key_required",
               "problems/key_entitlement_missing",
-              "problems/entitlement_not_enabled"
+              "problems/entitlement_not_enabled",
+              "problems/dossie_custom_not_enabled"
             ]
           }
         ]

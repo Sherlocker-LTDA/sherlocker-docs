@@ -2,32 +2,51 @@
   "openapi": "3.0.3",
   "info": {
     "title": "Dossiê API",
-    "description": "Criação, acompanhamento e recuperação de Dossiês.",
+    "description": "Geração assíncrona de Dossiês em três modos, com módulos selecionáveis, dados fornecidos e matriz determinística de risco. Modos personalizados e matriz têm acesso controlado por conta.",
     "version": "1.0"
   },
-  "servers": [{ "url": "https://221b-api.sherlocker.com.br/api/v1" }],
-  "security": [{ "bearerAuth": [] }],
+  "servers": [
+    {
+      "url": "https://221b-api.sherlocker.com.br/api/v1"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
   "components": {
     "securitySchemes": {
-      "bearerAuth": { "type": "http", "scheme": "bearer" }
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
     },
     "parameters": {
       "DossieId": {
         "name": "dossie_id",
         "in": "path",
         "required": true,
-        "schema": { "type": "string", "format": "uuid" }
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
       },
       "IdempotencyKey": {
         "name": "Idempotency-Key",
         "in": "header",
         "required": true,
-        "schema": { "type": "string", "maxLength": 255 }
+        "schema": {
+          "type": "string",
+          "maxLength": 255
+        }
       },
       "Cursor": {
         "name": "cursor",
         "in": "query",
-        "schema": { "type": "string" }
+        "schema": {
+          "type": "string"
+        }
       },
       "Limit": {
         "name": "limit",
@@ -56,8 +75,16 @@
           "updated_at"
         ],
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "object": { "type": "string", "enum": ["dossie"] },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "object": {
+            "type": "string",
+            "enum": [
+              "dossie"
+            ]
+          },
           "status": {
             "type": "string",
             "enum": [
@@ -69,28 +96,102 @@
               "cancelled"
             ]
           },
-          "subject_type": { "type": "string", "enum": ["cpf", "cnpj"] },
-          "kind": { "type": "string", "enum": ["basic", "advanced"] },
-          "current_attempt": { "$ref": "#/components/schemas/Attempt" },
-          "coverage": { "type": "object", "additionalProperties": true },
-          "result": { "type": "object", "additionalProperties": true },
-          "failure": { "type": "object", "additionalProperties": true },
+          "subject_type": {
+            "type": "string",
+            "enum": [
+              "cpf",
+              "cnpj",
+              null
+            ],
+            "nullable": true,
+            "description": "null para provided_data sem documento."
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "basic",
+              "advanced"
+            ]
+          },
+          "current_attempt": {
+            "$ref": "#/components/schemas/Attempt"
+          },
+          "coverage": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "result": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+              "report_schema": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "description": "Seções do relatório gerado."
+              },
+              "risk_classification": {
+                "$ref": "#/components/schemas/DossieRiskClassification"
+              }
+            }
+          },
+          "failure": {
+            "type": "object",
+            "additionalProperties": true
+          },
           "artifacts": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Artifact" }
+            "items": {
+              "$ref": "#/components/schemas/Artifact"
+            }
           },
-          "stale": { "type": "boolean" },
-          "poll_after_seconds": { "type": "integer" },
-          "created_at": { "type": "string", "format": "date-time" },
-          "updated_at": { "type": "string", "format": "date-time" }
+          "stale": {
+            "type": "boolean"
+          },
+          "poll_after_seconds": {
+            "type": "integer"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "standard",
+              "modular",
+              "provided_data"
+            ]
+          },
+          "risk_classification": {
+            "$ref": "#/components/schemas/DossieRiskClassification"
+          }
         }
       },
       "Attempt": {
         "type": "object",
-        "required": ["id", "number", "status", "queued_at", "billing"],
+        "required": [
+          "id",
+          "number",
+          "status",
+          "queued_at",
+          "billing"
+        ],
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "number": { "type": "integer", "minimum": 1 },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "integer",
+            "minimum": 1
+          },
           "status": {
             "type": "string",
             "enum": [
@@ -102,16 +203,29 @@
               "cancelled"
             ]
           },
-          "queued_at": { "type": "string", "format": "date-time" },
-          "started_at": { "type": "string", "format": "date-time" },
-          "completed_at": { "type": "string", "format": "date-time" },
-          "billing": { "$ref": "#/components/schemas/Billing" }
+          "queued_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completed_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "billing": {
+            "$ref": "#/components/schemas/Billing"
+          }
         }
       },
       "Billing": {
         "type": "object",
         "properties": {
-          "id": { "type": "string" },
+          "id": {
+            "type": "string"
+          },
           "status": {
             "type": "string",
             "enum": [
@@ -122,24 +236,45 @@
               "refunded"
             ]
           },
-          "amount": { "type": "integer" },
-          "unit": { "type": "string", "enum": ["tokens"] }
+          "amount": {
+            "type": "integer"
+          },
+          "unit": {
+            "type": "string",
+            "enum": [
+              "tokens"
+            ]
+          }
         }
       },
       "Artifact": {
         "type": "object",
         "properties": {
-          "id": { "type": "string" },
+          "id": {
+            "type": "string"
+          },
           "type": {
             "type": "string",
-            "enum": ["dossie_pdf", "dossie_docx", "artifact"]
+            "enum": [
+              "dossie_pdf",
+              "dossie_docx",
+              "artifact"
+            ]
           },
-          "media_type": { "type": "string" },
+          "media_type": {
+            "type": "string"
+          },
           "status": {
             "type": "string",
-            "enum": ["available", "temporarily_unavailable"]
+            "enum": [
+              "available",
+              "temporarily_unavailable"
+            ]
           },
-          "download_url": { "type": "string", "format": "uri" },
+          "download_url": {
+            "type": "string",
+            "format": "uri"
+          },
           "expires_at": {
             "type": "string",
             "format": "date-time",
@@ -155,19 +290,534 @@
       "Page": {
         "type": "object",
         "properties": {
-          "next_cursor": { "type": "string", "nullable": true },
-          "has_more": { "type": "boolean" }
+          "next_cursor": {
+            "type": "string",
+            "nullable": true
+          },
+          "has_more": {
+            "type": "boolean"
+          }
         }
       },
       "Error": {
         "type": "object",
-        "required": ["status", "code", "detail", "request_id", "retryable"],
+        "required": [
+          "status",
+          "code",
+          "detail",
+          "request_id",
+          "retryable"
+        ],
         "properties": {
-          "status": { "type": "integer" },
-          "code": { "type": "string" },
-          "detail": { "type": "string" },
-          "request_id": { "type": "string" },
-          "retryable": { "type": "boolean" }
+          "status": {
+            "type": "integer"
+          },
+          "code": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "string"
+          },
+          "request_id": {
+            "type": "string"
+          },
+          "retryable": {
+            "type": "boolean"
+          }
+        }
+      },
+      "DossieRiskRule": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]{1,64}$"
+          },
+          "path": {
+            "type": "string",
+            "maxLength": 256,
+            "pattern": "^(data|modules|investigation)(\\.[a-zA-Z0-9_-]+(\\[\\])?)+$",
+            "description": "Chaves separadas por ponto e [] para listas. Raiz data no provided_data, modules no modular e investigation no standard. Não aceita scripts, índices nem filtros JSONPath."
+          },
+          "operator": {
+            "type": "string",
+            "enum": [
+              "eq",
+              "contains",
+              "exists",
+              "gte",
+              "gt",
+              "lte",
+              "lt"
+            ]
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          "score": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "required": {
+            "type": "boolean",
+            "default": true,
+            "description": "Se true, ausência de valor não nulo (ou numérico para comparadores numéricos) impede classificação. Use false para campos opcionais."
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "id",
+          "path",
+          "operator",
+          "score"
+        ],
+        "additionalProperties": false,
+        "description": "Cada regra soma score uma única vez se qualquer valor do path corresponder. IDs devem ser únicos. value é obrigatório, exceto para exists; operadores numéricos exigem número e contains exige string."
+      },
+      "DossieRiskMatrix": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]{1,64}$"
+          },
+          "version": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "thresholds": {
+            "type": "object",
+            "properties": {
+              "medium_min": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 99
+              },
+              "high_min": {
+                "type": "integer",
+                "minimum": 2,
+                "maximum": 100
+              }
+            },
+            "required": [
+              "medium_min",
+              "high_min"
+            ],
+            "additionalProperties": false
+          },
+          "rules": {
+            "minItems": 1,
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DossieRiskRule"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "thresholds",
+          "rules"
+        ],
+        "additionalProperties": false,
+        "description": "Política determinística enviada pelo cliente; exige public_api_dossies_custom em qualquer modo. A soma é limitada a 100. Limiares exigem medium_min < high_min e IDs de regras únicos."
+      },
+      "DossieModules": {
+        "type": "object",
+        "properties": {
+          "connections": {
+            "type": "object",
+            "properties": {
+              "max_degree": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 3
+              }
+            },
+            "required": [
+              "max_degree"
+            ],
+            "additionalProperties": false,
+            "description": "Expansão de parentes e participações societárias de 1 a 3 graus, limitada a 200 entidades. Exceder o limite falha o job."
+          },
+          "social_media": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false,
+            "description": "Registros e candidatos em LinkedIn, Instagram e Facebook. Resultados de busca não confirmam titularidade."
+          },
+          "lawsuits": {
+            "type": "object",
+            "properties": {
+              "filters": {
+                "type": "object",
+                "properties": {
+                  "categories": {
+                    "minItems": 1,
+                    "maxItems": 4,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "criminal",
+                        "civil",
+                        "labor",
+                        "tax"
+                      ]
+                    }
+                  },
+                  "case_numbers": {
+                    "minItems": 1,
+                    "maxItems": 100,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^(?:\\d{20}|\\d{7}-\\d{2}\\.\\d{4}\\.\\d\\.\\d{2}\\.\\d{4})$"
+                    }
+                  }
+                },
+                "additionalProperties": false,
+                "description": "Categorias são combinadas; case_numbers restringe os processos dentro das categorias, sempre vinculados ao documento principal."
+              }
+            },
+            "additionalProperties": false,
+            "description": "Paginação até 500 registros. Acima disso, coverage será partial e a matriz retornará insufficient_data."
+          },
+          "protests": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false,
+            "description": "Fonte de protestos disponível, atualmente São Paulo, sem cobertura nacional."
+          }
+        },
+        "additionalProperties": false,
+        "minProperties": 1,
+        "description": "Selecione pelo menos um módulo. Chaves omitidas não são consultadas. Os outros módulos consultam apenas o documento principal; max_degree controla somente connections."
+      },
+      "DossieProvidedSection": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]{1,64}$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20000
+          },
+          "items": {
+            "minItems": 1,
+            "maxItems": 500,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/components/schemas/JsonValue"
+              }
+            }
+          }
+        },
+        "required": [
+          "id",
+          "title"
+        ],
+        "additionalProperties": false,
+        "description": "Seção com id único no relatório; exige text, items ou ambos. items aceita objetos JSON com chaves livres."
+      },
+      "DossieProvidedData": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "subject": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "additionalProperties": false
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20000
+          },
+          "sections": {
+            "minItems": 1,
+            "maxItems": 50,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DossieProvidedSection"
+            }
+          }
+        },
+        "required": [
+          "title",
+          "sections"
+        ],
+        "additionalProperties": false,
+        "description": "Conteúdo literal enviado pelo cliente. Gera relatório/PDF sem investigação, enriquecimento ou verificação externa; o relatório identifica essa origem."
+      },
+      "JsonValue": {
+        "description": "Qualquer valor JSON: string, número, booleano, null, objeto ou lista."
+      },
+      "CreateDossieStandard": {
+        "type": "object",
+        "properties": {
+          "subject_type": {
+            "type": "string",
+            "enum": [
+              "cpf",
+              "cnpj"
+            ],
+            "description": "Inferido e validado contra document. Deve ser omitido quando provided_data não envia document."
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "basic",
+              "advanced"
+            ],
+            "default": "basic",
+            "description": "Tipo e política de cobrança existentes; no modular não adiciona módulos omitidos."
+          },
+          "risk_matrix": {
+            "$ref": "#/components/schemas/DossieRiskMatrix"
+          },
+          "context": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "standard"
+            ],
+            "default": "standard"
+          },
+          "document": {
+            "type": "string",
+            "minLength": 1,
+            "description": "CPF/CNPJ válido em string, com ou sem pontuação. Opcional apenas em provided_data, sem disparar consultas nesse modo."
+          }
+        },
+        "required": [
+          "document"
+        ],
+        "additionalProperties": false,
+        "description": "Investigação padrão. mode é opcional e assume standard; context é aceito somente neste modo."
+      },
+      "CreateDossieModular": {
+        "type": "object",
+        "properties": {
+          "subject_type": {
+            "type": "string",
+            "enum": [
+              "cpf",
+              "cnpj"
+            ],
+            "description": "Inferido e validado contra document. Deve ser omitido quando provided_data não envia document."
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "basic",
+              "advanced"
+            ],
+            "default": "basic",
+            "description": "Tipo e política de cobrança existentes; no modular não adiciona módulos omitidos."
+          },
+          "risk_matrix": {
+            "$ref": "#/components/schemas/DossieRiskMatrix"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "modular"
+            ]
+          },
+          "document": {
+            "type": "string",
+            "minLength": 1,
+            "description": "CPF/CNPJ válido em string, com ou sem pontuação. Opcional apenas em provided_data, sem disparar consultas nesse modo."
+          },
+          "modules": {
+            "$ref": "#/components/schemas/DossieModules"
+          }
+        },
+        "required": [
+          "mode",
+          "document",
+          "modules"
+        ],
+        "additionalProperties": false,
+        "description": "Investiga somente os módulos selecionados. Exige public_api_dossies_custom."
+      },
+      "CreateDossieProvidedData": {
+        "type": "object",
+        "properties": {
+          "subject_type": {
+            "type": "string",
+            "enum": [
+              "cpf",
+              "cnpj"
+            ],
+            "description": "Inferido e validado contra document. Deve ser omitido quando provided_data não envia document."
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "basic",
+              "advanced"
+            ],
+            "default": "basic",
+            "description": "Tipo e política de cobrança existentes; no modular não adiciona módulos omitidos."
+          },
+          "risk_matrix": {
+            "$ref": "#/components/schemas/DossieRiskMatrix"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "provided_data"
+            ]
+          },
+          "document": {
+            "type": "string",
+            "minLength": 1,
+            "description": "CPF/CNPJ válido em string, com ou sem pontuação. Opcional apenas em provided_data, sem disparar consultas nesse modo."
+          },
+          "data": {
+            "$ref": "#/components/schemas/DossieProvidedData"
+          }
+        },
+        "required": [
+          "mode",
+          "data"
+        ],
+        "additionalProperties": false,
+        "description": "Estrutura os dados enviados sem investigação. Exige public_api_dossies_custom. Não aceita context nem modules."
+      },
+      "CreateDossie": {
+        "description": "Três formatos mutuamente exclusivos. Até 256 KiB de JSON serializado e 20 níveis de profundidade. Campos desconhecidos são rejeitados. O modo padrão permanece compatível quando mode é omitido.",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/CreateDossieStandard"
+          },
+          {
+            "$ref": "#/components/schemas/CreateDossieModular"
+          },
+          {
+            "$ref": "#/components/schemas/CreateDossieProvidedData"
+          }
+        ]
+      },
+      "DossieRiskClassification": {
+        "type": "object",
+        "required": [
+          "matrix_id",
+          "matrix_version",
+          "status",
+          "level",
+          "score",
+          "matched_rules",
+          "missing_fields"
+        ],
+        "description": "Resultado determinístico disponível após avaliar a matriz, também incluído no relatório e em result.risk_classification. Dados obrigatórios ausentes ou coleta parcial retornam insufficient_data, com score e level null.",
+        "properties": {
+          "matrix_id": {
+            "type": "string"
+          },
+          "matrix_version": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "classified",
+              "insufficient_data"
+            ]
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high",
+              null
+            ],
+            "nullable": true,
+            "description": "Baixo, médio ou alto, conforme thresholds; null se os dados forem insuficientes."
+          },
+          "score": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "nullable": true,
+            "description": "Soma das regras correspondentes, cada uma uma vez, limitada a 100."
+          },
+          "matched_rules": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "score"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "score": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "missing_fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Caminhos exigidos sem dados adequados. Coleta parcial também impede classificação, mesmo sem campos faltantes."
+          }
         }
       }
     },
@@ -176,7 +826,29 @@
         "description": "Erro no formato application/problem+json",
         "content": {
           "application/problem+json": {
-            "schema": { "$ref": "#/components/schemas/Error" }
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "CustomDossieNotEnabled": {
+        "description": "dossie_custom_not_enabled: conta sem liberação de public_api_dossies_custom para modos personalizados ou matriz. Sem aceitação/cobrança.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "type": "https://docs.sherlocker.com.br/problems/dossie_custom_not_enabled",
+              "title": "Custom Dossier Not Enabled",
+              "status": 403,
+              "code": "dossie_custom_not_enabled",
+              "detail": "Modular and provided_data dossiers are not enabled for this workspace.",
+              "instance": "/api/v1/dossies",
+              "request_id": "req_01JEXEMPLO",
+              "retryable": false
+            }
           }
         }
       }
@@ -185,29 +857,105 @@
   "paths": {
     "/dossies": {
       "post": {
-        "summary": "Criar Dossiê",
-        "description": "Cria um Dossiê e inicia sua primeira tentativa. Exige o escopo dossies:write e uma chave de idempotência.",
+        "summary": "Criar Dossiê padrão, modular ou com dados fornecidos",
+        "description": "Geração assíncrona: retorna 202 e o ID para consulta. standard (default) mantém a investigação existente; modular consulta somente módulos selecionados; provided_data gera relatório/PDF somente com o JSON enviado. A chave exige entitlement dossies, escopo dossies:write e a conta deve ter public_api_dossies. modular, provided_data e qualquer risk_matrix também exigem public_api_dossies_custom, desligada por padrão. Use apenas em ambiente onde a versão está disponível e a conta foi liberada. A matriz retorna score de 0 a 100, low/medium/high e justificativas em risk_classification após a avaliação; ausência de dados obrigatórios ou coleta parcial retorna insufficient_data. Requisição inválida ou flag ausente é rejeitada antes de aceitar/cobrar.",
         "operationId": "createDossie",
-        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "required": ["document"],
-                "properties": {
-                  "document": {
-                    "type": "string",
-                    "description": "CPF ou CNPJ, com ou sem pontuação."
-                  },
-                  "subject_type": { "type": "string", "enum": ["cpf", "cnpj"] },
-                  "kind": {
-                    "type": "string",
-                    "enum": ["basic", "advanced"],
-                    "default": "basic"
-                  },
-                  "context": { "type": "string", "maxLength": 2000 }
+                "$ref": "#/components/schemas/CreateDossie"
+              },
+              "examples": {
+                "standard": {
+                  "summary": "Investigação padrão por CPF/CNPJ",
+                  "value": {
+                    "document": "52998224725",
+                    "kind": "basic"
+                  }
+                },
+                "modular": {
+                  "summary": "Conexões até grau 1 e processos criminais selecionados",
+                  "value": {
+                    "mode": "modular",
+                    "document": "52998224725",
+                    "kind": "basic",
+                    "modules": {
+                      "connections": {
+                        "max_degree": 1
+                      },
+                      "lawsuits": {
+                        "filters": {
+                          "categories": [
+                            "criminal"
+                          ],
+                          "case_numbers": [
+                            "0000000-00.2025.8.26.0000"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                "provided_data": {
+                  "summary": "Dados fornecidos sem documento, com matriz de risco",
+                  "value": {
+                    "mode": "provided_data",
+                    "data": {
+                      "title": "Avaliação de fornecedor",
+                      "subject": {
+                        "name": "Empresa Exemplo"
+                      },
+                      "summary": "Dados enviados pela equipe de compliance.",
+                      "sections": [
+                        {
+                          "id": "processos",
+                          "title": "Processos informados",
+                          "items": [
+                            {
+                              "category": "criminal",
+                              "case_number": "0000000-00.2025.8.26.0000",
+                              "amount": 50000
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "risk_matrix": {
+                      "id": "compliance-fornecedor",
+                      "version": "1",
+                      "thresholds": {
+                        "medium_min": 30,
+                        "high_min": 70
+                      },
+                      "rules": [
+                        {
+                          "id": "processo-criminal",
+                          "path": "data.sections[].items[].category",
+                          "operator": "eq",
+                          "value": "criminal",
+                          "score": 70,
+                          "required": true,
+                          "description": "Processo criminal informado"
+                        },
+                        {
+                          "id": "valor-relevante",
+                          "path": "data.sections[].items[].amount",
+                          "operator": "gte",
+                          "value": 100000,
+                          "score": 30,
+                          "required": false,
+                          "description": "Valor informado igual ou superior a 100 mil"
+                        }
+                      ]
+                    }
+                  }
                 }
               }
             }
@@ -218,14 +966,34 @@
             "description": "Dossiê aceito",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Dossie" }
+                "schema": {
+                  "$ref": "#/components/schemas/Dossie"
+                }
               }
             }
           },
-          "400": { "$ref": "#/components/responses/Error" },
-          "402": { "$ref": "#/components/responses/Error" },
-          "409": { "$ref": "#/components/responses/Error" },
-          "422": { "$ref": "#/components/responses/Error" }
+          "400": {
+            "description": "validation_error: modo, documento, módulo, limites ou matriz inválidos; inclui errors por campo.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "402": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/CustomDossieNotEnabled"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
         }
       },
       "get": {
@@ -233,8 +1001,12 @@
         "description": "Lista Dossiês do workspace por cursor e permite filtrar pelo estado.",
         "operationId": "listDossies",
         "parameters": [
-          { "$ref": "#/components/parameters/Limit" },
-          { "$ref": "#/components/parameters/Cursor" },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Cursor"
+          },
           {
             "name": "status",
             "in": "query",
@@ -261,53 +1033,247 @@
                   "properties": {
                     "data": {
                       "type": "array",
-                      "items": { "$ref": "#/components/schemas/Dossie" }
+                      "items": {
+                        "$ref": "#/components/schemas/Dossie"
+                      }
                     },
-                    "page": { "$ref": "#/components/schemas/Page" }
+                    "page": {
+                      "$ref": "#/components/schemas/Page"
+                    }
                   }
                 }
               }
             }
           },
-          "400": { "$ref": "#/components/responses/Error" }
+          "400": {
+            "$ref": "#/components/responses/Error"
+          }
         }
       }
     },
     "/dossies/{dossie_id}": {
       "get": {
         "summary": "Consultar Dossiê",
-        "description": "Retorna o estado atual, tentativa, cobertura, resultado e artefatos do Dossiê.",
+        "description": "Retorna o estado atual, tentativa, cobertura, resultado e artefatos do Dossiê. Inclui mode e risk_classification após avaliar a matriz enviada. Sem matriz, risk_classification é omitida.",
         "operationId": "getDossie",
-        "parameters": [{ "$ref": "#/components/parameters/DossieId" }],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DossieId"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Dossiê encontrado",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Dossie" }
+                "schema": {
+                  "$ref": "#/components/schemas/Dossie"
+                },
+                "examples": {
+                  "provided_data_risk": {
+                    "summary": "Dados fornecidos classificados como alto risco",
+                    "value": {
+                      "id": "22222222-2222-4222-8222-222222222222",
+                      "object": "dossie",
+                      "status": "completed",
+                      "subject_type": null,
+                      "mode": "provided_data",
+                      "kind": "basic",
+                      "contract_version": "v1",
+                      "billing_policy_version": "v1-public",
+                      "current_attempt": {
+                        "id": "33333333-3333-4333-8333-333333333333",
+                        "number": 1,
+                        "status": "completed",
+                        "queued_at": "2026-10-06T21:00:00Z",
+                        "completed_at": "2026-10-06T21:01:00Z",
+                        "billing": {
+                          "id": "44444444-4444-4444-8444-444444444444",
+                          "status": "charged",
+                          "amount": 35,
+                          "unit": "tokens",
+                          "price_version": "dossie-basic-2026-08",
+                          "billing_policy_version": "v1-public"
+                        }
+                      },
+                      "coverage": {
+                        "status": "complete",
+                        "completed": 1,
+                        "eligible": 1,
+                        "phases": [
+                          {
+                            "phase": "processos",
+                            "status": "completed"
+                          }
+                        ]
+                      },
+                      "risk_classification": {
+                        "matrix_id": "compliance-fornecedor",
+                        "matrix_version": "1",
+                        "status": "classified",
+                        "level": "high",
+                        "score": 70,
+                        "matched_rules": [
+                          {
+                            "id": "processo-criminal",
+                            "score": 70,
+                            "description": "Processo criminal informado"
+                          }
+                        ],
+                        "missing_fields": []
+                      },
+                      "result": {
+                        "risk_classification": {
+                          "matrix_id": "compliance-fornecedor",
+                          "matrix_version": "1",
+                          "status": "classified",
+                          "level": "high",
+                          "score": 70,
+                          "matched_rules": [
+                            {
+                              "id": "processo-criminal",
+                              "score": 70,
+                              "description": "Processo criminal informado"
+                            }
+                          ],
+                          "missing_fields": []
+                        }
+                      },
+                      "artifacts": [
+                        {
+                          "id": "55555555-5555-4555-8555-555555555555",
+                          "type": "dossie_pdf",
+                          "media_type": "application/pdf",
+                          "status": "available",
+                          "download_url": "https://downloads.example.com/dossie.pdf",
+                          "expires_at": "2026-10-06T21:15:00Z"
+                        }
+                      ],
+                      "stale": false,
+                      "created_at": "2026-10-06T21:00:00Z",
+                      "updated_at": "2026-10-06T21:01:00Z"
+                    }
+                  }
+                }
               }
             }
           },
-          "404": { "$ref": "#/components/responses/Error" }
+          "404": {
+            "$ref": "#/components/responses/Error"
+          }
         }
       }
     },
     "/dossies/{dossie_id}/status": {
       "get": {
         "summary": "Consultar andamento do Dossiê",
-        "description": "Leitura leve do estado atual para acompanhamento assíncrono.",
+        "description": "Leitura leve do estado atual para acompanhamento assíncrono. Inclui mode e risk_classification após avaliar a matriz enviada. Sem matriz, risk_classification é omitida.",
         "operationId": "getDossieStatus",
-        "parameters": [{ "$ref": "#/components/parameters/DossieId" }],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DossieId"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Estado atual",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Dossie" }
+                "schema": {
+                  "$ref": "#/components/schemas/Dossie"
+                },
+                "examples": {
+                  "provided_data_risk": {
+                    "summary": "Dados fornecidos classificados como alto risco",
+                    "value": {
+                      "id": "22222222-2222-4222-8222-222222222222",
+                      "object": "dossie",
+                      "status": "completed",
+                      "subject_type": null,
+                      "mode": "provided_data",
+                      "kind": "basic",
+                      "contract_version": "v1",
+                      "billing_policy_version": "v1-public",
+                      "current_attempt": {
+                        "id": "33333333-3333-4333-8333-333333333333",
+                        "number": 1,
+                        "status": "completed",
+                        "queued_at": "2026-10-06T21:00:00Z",
+                        "completed_at": "2026-10-06T21:01:00Z",
+                        "billing": {
+                          "id": "44444444-4444-4444-8444-444444444444",
+                          "status": "charged",
+                          "amount": 35,
+                          "unit": "tokens",
+                          "price_version": "dossie-basic-2026-08",
+                          "billing_policy_version": "v1-public"
+                        }
+                      },
+                      "coverage": {
+                        "status": "complete",
+                        "completed": 1,
+                        "eligible": 1,
+                        "phases": [
+                          {
+                            "phase": "processos",
+                            "status": "completed"
+                          }
+                        ]
+                      },
+                      "risk_classification": {
+                        "matrix_id": "compliance-fornecedor",
+                        "matrix_version": "1",
+                        "status": "classified",
+                        "level": "high",
+                        "score": 70,
+                        "matched_rules": [
+                          {
+                            "id": "processo-criminal",
+                            "score": 70,
+                            "description": "Processo criminal informado"
+                          }
+                        ],
+                        "missing_fields": []
+                      },
+                      "result": {
+                        "risk_classification": {
+                          "matrix_id": "compliance-fornecedor",
+                          "matrix_version": "1",
+                          "status": "classified",
+                          "level": "high",
+                          "score": 70,
+                          "matched_rules": [
+                            {
+                              "id": "processo-criminal",
+                              "score": 70,
+                              "description": "Processo criminal informado"
+                            }
+                          ],
+                          "missing_fields": []
+                        }
+                      },
+                      "artifacts": [
+                        {
+                          "id": "55555555-5555-4555-8555-555555555555",
+                          "type": "dossie_pdf",
+                          "media_type": "application/pdf",
+                          "status": "available",
+                          "download_url": "https://downloads.example.com/dossie.pdf",
+                          "expires_at": "2026-10-06T21:15:00Z"
+                        }
+                      ],
+                      "stale": false,
+                      "created_at": "2026-10-06T21:00:00Z",
+                      "updated_at": "2026-10-06T21:01:00Z"
+                    }
+                  }
+                }
               }
             }
           },
-          "404": { "$ref": "#/components/responses/Error" }
+          "404": {
+            "$ref": "#/components/responses/Error"
+          }
         }
       }
     },
@@ -316,42 +1282,67 @@
         "summary": "Cancelar Dossiê",
         "description": "Solicita cancelamento enquanto o trabalho ainda permite essa transição.",
         "operationId": "cancelDossie",
-        "parameters": [{ "$ref": "#/components/parameters/DossieId" }],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DossieId"
+          }
+        ],
         "responses": {
           "202": {
             "description": "Cancelamento aceito",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Dossie" }
+                "schema": {
+                  "$ref": "#/components/schemas/Dossie"
+                }
               }
             }
           },
-          "404": { "$ref": "#/components/responses/Error" },
-          "409": { "$ref": "#/components/responses/Error" }
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
         }
       }
     },
     "/dossies/{dossie_id}/retry": {
       "post": {
         "summary": "Reprocessar Dossiê",
-        "description": "Cria uma nova tentativa para um Dossiê elegível, preservando o mesmo identificador.",
+        "description": "Cria uma nova tentativa para um Dossiê elegível, preservando o mesmo identificador. Reutiliza modo, módulos, dados e matriz originais e verifica novamente a liberação vigente da conta. Não permite substituir a configuração nesta operação.",
         "operationId": "retryDossie",
         "parameters": [
-          { "$ref": "#/components/parameters/DossieId" },
-          { "$ref": "#/components/parameters/IdempotencyKey" }
+          {
+            "$ref": "#/components/parameters/DossieId"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
         ],
         "responses": {
           "202": {
             "description": "Nova tentativa aceita",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Dossie" }
+                "schema": {
+                  "$ref": "#/components/schemas/Dossie"
+                }
               }
             }
           },
-          "402": { "$ref": "#/components/responses/Error" },
-          "404": { "$ref": "#/components/responses/Error" },
-          "409": { "$ref": "#/components/responses/Error" }
+          "402": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/CustomDossieNotEnabled"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
         }
       }
     }

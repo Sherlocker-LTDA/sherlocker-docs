@@ -126,13 +126,19 @@ execuções.
 ## Usar via API
 
 Esta jornada é indicada quando o Dossiê deve ser iniciado pelo seu sistema, portal,
-esteira ou operação interna. A API preserva o mesmo conceito de investigação, mas sua
-interface não é uma cópia da tela.
+esteira ou operação interna. A API oferece investigação padrão (`standard`),
+consulta dos módulos escolhidos (`modular`) e estruturação de dados enviados
+(`provided_data`), sem investigação. Os dois modos personalizados e qualquer
+`risk_matrix` exigem a flag `public_api_dossies_custom` na conta.
+
+Veja [modos e matriz de risco](/plataforma/dossie-api) para os exemplos JSON completos
+antes de escolher a entrada da sua integração.
 
 ### 1. Crie com segurança
 
-Envie o CPF ou CNPJ para `POST /dossies`, escolha `basic` ou `advanced` e, se necessário,
-adicione um contexto curto sobre o caso. A criação é assíncrona e exige:
+No modo padrão, envie o CPF ou CNPJ para `POST /dossies`, escolha `basic` ou `advanced`
+e, se necessário, adicione um contexto curto sobre o caso. Omitir `mode` preserva
+esse comportamento. A criação é assíncrona e exige:
 
 - um token com o escopo `dossies:write`;
 - uma `Idempotency-Key` estável para aquela tentativa de criação;
@@ -145,7 +151,7 @@ curl --request POST \
   --header "Content-Type: application/json" \
   --header "Idempotency-Key: caso-8472-dossie-v1" \
   --data '{
-    "document": "00000000000000",
+    "document": "11222333000181",
     "subject_type": "cnpj",
     "kind": "advanced",
     "context": "Revisão de fornecedor antes da renovação contratual"
@@ -173,8 +179,10 @@ automaticamente.
 
 Use `GET /dossies/{dossie_id}` para recuperar a visão atual do Dossiê:
 
+- `mode` identifica a forma de geração;
 - `coverage` informa o alcance e as limitações observadas;
-- `result` contém os achados estruturados disponíveis;
+- `result` contém o relatório estruturado disponível;
+- `risk_classification`, quando uma matriz foi enviada, retorna nível, pontuação, regras correspondentes e campos faltantes;
 - `artifacts` lista documentos como PDF ou DOCX e sua disponibilidade;
 - `stale` sinaliza que a representação pode não refletir o estado mais recente.
 
@@ -185,7 +193,8 @@ resposta atualizada quando precisar entregar o artefato depois desse prazo.
 
 Seu sistema deve encaminhar `needs_review` para uma fila humana em vez de convertê-lo
 em aprovação ou reprovação. Para trabalhos elegíveis, `POST /dossies/{dossie_id}/retry`
-cria uma nova tentativa e preserva o identificador do Dossiê. O cancelamento só é
+cria uma nova tentativa e preserva o identificador, modo, módulos, dados e matriz
+originais. O retry verifica novamente a liberação da conta. O cancelamento só é
 aceito enquanto o estado permitir a transição.
 
 Consulte a [visão geral e a referência do Dossiê](/plataforma/dossie) para ver os
