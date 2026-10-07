@@ -782,8 +782,8 @@
         "description":"Chaves únicas em cada objeto. Valores personalizados com profundidade máxima de 5 níveis.",
         "items":{"$ref":"#/components/schemas/DossieCustomField"}
       },
-      "DossieCustomValue": {
-        "description":"Valor estritamente tipado. Sem coerção. Texto e referências não executam instruções nem downloads.",
+      "DossieCustomScalar": {
+        "description":"Valor escalar estritamente tipado. Sem coerção. Texto e referências não executam instruções nem downloads.",
         "oneOf":[
           {"type":"object","additionalProperties":false,"required":["tipo","valor"],"properties":{"tipo":{"type":"string","enum":["texto"]},"valor":{"type":"string","minLength":1,"maxLength":20000}}},
           {"type":"object","additionalProperties":false,"required":["tipo","valor"],"properties":{"tipo":{"type":"string","enum":["inteiro"]},"valor":{"type":"integer","minimum":-9007199254740991,"maximum":9007199254740991}}},
@@ -792,9 +792,78 @@
           {"type":"object","additionalProperties":false,"required":["tipo","valor"],"properties":{"tipo":{"type":"string","enum":["data"]},"valor":{"type":"string","format":"date"}}},
           {"type":"object","additionalProperties":false,"required":["tipo","valor"],"properties":{"tipo":{"type":"string","enum":["instante"]},"valor":{"type":"string","format":"date-time"}}},
           {"type":"object","additionalProperties":false,"required":["tipo","valor"],"properties":{"tipo":{"type":"string","enum":["dinheiro"]},"valor":{"type":"object","additionalProperties":false,"required":["quantia","moeda"],"properties":{"quantia":{"type":"string","pattern":"^-?\\d{1,30}(?:\\.\\d{1,10})?$"},"moeda":{"type":"string","enum":["BRL","USD","EUR"]}}}}},
-          {"type":"object","additionalProperties":false,"required":["tipo","motivo"],"properties":{"tipo":{"type":"string","enum":["ausente"]},"motivo":{"type":"string","enum":["nao_informado","desconhecido","nao_aplicavel"]}}},
-          {"type":"object","additionalProperties":false,"required":["tipo","campos"],"properties":{"tipo":{"type":"string","enum":["objeto"]},"campos":{"$ref":"#/components/schemas/DossieCustomFields"}}},
-          {"type":"object","additionalProperties":false,"required":["tipo","itens"],"properties":{"tipo":{"type":"string","enum":["lista"]},"itens":{"type":"array","maxItems":500,"items":{"$ref":"#/components/schemas/DossieCustomValue"}}}}
+          {"type":"object","additionalProperties":false,"required":["tipo","motivo"],"properties":{"tipo":{"type":"string","enum":["ausente"]},"motivo":{"type":"string","enum":["nao_informado","desconhecido","nao_aplicavel"]}}}
+        ]
+      },
+      "DossieCustomValue": {
+        "description":"Valor no nível 1 de no máximo 5 níveis. Componentes acíclicos para renderização do playground.",
+        "oneOf":[
+          {"$ref":"#/components/schemas/DossieCustomScalar"},
+          {"type":"object","additionalProperties":false,"required":["tipo","campos"],"properties":{"tipo":{"type":"string","enum":["objeto"]},"campos":{"$ref":"#/components/schemas/DossieCustomFields2"}}},
+          {"type":"object","additionalProperties":false,"required":["tipo","itens"],"properties":{"tipo":{"type":"string","enum":["lista"]},"itens":{"type":"array","maxItems":500,"items":{"$ref":"#/components/schemas/DossieCustomValue2"}}}}
+        ]
+      },
+      "DossieCustomFields2": {
+        "type":"array","minItems":1,"maxItems":100,"description":"Chaves únicas por objeto.",
+        "items":{"type":"object","additionalProperties":false,"required":["chave","dado"],"properties":{
+          "chave":{"type":"string","pattern":"^[a-zA-Z0-9_-]{1,64}$"},
+          "rotulo":{"type":"string","minLength":1,"maxLength":200},
+          "dado":{"$ref":"#/components/schemas/DossieCustomValue2"}
+        }}
+      },
+      "DossieCustomValue2": {
+        "description":"Valor no nível 2 de no máximo 5 níveis.",
+        "oneOf":[
+          {"$ref":"#/components/schemas/DossieCustomScalar"},
+          {"type":"object","additionalProperties":false,"required":["tipo","campos"],"properties":{"tipo":{"type":"string","enum":["objeto"]},"campos":{"$ref":"#/components/schemas/DossieCustomFields3"}}},
+          {"type":"object","additionalProperties":false,"required":["tipo","itens"],"properties":{"tipo":{"type":"string","enum":["lista"]},"itens":{"type":"array","maxItems":500,"items":{"$ref":"#/components/schemas/DossieCustomValue3"}}}}
+        ]
+      },
+      "DossieCustomFields3": {
+        "type":"array","minItems":1,"maxItems":100,"description":"Chaves únicas por objeto.",
+        "items":{"type":"object","additionalProperties":false,"required":["chave","dado"],"properties":{
+          "chave":{"type":"string","pattern":"^[a-zA-Z0-9_-]{1,64}$"},
+          "rotulo":{"type":"string","minLength":1,"maxLength":200},
+          "dado":{"$ref":"#/components/schemas/DossieCustomValue3"}
+        }}
+      },
+      "DossieCustomValue3": {
+        "description":"Valor no nível 3 de no máximo 5 níveis.",
+        "oneOf":[
+          {"$ref":"#/components/schemas/DossieCustomScalar"},
+          {"type":"object","additionalProperties":false,"required":["tipo","campos"],"properties":{"tipo":{"type":"string","enum":["objeto"]},"campos":{"$ref":"#/components/schemas/DossieCustomFields4"}}},
+          {"type":"object","additionalProperties":false,"required":["tipo","itens"],"properties":{"tipo":{"type":"string","enum":["lista"]},"itens":{"type":"array","maxItems":500,"items":{"$ref":"#/components/schemas/DossieCustomValue4"}}}}
+        ]
+      },
+      "DossieCustomFields4": {
+        "type":"array","minItems":1,"maxItems":100,"description":"Chaves únicas por objeto.",
+        "items":{"type":"object","additionalProperties":false,"required":["chave","dado"],"properties":{
+          "chave":{"type":"string","pattern":"^[a-zA-Z0-9_-]{1,64}$"},
+          "rotulo":{"type":"string","minLength":1,"maxLength":200},
+          "dado":{"$ref":"#/components/schemas/DossieCustomValue4"}
+        }}
+      },
+      "DossieCustomValue4": {
+        "description":"Valor no nível 4 de no máximo 5 níveis.",
+        "oneOf":[
+          {"$ref":"#/components/schemas/DossieCustomScalar"},
+          {"type":"object","additionalProperties":false,"required":["tipo","campos"],"properties":{"tipo":{"type":"string","enum":["objeto"]},"campos":{"$ref":"#/components/schemas/DossieCustomFields5"}}},
+          {"type":"object","additionalProperties":false,"required":["tipo","itens"],"properties":{"tipo":{"type":"string","enum":["lista"]},"itens":{"type":"array","maxItems":500,"items":{"$ref":"#/components/schemas/DossieCustomValue5"}}}}
+        ]
+      },
+      "DossieCustomFields5": {
+        "type":"array","minItems":1,"maxItems":100,"description":"Chaves únicas por objeto.",
+        "items":{"type":"object","additionalProperties":false,"required":["chave","dado"],"properties":{
+          "chave":{"type":"string","pattern":"^[a-zA-Z0-9_-]{1,64}$"},
+          "rotulo":{"type":"string","minLength":1,"maxLength":200},
+          "dado":{"$ref":"#/components/schemas/DossieCustomValue5"}
+        }}
+      },
+      "DossieCustomValue5": {
+        "description":"Último nível: escalar ou lista vazia. Objetos exigem campos, portanto ultrapassariam o limite de 5 níveis.",
+        "oneOf":[
+          {"$ref":"#/components/schemas/DossieCustomScalar"},
+          {"type":"object","additionalProperties":false,"required":["tipo","itens"],"properties":{"tipo":{"type":"string","enum":["lista"]},"itens":{"type":"array","maxItems":0,"items":{}}}}
         ]
       },
       "DossieCustomData": {
