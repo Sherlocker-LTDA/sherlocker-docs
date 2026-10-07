@@ -6,8 +6,9 @@ icon: "key"
 
 **Status HTTP:** `403`
 
-A chave possui o entitlement, mas o produto não está habilitado atualmente para
-o workspace. Solicite a habilitação antes de repetir a chamada.
+O produto não está habilitado pelas flags atuais da conta/workspace. A verificação
+usa a habilitação vigente, não permissões gravadas na chave. Solicite a habilitação
+antes de repetir a chamada; não é necessário emitir ou rotacionar a chave.
 
 ```json
 {

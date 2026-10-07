@@ -1059,7 +1059,7 @@
     "/dossies": {
       "post": {
         "summary": "Criar Dossiê com módulos, dados ou ambos",
-        "description": "Geração assíncrona: retorna 202. Envie modules como lista de strings/objetos, data como lista tipada ou combine ambos, sem mode obrigatório. Só data não consulta fontes. modules não define seções. result.risco contém seis classes fixas automaticamente; evidence-only/1.0 não promete níveis baixo/médio/alto. PDF nos artifacts do GET existente. Exige entitlement dossies, escopo dossies:write e public_api_dossies; personalização exige public_api_dossies_custom. Use versão disponível e conta habilitada. Erros de validação/liberação ocorrem antes de aceitar/cobrar. risk_matrix é legado, opcional e aceito inclusive sem mode.",
+        "description": "Geração assíncrona: retorna 202. Envie modules como lista de strings/objetos, data como lista tipada ou combine ambos, sem mode obrigatório. Só data não consulta fontes. modules não define seções. result.risco contém seis classes fixas automaticamente; evidence-only/1.0 não promete níveis baixo/médio/alto. PDF nos artifacts do GET existente. Exige autenticação válida, vínculo com o workspace e a flag atual public_api_dossies na conta/workspace; personalização exige também public_api_dossies_custom. Não exige escopos, geração específica da chave nem permissões de produto fixadas na emissão. Use versão disponível e conta habilitada. Erros de validação/liberação ocorrem antes de aceitar/cobrar. risk_matrix é legado, opcional e aceito inclusive sem mode.",
         "operationId": "createDossie",
         "parameters": [
           {

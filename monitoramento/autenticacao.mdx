@@ -1,6 +1,6 @@
 ---
 title: "Autenticação"
-description: "Como autenticar chamadas do Monitoramento e separar leitura de gestão"
+description: "Como autenticar chamadas do Monitoramento e validar o acesso do workspace"
 icon: "key"
 ---
 
@@ -13,21 +13,19 @@ curl https://221b-api.sherlocker.com.br/api/v1/monitors \
 
 Não envie a chave em query string, corpo, logs ou código executado no navegador.
 
-## Escopos
+## Habilitação da conta
 
-| Escopo | Permite |
-| --- | --- |
-| `monitors:read` | listar e consultar acompanhamentos e mudanças detectadas |
-| `monitors:write` | criar, atualizar, pausar, retomar, encerrar e reconhecer mudanças |
-
-O escopo de escrita não concede leitura automaticamente. Use ambos quando a mesma
-integração precisar administrar e consultar acompanhamentos.
+O acesso depende da habilitação atual do produto por flags na conta/workspace,
+validada em cada chamada junto com a autenticação e o vínculo com o workspace.
+Não há escopos por chave para separar leitura e gestão, nem permissões de produto
+fixadas na emissão. Habilitar o produto não exige emitir uma nova chave.
 
 ## Isolamento por workspace
 
 Todo Monitoramento pertence ao workspace identificado pela chave. IDs inexistentes
 e IDs de outro workspace recebem a mesma resposta de recurso não encontrado. Outra
-chave do mesmo workspace só acessa o recurso quando possuir o escopo necessário.
+chave válida do mesmo workspace pode acessar o recurso enquanto o vínculo e a
+habilitação atual do produto permitirem.
 
 Para detalhes comuns sobre formato de respostas, paginação e limites, consulte
 [Autenticação da Plataforma](/plataforma/autenticacao).

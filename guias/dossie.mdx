@@ -141,7 +141,7 @@ Envie o CPF ou CNPJ para `POST /dossies` e selecione as consultas em `modules`.
 Sem `modules` nem `data`, o documento inicia a investigação padrão existente.
 A criação é assíncrona e exige:
 
-- um token com o escopo `dossies:write`;
+- uma chave válida vinculada ao workspace, com `public_api_dossies` habilitada atualmente na conta e, para módulos ou dados personalizados, também `public_api_dossies_custom`;
 - uma `Idempotency-Key` estável para aquela tentativa de criação;
 - tratamento da resposta `202`, que confirma a aceitação, não a conclusão.
 

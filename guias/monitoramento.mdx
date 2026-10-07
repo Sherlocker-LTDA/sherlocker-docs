@@ -173,8 +173,8 @@ interna ou ser conciliado com o sistema de risco da empresa.
 
 ### Crie o acompanhamento
 
-Uma chave `slhk_` precisa de `monitors:write` para criar ou alterar e
-`monitors:read` para consultar. A criação exige uma `Idempotency-Key`, que deve ser
+Use uma chave `slhk_` válida vinculada ao workspace, com Monitoramento habilitado
+pelas flags atuais da conta/workspace. A criação exige uma `Idempotency-Key`, que deve ser
 reutilizada somente ao repetir a mesma intenção.
 
 ```bash

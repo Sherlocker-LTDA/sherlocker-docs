@@ -195,7 +195,7 @@ Não há nova rota de PDF para dados personalizados. `needs_review` pode entrega
 
 ### Habilitação da conta
 
-Use uma versão que disponibilize o contrato e uma conta habilitada. A chave exige entitlement `dossies`, escopo `dossies:write` para criar/repetir e `dossies:read` para consultar, além de `public_api_dossies`. Módulos ou dados personalizados exigem também `public_api_dossies_custom`, desligada por padrão.
+Use uma versão que disponibilize o contrato e uma chave válida vinculada ao workspace. O acesso ao produto exige a flag atual `public_api_dossies` na conta/workspace. Módulos ou dados personalizados exigem também `public_api_dossies_custom`, desligada por padrão. Não há escopos, requisito de geração da chave nem permissões de produto fixadas na emissão. Habilitar a conta não exige emitir ou rotacionar a chave.
 
 A habilitação é administrativa e pertence à conta da chave. Não envie flags no JSON. Sem liberação, a API retorna `403 dossie_custom_not_enabled` antes de aceitar, cobrar ou enfileirar. O retry revalida a permissão.
 

@@ -17,10 +17,14 @@ curl -H "Authorization: Bearer SEU_TOKEN" \
 
 ## Erros de autenticação
 
+O acesso aos produtos depende das flags atuais da conta/workspace, além da
+autenticação válida e do vínculo com o workspace. Não depende de escopos ou de
+permissões de produto gravadas na chave. Veja [Autenticação da Plataforma](/plataforma/autenticacao).
+
 | Status | Descrição |
 |--------|-----------|
 | `401`  | Token ausente ou inválido |
-| `403`  | Token sem permissão para o recurso |
+| `403`  | Acesso não autorizado pelo vínculo ou pela habilitação atual da conta/workspace |
 
 <Warning>
   Nunca exponha seu token em repositórios públicos ou código client-side.

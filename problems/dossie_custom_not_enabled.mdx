@@ -28,9 +28,10 @@ de repetir a chamada; enviar a flag no body não concede acesso.
 }
 ```
 
-O uso padrão sem matriz continua sujeito somente à liberação da API de Dossiê,
-entitlement `dossies` e escopos da chave. Esses requisitos também continuam
-obrigatórios nos modos personalizados.
+O uso padrão sem matriz continua sujeito à autenticação válida, ao vínculo com o
+workspace e à flag atual `public_api_dossies` na conta/workspace. Esses requisitos
+também continuam obrigatórios nos modos personalizados, que exigem adicionalmente
+`public_api_dossies_custom`. Não é necessário emitir uma nova chave após a habilitação.
 
 ## Relacionado
 

@@ -410,8 +410,6 @@
               "problems/payload_too_large",
               "problems/bad_gateway",
               "problems/gateway_timeout",
-              "problems/scoped_key_required",
-              "problems/key_entitlement_missing",
               "problems/entitlement_not_enabled"
             ]
           }
@@ -483,8 +481,6 @@
               "problems/payload_too_large",
               "problems/bad_gateway",
               "problems/gateway_timeout",
-              "problems/scoped_key_required",
-              "problems/key_entitlement_missing",
               "problems/entitlement_not_enabled",
               "problems/dossie_custom_not_enabled"
             ]

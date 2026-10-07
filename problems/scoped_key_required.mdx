@@ -1,27 +1,15 @@
 ---
-title: "scoped_key_required"
-description: "Erro 403: a rota exige uma chave scoped de produto"
+title: "scoped_key_required (retirado)"
+description: "Código retirado do modelo atual de autorização"
 icon: "key"
 ---
 
-**Status HTTP:** `403`
+Este código não faz parte do contrato atual. As APIs de produto não exigem
+escopos nem uma geração específica da chave.
 
-A credencial é uma chave legada sem workspace, scopes e entitlements explícitos.
-Emita uma chave scoped para o produto antes de repetir a chamada.
+Use uma chave válida vinculada ao workspace. O acesso ao produto depende das
+flags atuais da conta/workspace, sem permissões de produto fixadas na emissão.
+Não emita uma nova chave apenas para habilitar um produto.
 
-```json
-{
-  "type": "https://docs.sherlocker.com.br/problems/scoped_key_required",
-  "title": "Scoped API Key Required",
-  "status": 403,
-  "code": "scoped_key_required",
-  "detail": "A scoped API key is required for product routes.",
-  "instance": "/api/v1/dossies",
-  "request_id": "req_01JEXEMPLO",
-  "retryable": false
-}
-```
-
-## Relacionado
-
-- [Erros da Plataforma](/plataforma/erros)
+Veja [Autenticação da Plataforma](/plataforma/autenticacao) e
+[Erros da Plataforma](/plataforma/erros).

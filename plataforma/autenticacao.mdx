@@ -1,11 +1,12 @@
 ---
 title: "Autenticação"
-description: "Como autenticar chamadas da Plataforma e limitar o acesso por escopo"
+description: "Como autenticar chamadas da Plataforma e verificar a habilitação do workspace"
 icon: "key"
 ---
 
-As APIs usam uma chave com escopos. A chave identifica o workspace, limita as ações
-permitidas e registra a origem de cada recurso.
+As APIs usam uma chave para autenticar a chamada, identificar o workspace e
+registrar a origem de cada recurso. O acesso aos produtos depende das flags
+habilitadas atualmente na conta/workspace, não de permissões gravadas na emissão da chave.
 
 ## Base da API
 
@@ -24,16 +25,16 @@ curl https://221b-api.sherlocker.com.br/api/v1/dossies \
 
 Não envie a chave em query string, corpo, logs ou código executado no navegador.
 
-## Escopos por área
+## Habilitação dos produtos
 
-| Área          | Leitura         | Escrita ou execução         |
-| ------------- | --------------- | --------------------------- |
-| Dossiê        | `dossies:read`  | `dossies:write`             |
-| Rastro        | `rastro:read`   | `rastro:search`             |
-| Lente         | `lente:read`    | `lente:geo` ou `lente:face` |
+A cada chamada, a API valida a autenticação, o vínculo com o workspace e as flags
+atuais da conta/workspace. Não há escopos de leitura ou escrita por chave, requisito
+de geração da chave nem cópia de permissões de produto fixada na emissão.
+Habilitar um produto não exige emitir ou rotacionar a chave existente.
 
-Um escopo de escrita não concede leitura automaticamente. Uma chave com apenas
-`dossies:write`, por exemplo, pode criar um Dossiê, mas não consultar seu resultado.
+Para Dossiê, a flag `public_api_dossies` libera o produto. Módulos ou dados
+personalizados exigem também `public_api_dossies_custom`. As flags são administradas
+na conta/workspace e não podem ser concedidas por headers ou pelo corpo da requisição.
 
 ## Workspace e acesso
 
@@ -41,7 +42,7 @@ Todo recurso pertence ao workspace da chave:
 
 - leituras e alterações são filtradas pelo workspace derivado da credencial;
 - um ID inexistente ou pertencente a outro workspace recebe o mesmo erro de recurso não encontrado;
-- outra chave do mesmo workspace pode acessar o recurso se possuir o escopo necessário;
+- outra chave válida do mesmo workspace pode acessar o recurso enquanto o vínculo e a habilitação atual do produto permitirem;
 - revogar uma chave bloqueia novas chamadas, mas não cancela trabalhos já aceitos.
 
 Headers enviados pelo cliente não podem substituir a identidade ou o workspace da chave.

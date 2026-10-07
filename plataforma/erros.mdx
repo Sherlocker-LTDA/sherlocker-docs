@@ -45,7 +45,7 @@ tratamento programático.
 | `400` | `validation_error`, `invalid_cursor`, `invalid_path`, `invalid_content_length`                    | corrija a requisição antes de reenviar                      |
 | `401` | `missing_api_key`, `invalid_api_key`, `revoked_api_key`                                           | corrija ou substitua a credencial                           |
 | `402` | `insufficient_balance`, `payment_required`                                                        | regularize saldo ou assinatura                              |
-| `403` | `scoped_key_required`, `key_entitlement_missing`, `insufficient_scope`, `entitlement_not_enabled`, `dossie_custom_not_enabled` | ajuste os escopos e a habilitação da área                   |
+| `403` | `entitlement_not_enabled`, `dossie_custom_not_enabled` | confira a habilitação atual do produto na conta/workspace |
 | `404` | `resource_not_found`                                                                              | confira o ID no workspace atual                             |
 | `405` | `method_not_allowed`                                                                              | use um dos métodos informados no header `Allow`             |
 | `409` | `invalid_state_transition`, `result_not_ready`                                                    | consulte o recurso e respeite as ações permitidas           |
