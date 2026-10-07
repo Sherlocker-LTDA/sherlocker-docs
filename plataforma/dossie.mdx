@@ -56,3 +56,26 @@ Considere sempre três dimensões em conjunto:
 Uma análise que exige revisão humana não equivale a uma falha técnica. Da mesma forma,
 um resultado parcial não deve ser tratado como ausência de informação sem antes avaliar
 a cobertura.
+
+## Três modos na API
+
+A API permite escolher como o documento será produzido:
+
+| `mode` | Entrada | Resultado |
+| --- | --- | --- |
+| `standard` (padrão) | CPF/CNPJ e tipo `basic` ou `advanced` | Investigação padrão existente |
+| `modular` | CPF/CNPJ e módulos, filtros e graus de conexão | Investigação limitada ao escopo escolhido |
+| `provided_data` | Conteúdo em JSON, com documento opcional | Relatório/PDF dos dados enviados, sem investigação |
+
+`modular`, `provided_data` e a matriz opcional de risco exigem a liberação
+`public_api_dossies_custom` na conta, além do acesso à API de Dossiê. A flag começa
+desligada. Uma matriz enviada em `risk_matrix` retorna `risk_classification`, com
+pontuação de 0 a 100, nível baixo/médio/alto e as regras correspondentes. Dados
+obrigatórios ausentes ou coleta parcial impedem a classificação.
+
+Em `provided_data`, cobertura completa significa que o conteúdo enviado foi
+estruturado; não significa que os dados foram investigados ou verificados.
+Essas opções são campos da API e não representam novos controles na tela da plataforma.
+
+Veja [modos, configuração e matriz de risco](/plataforma/dossie-api) para os exemplos
+JSON, requisitos de acesso, módulos disponíveis e interpretação da resposta.

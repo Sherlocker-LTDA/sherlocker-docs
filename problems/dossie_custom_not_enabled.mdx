@@ -1,0 +1,37 @@
+---
+title: "dossie_custom_not_enabled"
+description: "Erro 403: a conta não tem liberação para dossiês personalizados ou matriz de risco"
+icon: "key"
+---
+
+**Status HTTP:** `403`
+
+A flag `public_api_dossies_custom` não está habilitada para a conta/workspace da
+chave autenticada. Ela é exigida para `mode: "modular"`, `mode: "provided_data"`
+e para qualquer `risk_matrix`, inclusive no modo `standard`.
+
+A requisição é recusada antes da aceitação, cobrança e enfileiramento. O retry
+revalida a liberação vigente. Solicite a habilitação administrativa da conta antes
+de repetir a chamada; enviar a flag no body não concede acesso.
+
+```json
+{
+  "type": "https://docs.sherlocker.com.br/problems/dossie_custom_not_enabled",
+  "title": "Custom Dossier Not Enabled",
+  "status": 403,
+  "code": "dossie_custom_not_enabled",
+  "detail": "Modular and provided_data dossiers are not enabled for this workspace.",
+  "instance": "/api/v1/dossies",
+  "request_id": "req_01JEXEMPLO",
+  "retryable": false
+}
+```
+
+O uso padrão sem matriz continua sujeito somente à liberação da API de Dossiê,
+entitlement `dossies` e escopos da chave. Esses requisitos também continuam
+obrigatórios nos modos personalizados.
+
+## Relacionado
+
+- [Modos e matriz de risco](/plataforma/dossie-api)
+- [Erros da Plataforma](/plataforma/erros)
