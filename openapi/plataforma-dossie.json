@@ -809,10 +809,11 @@
       },
       "DossieSections": {
         "type":"array","minItems":1,"maxItems":50,
-        "description":"Somente ordenação e títulos. id corresponde a section.id ou ao bloco personalizado renderizado como provided-{id}. ID desconhecido gera conteúdo indisponível, sem coleta adicional. Origem/risco permanecem. Sem composição semântica, ênfase ou detalhamento por texto livre. descricao é rejeitado.",
+        "description":"Ordenação, títulos e texto literal opcional do cliente, escapado e identificado como fornecido. id corresponde a section.id ou ao bloco renderizado como provided-{id}. ID desconhecido informa indisponibilidade sem coleta. Origem/risco permanecem. descricao é rejeitado, sem composição semântica. IDs reservados e aliases do mesmo bloco são rejeitados antes da cobrança.",
         "items":{"type":"object","additionalProperties":false,"required":["id","titulo"],"properties":{
           "id":{"type":"string","pattern":"^[a-zA-Z0-9_-]{1,64}$"},
-          "titulo":{"type":"string","minLength":1,"maxLength":200}
+          "titulo":{"type":"string","minLength":1,"maxLength":200},
+          "texto":{"type":"string","minLength":1,"maxLength":20000,"description":"Texto literal fornecido pelo cliente, não instrução para reescrita ou consulta."}
         }}
       },
       "DossieRiskSector": {

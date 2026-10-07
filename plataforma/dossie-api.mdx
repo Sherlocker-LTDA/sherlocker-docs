@@ -142,13 +142,35 @@ Origem declarada pelo cliente não é certificação. Texto ou URL em um campo n
 **`modules` define o que consultar. Seções definem como apresentar o que já existe.**
 Selecionar processos não obriga a ter apenas uma seção, e pedir uma seção patrimonial não autoriza consultar imóveis ou veículos. Dados personalizados também podem aparecer no relatório sem um módulo correspondente.
 
-`secoes` permite apenas ordenar e renomear seções, com `id` e `titulo`. O ID
-corresponde ao `section.id` existente ou ao ID do bloco personalizado (renderizado
-como `provided-{id}`). Um ID desconhecido gera uma seção de conteúdo indisponível,
-sem nova consulta. Seções de origem e risco permanecem no relatório. Não é um campo para instruir a redação. **`descricao` é rejeitado: esta
-versão não oferece composição semântica, ênfase ou detalhamento por texto livre.**
-Sem `secoes`, a composição é padrão. Seções não substituem os dados e não autorizam
-novas buscas.
+`secoes` permite ordenar e renomear seções com `id` e `titulo`, além de incluir
+`texto` opcional (1–20.000 caracteres). O texto é apresentado literalmente, escapado
+e identificado como conteúdo fornecido pelo cliente. Não é uma instrução para
+reescrever, enfatizar ou aprofundar os dados consultados.
+
+Por exemplo, acrescente ao pedido combinado:
+
+```json
+{
+  "secoes": [
+    {
+      "id": "cadastro_interno",
+      "titulo": "Revisão interna do cliente",
+      "texto": "Cadastro recebido. A decisão final depende da revisão da equipe responsável."
+    }
+  ]
+}
+```
+
+Este trecho complementa o pedido, não é uma requisição completa. O ID corresponde
+ao `section.id` existente ou ao ID do bloco personalizado, renderizado como
+`provided-{id}`. Um ID desconhecido informa a indisponibilidade dos dados, sem
+nova consulta. Seções de origem e risco permanecem no relatório.
+
+**`descricao` é rejeitado. Esta versão não oferece composição semântica por texto
+livre.** Não use IDs reservados de risco, o prefixo `provided-` em IDs de blocos ou
+IDs de blocos que colidam com módulos selecionados. Não selecione o mesmo bloco
+como `x` e `provided-x`. Essas colisões são rejeitadas antes da cobrança.
+Sem `secoes`, a composição é padrão.
 
 ## Risco automático: seis classes fixas
 
