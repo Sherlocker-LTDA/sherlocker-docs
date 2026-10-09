@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "Sherlocker Listas Restritivas API",
-    "description": "Consulta consolidada de sancoes, impedimentos e alertas (PEP) contra 13 listas oficiais. Retorna ocorrencias agrupadas (sancoes / restritivas / alertas) e um mapa de cobertura auditavel por lista, com saude da fonte e nivel de confiabilidade. Sincrono: a resposta ja vem completa, sem job nem polling.",
+    "description": "Consulta consolidada de sancoes, impedimentos e alertas (PEP) contra 13 listas oficiais. Retorna ocorrencias agrupadas (sancoes / restritivas / alertas) e um mapa de cobertura auditavel por lista aplicavel ao tipo do documento, com a data de atualizacao de cada base e nivel de confiabilidade. Sincrono: a resposta ja vem completa, sem job nem polling.",
     "version": "1.0"
   },
   "servers": [
@@ -97,7 +97,7 @@
       },
       "CoberturaItem": {
         "type": "object",
-        "description": "Status de uma das 13 listas. O array cobertura sempre traz as 13, mesmo sem registro, para auditoria do que foi (ou nao foi) verificado.",
+        "description": "Status de uma lista aplicavel ao tipo do documento. O array cobertura traz todas as listas que valem para CPF (ou para CNPJ), mesmo sem registro, para auditoria do que foi (ou nao foi) verificado. Listas que nao se aplicam ao tipo (ex.: PEP para CNPJ) nao aparecem.",
         "properties": {
           "lista_id": {
             "type": "string",
@@ -121,34 +121,24 @@
               "encontrado",
               "nada_consta",
               "indisponivel",
-              "nao_aplicavel",
               "requer_nome"
             ],
-            "description": "encontrado=ha registro; nada_consta=verificado sem registro; indisponivel=fonte degradada (STALE/FAILED); nao_aplicavel=lista nao cobre esse tipo de documento; requer_nome=lista exige nome e nenhum foi informado nem resolvido"
+            "description": "encontrado=ha registro; nada_consta=verificado sem registro; indisponivel=a consulta a fonte falhou ou a base nunca foi sincronizada (ultima_atualizacao=null); requer_nome=lista exige nome e nenhum foi informado nem resolvido"
           },
           "ocorrencias": {
             "type": "number",
             "example": 0
           },
-          "saude": {
-            "type": "string",
-            "enum": [
-              "OK",
-              "STALE",
-              "FAILED",
-              null
-            ],
-            "nullable": true,
-            "description": "Saude da fonte; null quando nao consultada"
+          "desatualizada": {
+            "type": "boolean",
+            "description": "true quando a ultima atualizacao da base falhou ou atrasou. O resultado continua valido, mas reflete os dados de ultima_atualizacao.",
+            "example": false
           },
           "ultima_atualizacao": {
             "type": "string",
             "nullable": true,
+            "description": "Data (YYYY-MM-DD HH:MM:SS) da ultima atualizacao bem-sucedida da base. null quando a base nunca foi sincronizada ou nao foi consultada.",
             "example": "2026-06-15 13:00:00"
-          },
-          "motivo": {
-            "type": "string",
-            "description": "Razao quando resultado=indisponivel"
           },
           "fonte_oficial": {
             "type": "string",
@@ -199,9 +189,6 @@
             "type": "number"
           },
           "indisponiveis": {
-            "type": "number"
-          },
-          "nao_aplicaveis": {
             "type": "number"
           },
           "confiabilidade": {
@@ -368,7 +355,6 @@
                     "fontes_consultadas": 10,
                     "com_ocorrencia": 0,
                     "indisponiveis": 0,
-                    "nao_aplicaveis": 3,
                     "confiabilidade": "completa"
                   },
                   "grupos": {
@@ -383,7 +369,7 @@
                       "grupo": "sancoes",
                       "resultado": "nada_consta",
                       "ocorrencias": 0,
-                      "saude": "OK",
+                      "desatualizada": false,
                       "ultima_atualizacao": "2026-06-15 13:00:00",
                       "fonte_oficial": "https://portaldatransparencia.gov.br"
                     },
@@ -393,19 +379,19 @@
                       "grupo": "alertas",
                       "resultado": "nada_consta",
                       "ocorrencias": 0,
-                      "saude": "OK",
+                      "desatualizada": false,
                       "ultima_atualizacao": "2026-06-15 13:00:00",
                       "fonte_oficial": "https://portaldatransparencia.gov.br"
                     },
                     {
-                      "lista_id": "lista-suja",
-                      "nome": "Trabalho Escravo (Lista Suja)",
-                      "grupo": "sancoes",
-                      "resultado": "nao_aplicavel",
+                      "lista_id": "ibama",
+                      "nome": "IBAMA — Embargos",
+                      "grupo": "restritivas",
+                      "resultado": "nada_consta",
                       "ocorrencias": 0,
-                      "saude": null,
-                      "ultima_atualizacao": null,
-                      "fonte_oficial": "https://www.gov.br/trabalho-e-emprego"
+                      "desatualizada": true,
+                      "ultima_atualizacao": "2026-06-10 03:00:00",
+                      "fonte_oficial": "https://www.gov.br/ibama"
                     }
                   ]
                 }
@@ -494,7 +480,6 @@
                     "fontes_consultadas": 10,
                     "com_ocorrencia": 1,
                     "indisponiveis": 0,
-                    "nao_aplicaveis": 3,
                     "confiabilidade": "completa"
                   },
                   "grupos": {
@@ -530,7 +515,7 @@
                       "grupo": "sancoes",
                       "resultado": "encontrado",
                       "ocorrencias": 1,
-                      "saude": "OK",
+                      "desatualizada": false,
                       "ultima_atualizacao": "2026-06-15 13:00:00",
                       "fonte_oficial": "https://portaldatransparencia.gov.br"
                     },
@@ -540,28 +525,18 @@
                       "grupo": "sancoes",
                       "resultado": "nada_consta",
                       "ocorrencias": 0,
-                      "saude": "OK",
+                      "desatualizada": false,
                       "ultima_atualizacao": "2026-06-15 13:00:00",
                       "fonte_oficial": "https://portaldatransparencia.gov.br"
                     },
                     {
-                      "lista_id": "ceaf",
-                      "nome": "CEAF — Expulsoes da Administracao Federal",
-                      "grupo": "sancoes",
-                      "resultado": "nao_aplicavel",
+                      "lista_id": "cepim",
+                      "nome": "CEPIM — Entidades Privadas Impedidas",
+                      "grupo": "restritivas",
+                      "resultado": "nada_consta",
                       "ocorrencias": 0,
-                      "saude": null,
-                      "ultima_atualizacao": null,
-                      "fonte_oficial": "https://portaldatransparencia.gov.br"
-                    },
-                    {
-                      "lista_id": "pep",
-                      "nome": "PEP — Pessoa Politicamente Exposta",
-                      "grupo": "alertas",
-                      "resultado": "nao_aplicavel",
-                      "ocorrencias": 0,
-                      "saude": null,
-                      "ultima_atualizacao": null,
+                      "desatualizada": true,
+                      "ultima_atualizacao": "2026-06-10 03:00:00",
                       "fonte_oficial": "https://portaldatransparencia.gov.br"
                     }
                   ]
