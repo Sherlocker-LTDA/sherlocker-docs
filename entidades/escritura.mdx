@@ -12,6 +12,8 @@ Uma **Escritura** é um ato lavrado em cartório de notas e enviado à **CESDI**
 
 ## Tipagem
 
+Resultado da consulta (campo `result` de `GET /escrituras/jobs/{jobId}` quando `status` é `completed`).
+
 ```json
 {
   "documento": "12345678901",
@@ -121,31 +123,28 @@ Uma **Escritura** é um ato lavrado em cartório de notas e enviado à **CESDI**
 
 Herdeiros menores de idade aparecem com nome e CPF mascarados, sem data de nascimento, residência ou documentos, e com `mascarado_motivo: "menor_de_idade"`. A idade é calculada no momento de cada consulta. Quando a CENSEC não informa a data de nascimento, o nome é mantido e os documentos extras (RG etc.) são omitidos, exceto a OAB de advogados.
 
-## Tempo de resposta e modo assíncrono
+## Consulta assíncrona
 
-A CENSEC protege a consulta com captcha, por isso cada busca leva de **10 a 50 segundos**. Resultados ficam guardados por 24 horas, e uma nova consulta do mesmo documento nesse período é imediata.
-
-Para consultar vários documentos, use `?async=true`. A resposta chega na hora com o endereço para acompanhar o resultado:
+A CENSEC protege a consulta com captcha, então cada busca leva de **10 a 50 segundos**. Por isso a consulta é **assíncrona**: a resposta chega na hora com o endereço do resultado.
 
 ```bash
-curl "https://221b-api.sherlocker.com.br/api/v1/escrituras/cpf/12345678901?async=true&token=SEU_TOKEN"
-# { "jobId": "…", "status": "processing", "statusUrl": "/api/v1/escrituras/jobs/…" }
+curl "https://221b-api.sherlocker.com.br/api/v1/escrituras/cpf/12345678901?token=SEU_TOKEN"
+# 202 { "jobId": "3f2c…", "status": "processing", "statusUrl": "/api/v1/escrituras/jobs/3f2c…" }
 
-curl "https://221b-api.sherlocker.com.br/api/v1/escrituras/jobs/{jobId}?token=SEU_TOKEN"
+curl "https://221b-api.sherlocker.com.br/api/v1/escrituras/jobs/3f2c…?token=SEU_TOKEN"
+# { "status": "completed", "result": { "total": 1, "escrituras": [ … ] } }
 ```
 
-Se a CENSEC falhar, o job tenta de novo sozinho até três vezes. Os tokens são estornados quando não há escritura ou quando o job termina com falha, igual à consulta direta.
+Consulte `statusUrl` a cada 5 a 10 segundos até `status` ser `completed` (a resposta descrita acima vem em `result`) ou `failed` (o motivo vem em `error`). A consulta do resultado é gratuita e fica disponível por 24 horas. O mesmo documento consultado de novo dentro de 24 horas fica pronto quase na hora.
+
+Se a CENSEC falhar, a consulta tenta de novo sozinha até três vezes. Os tokens são estornados quando não há escritura ou quando a consulta termina com falha.
 
 ## Erros
 
-| Status | `error` | Quando |
+| Onde | Status | Quando |
 | --- | --- | --- |
-| 400 | — | CPF ou CNPJ inválido |
-| 503 | `fonte_indisponivel` | CENSEC fora do ar ou captcha recusado |
-| 503 | `fonte_ocupada` | Muitas consultas de escrituras ao mesmo tempo. Tente de novo em instantes |
-| 504 | `fonte_timeout` | CENSEC não respondeu a tempo |
-
-Nos erros 503 e 504 os tokens são estornados.
+| Consulta por CPF/CNPJ | 400 | CPF ou CNPJ inválido. Nada é enfileirado nem cobrado |
+| Resultado | `failed` | CENSEC fora do ar, captcha não resolvido ou consulta recusada pela CENSEC, depois das novas tentativas. Tokens estornados |
 
 ## Endpoints
 
@@ -155,5 +154,8 @@ Nos erros 503 e 504 os tokens são estornados.
   </Card>
   <Card title="Por CNPJ" icon="building" href="/api-reference/escrituras/escrituras-por-cnpj">
     `GET /escrituras/cnpj/{cnpj}`
+  </Card>
+  <Card title="Resultado" icon="clock-rotate-left" href="/api-reference/escrituras/resultado-de-uma-consulta-de-escrituras">
+    `GET /escrituras/jobs/{jobId}`
   </Card>
 </CardGroup>
