@@ -1,0 +1,159 @@
+---
+title: "Escritura"
+description: "Escritura pública de separação, divórcio ou inventário registrada na CENSEC"
+icon: "file-signature"
+---
+
+Uma **Escritura** é um ato lavrado em cartório de notas e enviado à **CESDI**, a Central de Escrituras de Separações, Divórcios e Inventários da CENSEC. A consulta é feita **ao vivo** na CENSEC por CPF ou CNPJ e devolve cada ato em que o documento aparece, com todas as partes envolvidas.
+
+<Info>
+  A CESDI só reúne escrituras **lavradas em cartório**. Separações, divórcios e inventários feitos na Justiça ficam nos tribunais. Para esses, use a [busca de processos](/entidades/processo) com a categoria [Família e Sucessões](/categorias/familia-sucessoes).
+</Info>
+
+## Tipagem
+
+```json
+{
+  "documento": "12345678901",
+  "tipo_documento": "cpf",
+  "fonte": "CENSEC/CESDI",
+  "consultado_em": "2026-10-12T17:00:00.000Z",
+  "total": 1,
+  "possivelmente_truncado": false,
+  "cobertura": "Escrituras públicas de separação, divórcio e inventário lavradas em cartório e enviadas à CENSEC. Atos judiciais ficam nos tribunais e não aparecem aqui.",
+  "escrituras": [
+    {
+      "ids_fonte": ["2b1f0c3e-0000-4000-8000-000000000001"],
+      "tipo": "Inventario",
+      "tipo_descricao": "Inventário",
+      "data": "2022-12-14",
+      "livro": "21",
+      "livro_complemento": "E",
+      "folha": "118",
+      "folha_complemento": null,
+      "cartorio": {
+        "cns": "95984",
+        "denominacao": "OFÍCIO DE REGISTRO CIVIL E NOTAS",
+        "municipio": "CIDADE EXEMPLO",
+        "uf": "RO",
+        "ibge": "1100000",
+        "endereco": { "logradouro": "AVENIDA EXEMPLO", "numero": "100", "complemento": null, "bairro": "CENTRO", "cep": "76900000" },
+        "email": "notas@cartorio.exemplo",
+        "telefones": [{ "numero": "(69) 30000000", "ramal": null, "tipo": "Fixo" }]
+      },
+      "incluida_na_censec_em": "2023-01-05T12:00:00+00:00",
+      "qualidades_consultado": ["Herdeiro"],
+      "data_casamento": null,
+      "regime_bens": null,
+      "filhos_maiores": null,
+      "filhos_menores": null,
+      "bens_imoveis": [],
+      "referentes": [],
+      "partes": [
+        {
+          "nome": "JOSE EXEMPLO DA SILVA",
+          "cpf_cnpj": "98765432100",
+          "qualidade": "Falecido",
+          "data_nascimento": "1940-03-02",
+          "sexo": "M",
+          "naturalidade_uf": "MG",
+          "residencia": { "municipio": "CIDADE EXEMPLO", "uf": "RO" },
+          "documentos": [{ "tipo": "Rg", "numero": "123456", "uf": "RO" }]
+        },
+        {
+          "nome": "MARIA EXEMPLO DA SILVA",
+          "cpf_cnpj": "12345678901",
+          "qualidade": "Herdeiro",
+          "data_nascimento": "1975-08-19",
+          "sexo": "F",
+          "documentos": [{ "tipo": "Rg", "numero": "654321", "uf": "RO" }]
+        },
+        {
+          "nome": "[Menor de Idade, Protegido pela LGPD]",
+          "cpf_cnpj": "***.***.***-**",
+          "qualidade": "Herdeiro",
+          "data_nascimento": null,
+          "documentos": [],
+          "mascarado_motivo": "menor_de_idade"
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Campos da resposta
+
+| Campo | Descrição |
+| --- | --- |
+| `total` | Número de escrituras distintas. `0` quando não há escritura, e nesse caso os tokens são estornados |
+| `possivelmente_truncado` | `true` quando a CENSEC atingiu o limite de 300 registros por busca |
+| `cobertura` | Lembrete de que atos judiciais não estão na CESDI |
+| `escrituras[]` | Uma entrada por ato, da mais recente para a mais antiga |
+
+### Escritura
+
+| Campo | Descrição |
+| --- | --- |
+| `tipo` / `tipo_descricao` | `Inventario` (Inventário), `InventarioComMenorOuIncapaz`, `Partilha`, `Sobrepartilha`, `NomeacaoDeInventariante`, `DivorcioDireto` (Divórcio direto), `Separacao`, `ConversaoDeSeparacaoEmDivorcio`, `Reconciliacao`, `Retificacao`, `RetificacaoAtoNaoNotarial` |
+| `data` | Data da lavratura (`AAAA-MM-DD`) |
+| `livro`, `folha` e complementos | Localização do ato no cartório, para pedir a certidão |
+| `cartorio` | CNS, nome, município, UF, código IBGE, endereço, e-mail e telefones públicos |
+| `qualidades_consultado` | Papel do CPF/CNPJ consultado no ato, por exemplo `Herdeiro` ou `Divorciando` |
+| `data_casamento`, `regime_bens`, `filhos_maiores`, `filhos_menores` | Preenchidos em divórcios e separações |
+| `responsavel`, `valor`, `mne`, `numero_controle`, `complementacao`, `data_contrato`, `data_validade` | Dados complementares do ato, quando o cartório informou |
+| `bens_imoveis`, `referentes` | Bens e atos referentes, quando o cartório informou |
+| `incluida_na_censec_em` | Quando o cartório enviou o ato à CENSEC |
+| `ids_fonte` | Identificadores do ato na CENSEC. Um ato enviado duas vezes pelo cartório aparece uma vez só, com os dois ids |
+| `partes` | Todas as partes do ato. `null` quando a CENSEC não devolveu o detalhe naquele momento |
+
+### Parte
+
+| Campo | Descrição |
+| --- | --- |
+| `nome`, `cpf_cnpj` | Identificação da parte |
+| `qualidade` | Papel no ato: `Falecido`, `Herdeiro`, `Viuvo`, `Inventariante`, `Divorciando`, `Separando`, `Advogado`, `Cedente`, `Anuente` etc. |
+| `data_nascimento`, `sexo`, `estrangeiro`, `naturalidade_uf`, `residencia` | Dados pessoais registrados no ato |
+| `conjuge_tipo` | `Conjuge1` ou `Conjuge2` em divórcios e separações |
+| `documentos` | RG, OAB, passaporte e outros. O CPF/CNPJ fica em `cpf_cnpj` |
+
+## Menores de idade (LGPD)
+
+Herdeiros menores de idade aparecem com nome e CPF mascarados, sem data de nascimento, residência ou documentos, e com `mascarado_motivo: "menor_de_idade"`. A idade é calculada no momento de cada consulta. Quando a CENSEC não informa a data de nascimento, o nome é mantido e os documentos extras (RG etc.) são omitidos, exceto a OAB de advogados.
+
+## Tempo de resposta e modo assíncrono
+
+A CENSEC protege a consulta com captcha, por isso cada busca leva de **10 a 50 segundos**. Resultados ficam guardados por 24 horas, e uma nova consulta do mesmo documento nesse período é imediata.
+
+Para consultar vários documentos, use `?async=true`. A resposta chega na hora com o endereço para acompanhar o resultado:
+
+```bash
+curl "https://221b-api.sherlocker.com.br/api/v1/escrituras/cpf/12345678901?async=true&token=SEU_TOKEN"
+# { "jobId": "…", "status": "processing", "statusUrl": "/api/v1/escrituras/jobs/…" }
+
+curl "https://221b-api.sherlocker.com.br/api/v1/escrituras/jobs/{jobId}?token=SEU_TOKEN"
+```
+
+Se a CENSEC falhar, o job tenta de novo sozinho até três vezes.
+
+## Erros
+
+| Status | `error` | Quando |
+| --- | --- | --- |
+| 400 | — | CPF ou CNPJ inválido |
+| 503 | `fonte_indisponivel` | CENSEC fora do ar ou captcha recusado |
+| 503 | `fonte_ocupada` | Muitas consultas de escrituras ao mesmo tempo. Tente de novo em instantes |
+| 504 | `fonte_timeout` | CENSEC não respondeu a tempo |
+
+Nos erros 503 e 504 os tokens são estornados.
+
+## Endpoints
+
+<CardGroup cols={2}>
+  <Card title="Por CPF" icon="user" href="/api-reference/escrituras/escrituras-por-cpf">
+    `GET /escrituras/cpf/{cpf}`
+  </Card>
+  <Card title="Por CNPJ" icon="building" href="/api-reference/escrituras/escrituras-por-cnpj">
+    `GET /escrituras/cnpj/{cnpj}`
+  </Card>
+</CardGroup>

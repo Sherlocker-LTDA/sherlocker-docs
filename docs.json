@@ -263,7 +263,8 @@
               "entidades/processo",
               "entidades/parte",
               "entidades/advogado",
-              "entidades/documento"
+              "entidades/documento",
+              "entidades/escritura"
             ]
           },
           {
@@ -277,6 +278,14 @@
               "GET /processos/numero/{numero}",
               "GET /processos/numero/{numero}/movimentacoes",
               "GET /processos/categorias"
+            ]
+          },
+          {
+            "group": "Escrituras",
+            "openapi": "/openapi/escrituras.json",
+            "pages": [
+              "GET /escrituras/cpf/{cpf}",
+              "GET /escrituras/cnpj/{cnpj}"
             ]
           },
           {

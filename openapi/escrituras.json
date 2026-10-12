@@ -1,0 +1,825 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Sherlocker Escrituras API",
+    "version": "1.0"
+  },
+  "servers": [
+    {
+      "url": "https://221b-api.sherlocker.com.br/api/v1"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/escrituras/cpf/{cpf}": {
+      "get": {
+        "operationId": "getEscriturasByCpf",
+        "summary": "Escrituras por CPF",
+        "description": "Consulta **ao vivo** a CESDI (Central de Escrituras de Separações, Divórcios e Inventários) da CENSEC. Devolve cada escritura com cartório, data, livro/folha, dados do casamento e **todas as partes com CPF**. A consulta leva de 10 a 50 segundos; para lotes use `?async=true`. Resultado guardado por 24 h. Sem escrituras, `total: 0` e os tokens são estornados.",
+        "tags": [
+          "Escrituras"
+        ],
+        "parameters": [
+          {
+            "name": "cpf",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "12345678901"
+            },
+            "description": "CPF com ou sem máscara"
+          },
+          {
+            "name": "async",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "`true` responde 202 com `jobId` e `statusUrl` (`/escrituras/jobs/{jobId}`)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Escrituras encontradas (ou `total: 0`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EscriturasResponse"
+                },
+                "example": {
+                  "documento": "12345678901",
+                  "tipo_documento": "cpf",
+                  "fonte": "CENSEC/CESDI",
+                  "consultado_em": "2026-10-12T17:00:00.000Z",
+                  "total": 1,
+                  "possivelmente_truncado": false,
+                  "cobertura": "Escrituras públicas de separação, divórcio e inventário lavradas em cartório e enviadas à CENSEC. Atos judiciais ficam nos tribunais e não aparecem aqui.",
+                  "escrituras": [
+                    {
+                      "ids_fonte": [
+                        "2b1f0c3e-0000-4000-8000-000000000001"
+                      ],
+                      "tipo": "Inventario",
+                      "tipo_descricao": "Inventário",
+                      "data": "2022-12-14",
+                      "livro": "21",
+                      "livro_complemento": "E",
+                      "folha": "118",
+                      "folha_complemento": null,
+                      "cartorio": {
+                        "cns": "95984",
+                        "denominacao": "OFÍCIO DE REGISTRO CIVIL E NOTAS",
+                        "municipio": "CIDADE EXEMPLO",
+                        "uf": "RO",
+                        "ibge": "1100000",
+                        "endereco": {
+                          "logradouro": "AVENIDA EXEMPLO",
+                          "numero": "100",
+                          "complemento": null,
+                          "bairro": "CENTRO",
+                          "cep": "76900000"
+                        },
+                        "email": "notas@cartorio.exemplo",
+                        "telefones": [
+                          {
+                            "numero": "(69) 30000000",
+                            "ramal": null,
+                            "tipo": "Fixo"
+                          }
+                        ]
+                      },
+                      "incluida_na_censec_em": "2023-01-05T12:00:00+00:00",
+                      "qualidades_consultado": [
+                        "Herdeiro"
+                      ],
+                      "mne": null,
+                      "valor": null,
+                      "responsavel": null,
+                      "numero_controle": null,
+                      "complementacao": null,
+                      "data_contrato": null,
+                      "data_validade": null,
+                      "data_casamento": null,
+                      "regime_bens": null,
+                      "filhos_maiores": null,
+                      "filhos_menores": null,
+                      "existe_bem_e_direito": null,
+                      "bens_imoveis": [],
+                      "referentes": [],
+                      "partes": [
+                        {
+                          "nome": "JOSE EXEMPLO DA SILVA",
+                          "cpf_cnpj": "98765432100",
+                          "qualidade": "Falecido",
+                          "data_nascimento": "1940-03-02",
+                          "sexo": "M",
+                          "estrangeiro": false,
+                          "conjuge_tipo": null,
+                          "naturalidade_uf": "MG",
+                          "residencia": {
+                            "municipio": "CIDADE EXEMPLO",
+                            "uf": "RO"
+                          },
+                          "documentos": [
+                            {
+                              "tipo": "Rg",
+                              "numero": "123456",
+                              "uf": "RO"
+                            }
+                          ]
+                        },
+                        {
+                          "nome": "MARIA EXEMPLO DA SILVA",
+                          "cpf_cnpj": "12345678901",
+                          "qualidade": "Herdeiro",
+                          "data_nascimento": "1975-08-19",
+                          "sexo": "F",
+                          "estrangeiro": false,
+                          "conjuge_tipo": null,
+                          "naturalidade_uf": "RO",
+                          "residencia": {
+                            "municipio": "CIDADE EXEMPLO",
+                            "uf": "RO"
+                          },
+                          "documentos": [
+                            {
+                              "tipo": "Rg",
+                              "numero": "654321",
+                              "uf": "RO"
+                            }
+                          ]
+                        },
+                        {
+                          "nome": "[Menor de Idade, Protegido pela LGPD]",
+                          "cpf_cnpj": "***.***.***-**",
+                          "qualidade": "Herdeiro",
+                          "data_nascimento": null,
+                          "sexo": "M",
+                          "estrangeiro": false,
+                          "conjuge_tipo": null,
+                          "naturalidade_uf": null,
+                          "residencia": null,
+                          "documentos": [],
+                          "mascarado_motivo": "menor_de_idade"
+                        },
+                        {
+                          "nome": "ADVOGADO EXEMPLO",
+                          "cpf_cnpj": "11122233344",
+                          "qualidade": "Advogado",
+                          "data_nascimento": null,
+                          "sexo": "M",
+                          "estrangeiro": false,
+                          "conjuge_tipo": null,
+                          "naturalidade_uf": null,
+                          "residencia": null,
+                          "documentos": [
+                            {
+                              "tipo": "Oab",
+                              "numero": "1234",
+                              "uf": "RO"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "CPF inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "CENSEC indisponível ou muitas consultas em andamento (`fonte_indisponivel`, `fonte_ocupada`). Tokens estornados.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "CENSEC não respondeu a tempo (`fonte_timeout`). Tokens estornados.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/escrituras/cnpj/{cnpj}": {
+      "get": {
+        "operationId": "getEscriturasByCnpj",
+        "summary": "Escrituras por CNPJ",
+        "description": "Consulta **ao vivo** a CESDI (Central de Escrituras de Separações, Divórcios e Inventários) da CENSEC. Devolve cada escritura com cartório, data, livro/folha, dados do casamento e **todas as partes com CPF**. A consulta leva de 10 a 50 segundos; para lotes use `?async=true`. Resultado guardado por 24 h. Sem escrituras, `total: 0` e os tokens são estornados.",
+        "tags": [
+          "Escrituras"
+        ],
+        "parameters": [
+          {
+            "name": "cnpj",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "11222333000181"
+            },
+            "description": "CNPJ com ou sem máscara"
+          },
+          {
+            "name": "async",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "`true` responde 202 com `jobId` e `statusUrl` (`/escrituras/jobs/{jobId}`)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Escrituras encontradas (ou `total: 0`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EscriturasResponse"
+                },
+                "example": {
+                  "documento": "12345678901",
+                  "tipo_documento": "cpf",
+                  "fonte": "CENSEC/CESDI",
+                  "consultado_em": "2026-10-12T17:00:00.000Z",
+                  "total": 1,
+                  "possivelmente_truncado": false,
+                  "cobertura": "Escrituras públicas de separação, divórcio e inventário lavradas em cartório e enviadas à CENSEC. Atos judiciais ficam nos tribunais e não aparecem aqui.",
+                  "escrituras": [
+                    {
+                      "ids_fonte": [
+                        "2b1f0c3e-0000-4000-8000-000000000001"
+                      ],
+                      "tipo": "Inventario",
+                      "tipo_descricao": "Inventário",
+                      "data": "2022-12-14",
+                      "livro": "21",
+                      "livro_complemento": "E",
+                      "folha": "118",
+                      "folha_complemento": null,
+                      "cartorio": {
+                        "cns": "95984",
+                        "denominacao": "OFÍCIO DE REGISTRO CIVIL E NOTAS",
+                        "municipio": "CIDADE EXEMPLO",
+                        "uf": "RO",
+                        "ibge": "1100000",
+                        "endereco": {
+                          "logradouro": "AVENIDA EXEMPLO",
+                          "numero": "100",
+                          "complemento": null,
+                          "bairro": "CENTRO",
+                          "cep": "76900000"
+                        },
+                        "email": "notas@cartorio.exemplo",
+                        "telefones": [
+                          {
+                            "numero": "(69) 30000000",
+                            "ramal": null,
+                            "tipo": "Fixo"
+                          }
+                        ]
+                      },
+                      "incluida_na_censec_em": "2023-01-05T12:00:00+00:00",
+                      "qualidades_consultado": [
+                        "Herdeiro"
+                      ],
+                      "mne": null,
+                      "valor": null,
+                      "responsavel": null,
+                      "numero_controle": null,
+                      "complementacao": null,
+                      "data_contrato": null,
+                      "data_validade": null,
+                      "data_casamento": null,
+                      "regime_bens": null,
+                      "filhos_maiores": null,
+                      "filhos_menores": null,
+                      "existe_bem_e_direito": null,
+                      "bens_imoveis": [],
+                      "referentes": [],
+                      "partes": [
+                        {
+                          "nome": "JOSE EXEMPLO DA SILVA",
+                          "cpf_cnpj": "98765432100",
+                          "qualidade": "Falecido",
+                          "data_nascimento": "1940-03-02",
+                          "sexo": "M",
+                          "estrangeiro": false,
+                          "conjuge_tipo": null,
+                          "naturalidade_uf": "MG",
+                          "residencia": {
+                            "municipio": "CIDADE EXEMPLO",
+                            "uf": "RO"
+                          },
+                          "documentos": [
+                            {
+                              "tipo": "Rg",
+                              "numero": "123456",
+                              "uf": "RO"
+                            }
+                          ]
+                        },
+                        {
+                          "nome": "MARIA EXEMPLO DA SILVA",
+                          "cpf_cnpj": "12345678901",
+                          "qualidade": "Herdeiro",
+                          "data_nascimento": "1975-08-19",
+                          "sexo": "F",
+                          "estrangeiro": false,
+                          "conjuge_tipo": null,
+                          "naturalidade_uf": "RO",
+                          "residencia": {
+                            "municipio": "CIDADE EXEMPLO",
+                            "uf": "RO"
+                          },
+                          "documentos": [
+                            {
+                              "tipo": "Rg",
+                              "numero": "654321",
+                              "uf": "RO"
+                            }
+                          ]
+                        },
+                        {
+                          "nome": "[Menor de Idade, Protegido pela LGPD]",
+                          "cpf_cnpj": "***.***.***-**",
+                          "qualidade": "Herdeiro",
+                          "data_nascimento": null,
+                          "sexo": "M",
+                          "estrangeiro": false,
+                          "conjuge_tipo": null,
+                          "naturalidade_uf": null,
+                          "residencia": null,
+                          "documentos": [],
+                          "mascarado_motivo": "menor_de_idade"
+                        },
+                        {
+                          "nome": "ADVOGADO EXEMPLO",
+                          "cpf_cnpj": "11122233344",
+                          "qualidade": "Advogado",
+                          "data_nascimento": null,
+                          "sexo": "M",
+                          "estrangeiro": false,
+                          "conjuge_tipo": null,
+                          "naturalidade_uf": null,
+                          "residencia": null,
+                          "documentos": [
+                            {
+                              "tipo": "Oab",
+                              "numero": "1234",
+                              "uf": "RO"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "CNPJ inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "CENSEC indisponível ou muitas consultas em andamento (`fonte_indisponivel`, `fonte_ocupada`). Tokens estornados.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "CENSEC não respondeu a tempo (`fonte_timeout`). Tokens estornados.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "schemas": {
+      "Parte": {
+        "type": "object",
+        "properties": {
+          "nome": {
+            "type": "string",
+            "nullable": true,
+            "description": "Nome como registrado no ato. Menor de idade: `[Menor de Idade, Protegido pela LGPD]`."
+          },
+          "cpf_cnpj": {
+            "type": "string",
+            "nullable": true,
+            "description": "CPF ou CNPJ sem máscara. Menor de idade: `***.***.***-**`."
+          },
+          "qualidade": {
+            "type": "string",
+            "nullable": true,
+            "description": "Papel no ato, como a CENSEC registra: `Falecido`, `Herdeiro`, `Viuvo`, `Inventariante`, `Divorciando`, `Separando`, `Advogado`, `Cedente`, `Anuente` etc."
+          },
+          "data_nascimento": {
+            "type": "string",
+            "nullable": true,
+            "format": "date"
+          },
+          "sexo": {
+            "type": "string",
+            "nullable": true,
+            "example": "F"
+          },
+          "estrangeiro": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "conjuge_tipo": {
+            "type": "string",
+            "nullable": true,
+            "description": "Em divórcio e separação: `Conjuge1` ou `Conjuge2`."
+          },
+          "naturalidade_uf": {
+            "type": "string",
+            "nullable": true
+          },
+          "residencia": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "municipio": {
+                "type": "string",
+                "nullable": true
+              },
+              "uf": {
+                "type": "string",
+                "nullable": true
+              }
+            }
+          },
+          "documentos": {
+            "type": "array",
+            "description": "Demais documentos (RG, OAB, passaporte). Vazio quando a parte é menor ou tem idade desconhecida (exceto advogado).",
+            "items": {
+              "type": "object",
+              "properties": {
+                "tipo": {
+                  "type": "string",
+                  "nullable": true,
+                  "example": "Rg"
+                },
+                "numero": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "uf": {
+                  "type": "string",
+                  "nullable": true
+                }
+              }
+            }
+          },
+          "mascarado_motivo": {
+            "type": "string",
+            "description": "`menor_de_idade` quando nome e documentos foram protegidos (LGPD)."
+          }
+        }
+      },
+      "Cartorio": {
+        "type": "object",
+        "properties": {
+          "cns": {
+            "type": "string",
+            "nullable": true,
+            "description": "Código Nacional de Serventia (CNJ)."
+          },
+          "denominacao": {
+            "type": "string",
+            "nullable": true
+          },
+          "municipio": {
+            "type": "string",
+            "nullable": true
+          },
+          "uf": {
+            "type": "string",
+            "nullable": true
+          },
+          "ibge": {
+            "type": "string",
+            "nullable": true
+          },
+          "endereco": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "logradouro": {
+                "type": "string",
+                "nullable": true
+              },
+              "numero": {
+                "type": "string",
+                "nullable": true
+              },
+              "complemento": {
+                "type": "string",
+                "nullable": true
+              },
+              "bairro": {
+                "type": "string",
+                "nullable": true
+              },
+              "cep": {
+                "type": "string",
+                "nullable": true
+              }
+            }
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "telefones": {
+            "type": "array",
+            "description": "Somente telefones públicos do cartório.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "numero": {
+                  "type": "string"
+                },
+                "ramal": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "tipo": {
+                  "type": "string",
+                  "nullable": true
+                }
+              }
+            }
+          }
+        }
+      },
+      "Escritura": {
+        "type": "object",
+        "properties": {
+          "ids_fonte": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Identificadores do ato na CENSEC. Mais de um quando o cartório enviou o mesmo ato em cargas diferentes."
+          },
+          "tipo": {
+            "type": "string",
+            "nullable": true,
+            "description": "`Inventario`, `InventarioComMenorOuIncapaz`, `Partilha`, `Sobrepartilha`, `NomeacaoDeInventariante`, `DivorcioDireto`, `Separacao`, `ConversaoDeSeparacaoEmDivorcio`, `Reconciliacao`, `Retificacao`, `RetificacaoAtoNaoNotarial`."
+          },
+          "tipo_descricao": {
+            "type": "string",
+            "nullable": true,
+            "example": "Inventário"
+          },
+          "data": {
+            "type": "string",
+            "nullable": true,
+            "format": "date",
+            "description": "Data da lavratura."
+          },
+          "livro": {
+            "type": "string",
+            "nullable": true
+          },
+          "livro_complemento": {
+            "type": "string",
+            "nullable": true
+          },
+          "folha": {
+            "type": "string",
+            "nullable": true
+          },
+          "folha_complemento": {
+            "type": "string",
+            "nullable": true
+          },
+          "cartorio": {
+            "$ref": "#/components/schemas/Cartorio"
+          },
+          "incluida_na_censec_em": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "qualidades_consultado": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Papéis do documento consultado neste ato."
+          },
+          "mne": {
+            "type": "string",
+            "nullable": true
+          },
+          "valor": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "responsavel": {
+            "type": "string",
+            "nullable": true,
+            "example": "Ambos cônjuges"
+          },
+          "numero_controle": {
+            "type": "string",
+            "nullable": true
+          },
+          "complementacao": {
+            "type": "string",
+            "nullable": true
+          },
+          "data_contrato": {
+            "type": "string",
+            "nullable": true,
+            "format": "date"
+          },
+          "data_validade": {
+            "type": "string",
+            "nullable": true,
+            "format": "date"
+          },
+          "data_casamento": {
+            "type": "string",
+            "nullable": true,
+            "format": "date"
+          },
+          "regime_bens": {
+            "type": "string",
+            "nullable": true,
+            "example": "Comunhão parcial"
+          },
+          "filhos_maiores": {
+            "type": "integer",
+            "nullable": true
+          },
+          "filhos_menores": {
+            "type": "integer",
+            "nullable": true
+          },
+          "existe_bem_e_direito": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "bens_imoveis": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "description": "Bens informados no ato, no formato da CENSEC."
+          },
+          "referentes": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "description": "Atos referentes (ex.: retificações), no formato da CENSEC."
+          },
+          "partes": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/Parte"
+            },
+            "description": "Todas as partes do ato. `null` quando a CENSEC não devolveu o detalhe."
+          }
+        }
+      },
+      "EscriturasResponse": {
+        "type": "object",
+        "properties": {
+          "documento": {
+            "type": "string"
+          },
+          "tipo_documento": {
+            "type": "string",
+            "enum": [
+              "cpf",
+              "cnpj"
+            ]
+          },
+          "fonte": {
+            "type": "string",
+            "example": "CENSEC/CESDI"
+          },
+          "consultado_em": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "total": {
+            "type": "integer",
+            "description": "Escrituras distintas encontradas."
+          },
+          "possivelmente_truncado": {
+            "type": "boolean",
+            "description": "A CENSEC devolve no máximo 300 linhas por busca."
+          },
+          "cobertura": {
+            "type": "string"
+          },
+          "escrituras": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Escritura"
+            }
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "integer"
+          },
+          "error": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
