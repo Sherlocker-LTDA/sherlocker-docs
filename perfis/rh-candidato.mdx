@@ -225,14 +225,14 @@ Resposta quando `concluida`:
           "total_ocorrencias": 0,
           "por_grupo": { "sancoes": 0, "restritivas": 0, "alertas": 0 },
           "fontes_aplicaveis": 10, "fontes_consultadas": 10,
-          "com_ocorrencia": 0, "indisponiveis": 1, "nao_aplicaveis": 3,
+          "com_ocorrencia": 0, "indisponiveis": 1,
           "confiabilidade": "parcial"
         },
         "ocorrencias": [],
         "cobertura": [
           { "lista_id": "ceis", "nome": "CEIS — Empresas Inidôneas e Suspensas", "grupo": "sancoes",
             "fonte_oficial": "https://portaldatransparencia.gov.br", "resultado": "nada_consta",
-            "ocorrencias": 0, "saude": "OK", "ultima_atualizacao": "2026-07-09 09:33:14" }
+            "ocorrencias": 0, "desatualizada": false, "ultima_atualizacao": "2026-07-09 09:33:14" }
         ]
       },
       "historico_profissional": {
@@ -465,15 +465,18 @@ interface ListasRestritivas {
     total_ocorrencias: number;
     por_grupo: { sancoes: number; restritivas: number; alertas: number };
     fontes_aplicaveis: number; fontes_consultadas: number;
-    com_ocorrencia: number; indisponiveis: number; nao_aplicaveis: number;
+    com_ocorrencia: number; indisponiveis: number;
     confiabilidade: "completa" | "parcial" | "indisponivel";
   };
   ocorrencias: unknown[];
   cobertura: {
     lista_id: string; nome: string; grupo: "sancoes" | "restritivas" | "alertas";
-    fonte_oficial: string; resultado: string; ocorrencias: number;
-    saude: string | null; ultima_atualizacao: string | null; motivo?: string;
-  }[];
+    fonte_oficial: string;
+    resultado: "encontrado" | "nada_consta" | "indisponivel" | "requer_nome";
+    ocorrencias: number;
+    desatualizada: boolean;            // base atrasada: resultado vale, com dados de ultima_atualizacao
+    ultima_atualizacao: string | null; // null = base nunca sincronizada
+  }[]; // só listas aplicáveis ao tipo (CPF ou CNPJ)
 }
 
 interface HistoricoProfissional {
