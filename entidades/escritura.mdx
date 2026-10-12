@@ -134,7 +134,7 @@ curl "https://221b-api.sherlocker.com.br/api/v1/escrituras/cpf/12345678901?async
 curl "https://221b-api.sherlocker.com.br/api/v1/escrituras/jobs/{jobId}?token=SEU_TOKEN"
 ```
 
-Se a CENSEC falhar, o job tenta de novo sozinho até três vezes.
+Se a CENSEC falhar, o job tenta de novo sozinho até três vezes. Os tokens são estornados quando não há escritura ou quando o job termina com falha, igual à consulta direta.
 
 ## Erros
 
