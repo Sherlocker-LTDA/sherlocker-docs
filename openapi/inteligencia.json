@@ -1,0 +1,974 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Inteligência",
+    "version": "proposta-0.1",
+    "description": "Em breve. Contratos propostos, ainda indisponíveis para clientes. Exemplos fictícios."
+  },
+  "servers": [
+    {
+      "url": "https://221b-api.sherlocker.com.br/api/v1"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "paths": {
+    "/inteligencia/financeira/analisar": {
+      "post": {
+        "operationId": "inteligenciaFinanceiraAnalisar",
+        "summary": "Financeira",
+        "description": "**Em breve.** Rota planejada, ainda indisponível para clientes. Exemplos e valores fictícios.\n\nTransforma um CPF ou CNPJ em um perfil financeiro estimado para entender a faixa de renda da pessoa ou o faturamento da empresa, reunindo salário, patrimônio e contexto de moradia.\n\nApresente **emprego, renda, localização, aluguel, patrimônio e benefícios** para pessoa; para empresa, destaque faturamento e porte estimados. A base anual do exemplo é de 12 meses. Aluguel residencial é custo provável, e patrimônio e contexto regional não são renda individual; faturamento da empresa não é lucro ou renda dos sócios.",
+        "tags": [
+          "Inteligência"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "cpf": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "cpf"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "cnpj": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "cnpj"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              },
+              "examples": {
+                "pessoa": {
+                  "summary": "Pessoa · CPF",
+                  "value": {
+                    "cpf": "00000000000"
+                  }
+                },
+                "empresa": {
+                  "summary": "Empresa · CNPJ",
+                  "value": {
+                    "cnpj": "00000000000000"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Resultado proposto — exemplo fictício.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "tipo": {
+                          "type": "string"
+                        },
+                        "nome": {
+                          "type": "string"
+                        },
+                        "emprego": {
+                          "type": "object",
+                          "properties": {
+                            "empresa": {
+                              "type": "string"
+                            },
+                            "ocupacao": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "salario_mensal_estimado": {
+                          "type": "object",
+                          "properties": {
+                            "minimo": {
+                              "type": "number"
+                            },
+                            "maximo": {
+                              "type": "number"
+                            },
+                            "moeda": {
+                              "type": "string"
+                            },
+                            "periodo": {
+                              "type": "string"
+                            },
+                            "referencia": {
+                              "type": "string"
+                            },
+                            "confianca": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "salario_anual_estimado": {
+                          "type": "object",
+                          "properties": {
+                            "minimo": {
+                              "type": "number"
+                            },
+                            "maximo": {
+                              "type": "number"
+                            },
+                            "moeda": {
+                              "type": "string"
+                            },
+                            "periodo": {
+                              "type": "string"
+                            },
+                            "referencia": {
+                              "type": "string"
+                            },
+                            "confianca": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "renda_mensal_estimada": {
+                          "type": "object",
+                          "properties": {
+                            "minimo": {
+                              "type": "number"
+                            },
+                            "maximo": {
+                              "type": "number"
+                            },
+                            "moeda": {
+                              "type": "string"
+                            },
+                            "periodo": {
+                              "type": "string"
+                            },
+                            "referencia": {
+                              "type": "string"
+                            },
+                            "confianca": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "renda_anual_estimada": {
+                          "type": "object",
+                          "properties": {
+                            "minimo": {
+                              "type": "number"
+                            },
+                            "maximo": {
+                              "type": "number"
+                            },
+                            "moeda": {
+                              "type": "string"
+                            },
+                            "periodo": {
+                              "type": "string"
+                            },
+                            "referencia": {
+                              "type": "string"
+                            },
+                            "confianca": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "base_anual_meses": {
+                          "type": "number"
+                        },
+                        "classificacao_renda": {
+                          "type": "object",
+                          "properties": {
+                            "faixa": {
+                              "type": "string"
+                            },
+                            "confianca": {
+                              "type": "string"
+                            },
+                            "metodo": {
+                              "type": "string"
+                            },
+                            "criterio": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "endereco": {
+                          "type": "object",
+                          "properties": {
+                            "normalizado": {
+                              "type": "string"
+                            },
+                            "vinculo": {
+                              "type": "string"
+                            },
+                            "tipo_local": {
+                              "type": "string"
+                            },
+                            "contexto_regional": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "aluguel_residencial_estimado": {
+                          "type": "object",
+                          "properties": {
+                            "minimo": {
+                              "type": "number"
+                            },
+                            "maximo": {
+                              "type": "number"
+                            },
+                            "moeda": {
+                              "type": "string"
+                            },
+                            "periodo": {
+                              "type": "string"
+                            },
+                            "referencia": {
+                              "type": "string"
+                            },
+                            "confianca": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "patrimonio_estimado": {
+                          "type": "object",
+                          "properties": {
+                            "minimo": {
+                              "type": "number"
+                            },
+                            "maximo": {
+                              "type": "number"
+                            },
+                            "moeda": {
+                              "type": "string"
+                            },
+                            "periodo": {
+                              "type": "string"
+                            },
+                            "referencia": {
+                              "type": "string"
+                            },
+                            "confianca": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "beneficios": {
+                          "type": "object",
+                          "properties": {
+                            "renda_mensal_documentada": {
+                              "nullable": true,
+                              "description": "Não disponível quando não há informação suficiente."
+                            },
+                            "resumo": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "fontes": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "tipo": {
+                          "type": "string"
+                        },
+                        "nome": {
+                          "type": "string"
+                        },
+                        "faturamento_mensal_estimado": {
+                          "type": "object",
+                          "properties": {
+                            "minimo": {
+                              "type": "number"
+                            },
+                            "maximo": {
+                              "type": "number"
+                            },
+                            "moeda": {
+                              "type": "string"
+                            },
+                            "periodo": {
+                              "type": "string"
+                            },
+                            "referencia": {
+                              "type": "string"
+                            },
+                            "confianca": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "faturamento_anual_estimado": {
+                          "type": "object",
+                          "properties": {
+                            "minimo": {
+                              "type": "number"
+                            },
+                            "maximo": {
+                              "type": "number"
+                            },
+                            "moeda": {
+                              "type": "string"
+                            },
+                            "periodo": {
+                              "type": "string"
+                            },
+                            "referencia": {
+                              "type": "string"
+                            },
+                            "confianca": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "base_anual_meses": {
+                          "type": "number"
+                        },
+                        "classificacao": {
+                          "type": "object",
+                          "properties": {
+                            "porte_estimado": {
+                              "type": "string"
+                            },
+                            "confianca": {
+                              "type": "string"
+                            },
+                            "metodo": {
+                              "type": "string"
+                            },
+                            "criterio": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "patrimonio_estimado": {
+                          "type": "object",
+                          "properties": {
+                            "minimo": {
+                              "type": "number"
+                            },
+                            "maximo": {
+                              "type": "number"
+                            },
+                            "moeda": {
+                              "type": "string"
+                            },
+                            "periodo": {
+                              "type": "string"
+                            },
+                            "referencia": {
+                              "type": "string"
+                            },
+                            "confianca": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "enderecos": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "normalizado": {
+                                "type": "string"
+                              },
+                              "vinculo": {
+                                "type": "string"
+                              },
+                              "tipo_local": {
+                                "type": "string"
+                              },
+                              "contexto_regional": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        },
+                        "fontes": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "pessoa": {
+                    "summary": "Pessoa · CPF",
+                    "value": {
+                      "tipo": "pessoa",
+                      "nome": "Pessoa Exemplo",
+                      "emprego": {
+                        "empresa": "Empresa Exemplo",
+                        "ocupacao": "Analista Exemplo"
+                      },
+                      "salario_mensal_estimado": {
+                        "minimo": 4500,
+                        "maximo": 6500,
+                        "moeda": "BRL",
+                        "periodo": "mensal",
+                        "referencia": "2026-10",
+                        "confianca": "moderada"
+                      },
+                      "salario_anual_estimado": {
+                        "minimo": 54000,
+                        "maximo": 78000,
+                        "moeda": "BRL",
+                        "periodo": "anual",
+                        "referencia": "2026-10",
+                        "confianca": "moderada"
+                      },
+                      "renda_mensal_estimada": {
+                        "minimo": 4500,
+                        "maximo": 6500,
+                        "moeda": "BRL",
+                        "periodo": "mensal",
+                        "referencia": "2026-10",
+                        "confianca": "moderada"
+                      },
+                      "renda_anual_estimada": {
+                        "minimo": 54000,
+                        "maximo": 78000,
+                        "moeda": "BRL",
+                        "periodo": "anual",
+                        "referencia": "2026-10",
+                        "confianca": "moderada"
+                      },
+                      "base_anual_meses": 12,
+                      "classificacao_renda": {
+                        "faixa": "media",
+                        "confianca": "moderada",
+                        "metodo": "proposta-0.1",
+                        "criterio": "renda_mensal_individual_estimada"
+                      },
+                      "endereco": {
+                        "normalizado": "Rua Exemplo, 123, Cidade Exemplo, SP",
+                        "vinculo": "residencia_candidata",
+                        "tipo_local": "condominio_residencial",
+                        "contexto_regional": "medio"
+                      },
+                      "aluguel_residencial_estimado": {
+                        "minimo": 1800,
+                        "maximo": 2400,
+                        "moeda": "BRL",
+                        "periodo": "mensal",
+                        "referencia": "2026-10",
+                        "confianca": "moderada"
+                      },
+                      "patrimonio_estimado": {
+                        "minimo": 280000,
+                        "maximo": 380000,
+                        "moeda": "BRL",
+                        "periodo": "posicao",
+                        "referencia": "2026-10",
+                        "confianca": "moderada"
+                      },
+                      "beneficios": {
+                        "renda_mensal_documentada": null,
+                        "resumo": "Sem valor de benefício confirmado no exemplo."
+                      },
+                      "fontes": [
+                        "Vínculo e referência salarial Exemplo",
+                        "Comparáveis Residenciais Exemplo",
+                        "Bens atribuídos por fontes Exemplo"
+                      ]
+                    }
+                  },
+                  "empresa": {
+                    "summary": "Empresa · CNPJ",
+                    "value": {
+                      "tipo": "empresa",
+                      "nome": "Empresa Exemplo Ltda",
+                      "faturamento_mensal_estimado": {
+                        "minimo": 200000,
+                        "maximo": 300000,
+                        "moeda": "BRL",
+                        "periodo": "mensal",
+                        "referencia": "2026-10",
+                        "confianca": "moderada"
+                      },
+                      "faturamento_anual_estimado": {
+                        "minimo": 2400000,
+                        "maximo": 3600000,
+                        "moeda": "BRL",
+                        "periodo": "anual",
+                        "referencia": "2026-10",
+                        "confianca": "moderada"
+                      },
+                      "base_anual_meses": 12,
+                      "classificacao": {
+                        "porte_estimado": "pequeno_no_criterio_ilustrativo",
+                        "confianca": "moderada",
+                        "metodo": "proposta-0.1",
+                        "criterio": "faturamento_anual_estimado"
+                      },
+                      "patrimonio_estimado": {
+                        "minimo": 900000,
+                        "maximo": 1400000,
+                        "moeda": "BRL",
+                        "periodo": "posicao",
+                        "referencia": "2026-10",
+                        "confianca": "moderada"
+                      },
+                      "enderecos": [
+                        {
+                          "normalizado": "Avenida Exemplo, 500, Cidade Exemplo, SP",
+                          "vinculo": "sede_cadastral",
+                          "tipo_local": "predio_comercial",
+                          "contexto_regional": "medio"
+                        }
+                      ],
+                      "fontes": [
+                        "Referências Econômicas Empresariais Exemplo",
+                        "Bens atribuídos por fontes Exemplo"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/inteligencia/enderecos/pesquisar": {
+      "post": {
+        "operationId": "inteligenciaEnderecosPesquisar",
+        "summary": "Endereços",
+        "description": "**Em breve.** Rota planejada, ainda indisponível para clientes. Exemplos e valores fictícios.\n\nAjuda a entender um local: tipo de imóvel, localização provável, região e faixas de aluguel e venda. Esse contexto também compõe a pesquisa Financeira.\n\nApresente o local, sua localização provável e as faixas de aluguel, venda e condomínio quando houver referências suficientes. O exemplo estima uma unidade comercial comparável de 80 m², sem avaliar o prédio inteiro.",
+        "tags": [
+          "Inteligência"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "endereco": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "endereco"
+                ]
+              },
+              "examples": {
+                "exemplo": {
+                  "value": {
+                    "endereco": "Avenida Exemplo, 500, sala 12, Cidade Exemplo, SP"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Resultado proposto — exemplo fictício.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "endereco_normalizado": {
+                      "type": "string"
+                    },
+                    "tipo_local": {
+                      "type": "string"
+                    },
+                    "localizacao": {
+                      "type": "object",
+                      "properties": {
+                        "lat": {
+                          "type": "number"
+                        },
+                        "lng": {
+                          "type": "number"
+                        },
+                        "precisao": {
+                          "type": "string"
+                        },
+                        "confianca": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "contexto_regional": {
+                      "type": "object",
+                      "properties": {
+                        "nivel": {
+                          "type": "string"
+                        },
+                        "faixa": {
+                          "type": "string"
+                        },
+                        "referencia": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "imagens": {
+                      "type": "object",
+                      "properties": {
+                        "fachada_url": {
+                          "type": "string"
+                        },
+                        "mapa_url": {
+                          "type": "string"
+                        },
+                        "credito": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "valores": {
+                      "type": "object",
+                      "properties": {
+                        "base": {
+                          "type": "string"
+                        },
+                        "area_referencia_m2": {
+                          "type": "number"
+                        },
+                        "aluguel": {
+                          "type": "object",
+                          "properties": {
+                            "minimo": {
+                              "type": "number"
+                            },
+                            "maximo": {
+                              "type": "number"
+                            },
+                            "moeda": {
+                              "type": "string"
+                            },
+                            "periodo": {
+                              "type": "string"
+                            },
+                            "referencia": {
+                              "type": "string"
+                            },
+                            "confianca": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "venda": {
+                          "type": "object",
+                          "properties": {
+                            "minimo": {
+                              "type": "number"
+                            },
+                            "maximo": {
+                              "type": "number"
+                            },
+                            "moeda": {
+                              "type": "string"
+                            },
+                            "periodo": {
+                              "type": "string"
+                            },
+                            "referencia": {
+                              "type": "string"
+                            },
+                            "confianca": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "condominio": {
+                          "nullable": true,
+                          "description": "Não disponível quando não há informação suficiente."
+                        }
+                      }
+                    },
+                    "fontes": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "referencia": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "exemplo": {
+                    "value": {
+                      "endereco_normalizado": "Avenida Exemplo, 500, sala 12, Cidade Exemplo, SP",
+                      "tipo_local": "predio_comercial",
+                      "localizacao": {
+                        "lat": -23.5,
+                        "lng": -46.6,
+                        "precisao": "ROOFTOP",
+                        "confianca": "moderada"
+                      },
+                      "contexto_regional": {
+                        "nivel": "bairro",
+                        "faixa": "media",
+                        "referencia": "2026-10"
+                      },
+                      "imagens": {
+                        "fachada_url": "https://example.org/fachada.png",
+                        "mapa_url": "https://example.org/mapa.png",
+                        "credito": "Imagem Exemplo"
+                      },
+                      "valores": {
+                        "base": "estimativa_para_unidade_comercial_comparavel",
+                        "area_referencia_m2": 80,
+                        "aluguel": {
+                          "minimo": 3500,
+                          "maximo": 5000,
+                          "moeda": "BRL",
+                          "periodo": "mensal",
+                          "referencia": "2026-10",
+                          "confianca": "moderada"
+                        },
+                        "venda": {
+                          "minimo": 650000,
+                          "maximo": 900000,
+                          "moeda": "BRL",
+                          "periodo": "valor_do_bem",
+                          "referencia": "2026-10",
+                          "confianca": "moderada"
+                        },
+                        "condominio": null
+                      },
+                      "fontes": [
+                        "Fonte Geográfica Exemplo",
+                        "Comparáveis Comerciais Exemplo"
+                      ],
+                      "referencia": "2026-10"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/inteligencia/imagens/pesquisar": {
+      "post": {
+        "operationId": "inteligenciaImagensPesquisar",
+        "summary": "Foto de perfil",
+        "description": "**Em breve.** Rota planejada, ainda indisponível para clientes. Exemplos e valores fictícios.\n\nReúne fotos prováveis a partir dos dados disponíveis da pessoa, ordenadas e com suas origens e presença de rosto. Ajuda a identificação visual em um cadastro ou dossiê.\n\nMostre as imagens com suas origens. Uma foto encontrada em duas fontes aparece uma vez; sem imagem, a lista fica vazia. Presença de rosto ajuda a apresentação visual, sem confirmar a identidade da pessoa.",
+        "tags": [
+          "Inteligência"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "cpf": {
+                    "type": "string"
+                  },
+                  "nome": {
+                    "type": "string"
+                  },
+                  "emails": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "telefones": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "perfis": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "url": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "anyOf": [
+                  {
+                    "required": [
+                      "cpf"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "nome"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "emails"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "telefones"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "perfis"
+                    ]
+                  }
+                ]
+              },
+              "examples": {
+                "exemplo": {
+                  "value": {
+                    "cpf": "00000000000",
+                    "nome": "Pessoa Exemplo",
+                    "emails": [
+                      "pessoa@example.org"
+                    ],
+                    "telefones": [
+                      "5511999990000"
+                    ],
+                    "perfis": [
+                      {
+                        "url": "https://example.org/perfil/pessoa"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Resultado proposto — exemplo fictício.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "imagens": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string"
+                          },
+                          "tem_rosto": {
+                            "type": "boolean"
+                          },
+                          "quantidade_rostos": {
+                            "type": "number"
+                          },
+                          "origens": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "fonte": {
+                                  "type": "string"
+                                },
+                                "url": {
+                                  "type": "string"
+                                },
+                                "identificador": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "exemplo": {
+                    "value": {
+                      "imagens": [
+                        {
+                          "url": "https://example.org/foto-1.png",
+                          "tem_rosto": true,
+                          "quantidade_rostos": 1,
+                          "origens": [
+                            {
+                              "fonte": "Perfil Exemplo",
+                              "url": "https://example.org/perfil/pessoa",
+                              "identificador": "pessoa@example.org"
+                            },
+                            {
+                              "fonte": "Fonte de Contato Exemplo",
+                              "identificador": "5511999990000"
+                            }
+                          ]
+                        },
+                        {
+                          "url": "https://example.org/foto-2.png",
+                          "tem_rosto": true,
+                          "quantidade_rostos": 1,
+                          "origens": [
+                            {
+                              "fonte": "Outro Perfil Exemplo",
+                              "url": "https://example.org/profissional/pessoa"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

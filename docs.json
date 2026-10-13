@@ -438,16 +438,6 @@
             ]
           },
           {
-            "group": "Inteligência",
-            "pages": [
-              "inteligencia/introducao",
-              "inteligencia/financeira",
-              "inteligencia/enderecos",
-              "inteligencia/redessociais",
-              "inteligencia/imagens"
-            ]
-          },
-          {
             "group": "Conceitos",
             "pages": [
               "plataforma/estados-resultados",
@@ -467,6 +457,16 @@
               "GET /dossies/{dossie_id}/status",
               "POST /dossies/{dossie_id}/cancel",
               "POST /dossies/{dossie_id}/retry"
+            ]
+          },
+          {
+            "group": "Inteligência",
+            "openapi": "/openapi/inteligencia.json",
+            "pages": [
+              "inteligencia/introducao",
+              "POST /inteligencia/financeira/analisar",
+              "POST /inteligencia/enderecos/pesquisar",
+              "POST /inteligencia/imagens/pesquisar"
             ]
           },
           {
