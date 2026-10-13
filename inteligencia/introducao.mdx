@@ -1,40 +1,24 @@
 ---
 title: "Inteligência"
-description: "Produtos em breve para entender pessoas, bens, lugares e relações"
+description: "De um documento, endereço ou contato a um resultado útil"
 icon: "brain"
 ---
 
-<Note>
-**Em breve.** Contrato proposto, ainda indisponível para clientes. Exemplos com dados fictícios. Cobrança, fontes, limites e cobertura serão definidos antes da publicação.
-</Note>
+<Note>**Em breve.** Contrato proposto; exemplos e valores fictícios.</Note>
 
-Parta de um contato, documento, endereço ou imagem e encontre a investigação que responde à sua pergunta. Cada produto pretende entregar achados estruturados, fontes e uma visão visual para orientar a próxima decisão.
+Escolha o ponto de partida. Cada pesquisa pretende entregar dados organizados, referências e confiança para apresentar no seu aplicativo.
 
 <CardGroup cols={2}>
-  <Card title="Financeira · Em breve" icon="chart-line" href="/inteligencia/financeira">Renda documentada, empregos, benefícios e contexto econômico regional.</Card>
-  <Card title="Patrimonial · Em breve" icon="landmark" href="/inteligencia/patrimonial">Imóveis, escrituras, veículos, participações e referências de valor.</Card>
-  <Card title="Localização · Em breve" icon="location-dot" href="/inteligencia/localizacao">Endereços, fachadas, mapas, trajetos e evolução do contexto residencial.</Card>
-  <Card title="Redes sociais · Em breve" icon="users" href="/inteligencia/redessociais">Contas, perfis e imagens encontrados a partir de contatos.</Card>
-  <Card title="Conexões · Em breve" icon="diagram-project" href="/inteligencia/conexoes">Pessoas e empresas em um grafo com evidência por relação.</Card>
-  <Card title="Imagens · Em breve" icon="camera" href="/inteligencia/midia">Investigue lugar, correspondências e ocorrências a partir de uma imagem.</Card>
+  <Card title="Financeira · Em breve" icon="chart-line" href="/inteligencia/financeira">CPF ou CNPJ → renda ou faturamento, classificação, patrimônio e contexto de localização.</Card>
+  <Card title="Endereços · Em breve" icon="location-dot" href="/inteligencia/enderecos">Endereço → tipo de local, localização, aluguel, venda e adequação à finalidade.</Card>
+  <Card title="Redes sociais · Em breve" icon="users" href="/inteligencia/redessociais">Nome, documento e contatos → perfis prováveis com links e motivos.</Card>
+  <Card title="Foto de perfil · Em breve" icon="image" href="/inteligencia/imagens">Dados disponíveis → fotos ordenadas, deduplicadas e acompanhadas das origens.</Card>
 </CardGroup>
 
-## De um dado a uma visão investigativa
+Cada produto abaixo tem exemplo de entrada e saída. [Conexões](/inteligencia/conexoes), [geoespacial](/inteligencia/geoespacial), [mídia inversa](/inteligencia/midia), [veículos](/inteligencia/veiculos) e [contas e registros](/inteligencia/contas) ficam em **Outras ferramentas**.
 
-```mermaid
-flowchart LR
-  I[Documento] --> F[Financeira]
-  I --> P[Patrimonial]
-  I --> C[Conexões]
-  E[Endereço] --> L[Localização]
-  T[Contato] --> R[Redes sociais]
-  M[Imagem] --> V[Imagens]
-```
+<Accordion title="Integração e disponibilidade">
 
-As seis áreas agrupam oito ferramentas propostas: contas, imagens de perfil, endereços, veículos, conexões, comparação geoespacial, mídia inversa e perfil combinado. Cada ferramenta tem entrada, saída e exemplo visual. O perfil combinado mantém os resultados financeiros e patrimoniais separados.
+As rotas `/inteligencia` são propostas. Tarifas, critérios e cobertura serão definidos antes da publicação. Jobs e erros comuns estão na [integração](/inteligencia/integracao). As APIs atuais mantêm seus próprios contratos e custos.
 
-Leia a [integração proposta](/inteligencia/integracao) para jobs, cobertura e erros. As novas rotas `/inteligencia` não estão disponíveis no playground. As APIs existentes de [Rastro](/plataforma/rastro), [Lente](/plataforma/lente), [Veículos](/entidades/veiculo), [Registros](/entidades/registro-digital) e [Dossiê](/plataforma/dossie) continuam com seus próprios contratos.
-
-## Cobrança e cobertura
-
-Os novos produtos não têm tarifa, SLA ou cobertura comercial fechados. Retorno vazio não prova ausência. Fonte indisponível, consulta sem correspondência e inferência devem aparecer separadamente, com origem e data quando houver.
+</Accordion>

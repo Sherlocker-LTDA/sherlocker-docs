@@ -1,73 +1,93 @@
 ---
-title: "Endereços e localização"
-description: "Em breve: encontre um lugar e reúna informações, imagens e fontes"
+title: "Endereços"
+description: "Endereço → tipo de local, localização, valores e adequação ao uso"
 icon: "location-dot"
 ---
 
-<Note>
-**Em breve.** Contrato proposto, ainda indisponível para clientes. Os exemplos são simulações com dados fictícios. Rotas, limites, fontes, cobrança e cobertura dependem de implementação e publicação.
-</Note>
+<Note>**Em breve.** Contrato proposto; exemplos e valores fictícios.</Note>
 
-O produto pretende transformar um endereço em localização, panorama externo, mapa e informações disponíveis sobre o lugar. Uma pesquisa adicional poderá trazer dados de prédio ou condomínio e estimativas imobiliárias quando houver fontes adequadas.
+Envie um endereço e entenda o lugar: tipo, localização provável, contexto regional, referências de aluguel e venda e adequação à finalidade informada.
 
-**Rota proposta:** `POST /inteligencia/enderecos/pesquisar`.
-
-## Entrada proposta
+## Entrada
 
 ```json
 {
-  "endereco": "Rua Exemplo, 123, Cidade Exemplo, SP",
-  "complemento": "apto 1",
-  "incluir": ["localizacao", "imagens", "perfil_imobiliario"]
+  "endereco": "Avenida Exemplo, 500, sala 12, Cidade Exemplo, SP",
+  "finalidade": "escritorio"
 }
 ```
 
-O endereço é fictício. O contrato proposto recebe texto ou campos, sem exigir `geo_id`. Complemento fornecido pelo consumidor não se torna unidade confirmada pelo geocoder.
-
-## Saída proposta
+## Saída
 
 ```json
 {
-  "id": "local_1",
-  "status": "encontrado",
-  "endereco": {"normalizado":"Rua Exemplo, 123, Cidade Exemplo, SP","complemento":"apto 1"},
-  "ponto": {"lat":-23.5,"lng":-46.6},
-  "precisao": "ROOFTOP",
-  "local": {"nome":null,"tipo":null},
-  "fachada": {"status":"indisponivel","url":null,"capturado_em":null,"credito":null},
-  "mapa": {
-    "type": "FeatureCollection",
-    "features": [{"type":"Feature","id":"local_1","geometry":{"type":"Point","coordinates":[-46.6,-23.5]},"properties":{"rotulo":"Endereço Exemplo"}}]
+  "endereco_normalizado": "Avenida Exemplo, 500, sala 12, Cidade Exemplo, SP",
+  "tipo_local": "predio_comercial",
+  "localizacao": {
+    "lat": -23.5,
+    "lng": -46.6,
+    "precisao": "ROOFTOP",
+    "confianca": "moderada"
   },
-  "perfil_imobiliario": {
-    "aluguel": null,
-    "compra": null,
-    "condominio": null,
-    "status": "sem_evidencia_suficiente"
+  "contexto_regional": {
+    "nivel": "bairro",
+    "faixa": "media",
+    "referencia": "2026-10"
   },
-  "fontes": [{"nome":"Fonte Geográfica Exemplo","consultado_em":"2026-10-13T12:00:00Z"}],
-  "incertezas": ["A localização não confirma a unidade ou ocupação atual."]
+  "imagens": {
+    "fachada_url": "https://example.org/fachada.png",
+    "mapa_url": "https://example.org/mapa.png",
+    "credito": "Imagem Exemplo"
+  },
+  "valores": {
+    "base": "estimativa_para_unidade_comercial_comparavel",
+    "area_referencia_m2": 80,
+    "aluguel": {
+      "minimo": 3500,
+      "maximo": 5000,
+      "moeda": "BRL",
+      "periodo": "mensal",
+      "referencia": "2026-10",
+      "confianca": "moderada"
+    },
+    "venda": {
+      "minimo": 650000,
+      "maximo": 900000,
+      "moeda": "BRL",
+      "periodo": "valor_do_bem",
+      "referencia": "2026-10",
+      "confianca": "moderada"
+    },
+    "condominio": null
+  },
+  "adequacao": {
+    "finalidade": "escritorio",
+    "avaliacao": "favoravel_com_ressalvas",
+    "confianca": "moderada",
+    "motivos": [
+      "Tipo de prédio compatível com uso comercial.",
+      "Região com serviços de apoio no exemplo."
+    ],
+    "verificar": [
+      "Uso permitido para a unidade e condições reais de acesso."
+    ]
+  },
+  "fontes": [
+    "Fonte Geográfica Exemplo",
+    "Comparáveis Comerciais Exemplo"
+  ],
+  "referencia": "2026-10"
 }
 ```
 
-GeoJSON usa `[longitude, latitude]`. Imagem pode estar ausente mesmo com endereço encontrado. Se houver estimativa de aluguel, compra ou condomínio, cada uma deverá informar faixa, moeda, origem, data e fatores; ausência permanece nula, sem inventar valores.
+As faixas do exemplo são de uma **unidade comercial comparável de 80 m²**, não o valor do prédio inteiro. A avaliação é relativa a “escritório”, com motivos; não é uma nota absoluta de local bom ou ruim.
 
-## Exemplo visual
+<Accordion title="Integração e leitura dos valores">
 
-```mermaid
-flowchart LR
-  A[Endereço fornecido] --> P[Ponto e precisão]
-  P --> C[Card de endereço]
-  P --> M[Mapa]
-  P --> I[Imagem quando disponível]
-```
+**Rota proposta:** `POST /inteligencia/enderecos/pesquisar`. `finalidade` é opcional. Tipos possíveis incluem casa, prédio comercial e condomínio residencial, conforme fonte e confiança.
 
-## Base técnica e limites
+Cada estimativa deve explicitar se trata de unidade, imóvel inteiro ou região, além de área, referência, origem e confiança. Condomínio pode ficar sem valor. Imagens também podem estar ausentes; panorama próximo não confirma unidade, ocupação ou propriedade.
 
-Há implementação técnica de `POST /api/v1/enderecos/pesquisar` para normalização, geocodificação, panorama e mapa. Ela não libera automaticamente o produto sob `/inteligencia` nem entrega estimativas de aluguel, compra ou condomínio. A vitrine continua **Em breve**.
+A Financeira reutiliza esta pesquisa internamente. Classificação regional não informa salário individual. A base técnica de geocodificação existente não libera automaticamente a proposta nem entrega todas essas estimativas. Tarifa e cobertura ainda não fechadas.
 
-Um panorama externo próximo não comprova a fachada, a unidade ou o condomínio. Nome e tipo de local podem não estar disponíveis. Resultados ambíguos devem apresentar candidatos sem escolher um lugar por conta própria.
-
-## Cobrança e cobertura
-
-A tarifa do produto Inteligência ainda não está fechada. A cobertura financeira dependerá de fontes e data; identificar um prédio não garante encontrar valor de condomínio. Nenhum preço ou prazo comercial novo está definido.
+</Accordion>

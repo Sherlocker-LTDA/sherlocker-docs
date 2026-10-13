@@ -1,56 +1,180 @@
 ---
 title: "Financeira"
-description: "Em breve: renda documentada, empregos, benefícios e contexto econômico"
+description: "CPF ou CNPJ → métricas financeiras e classificação com confiança"
 icon: "chart-line"
 ---
 
-<Note>
-**Em breve.** Contrato proposto, ainda indisponível para clientes. Exemplos com dados fictícios. Cobrança, fontes, limites e cobertura serão definidos antes da publicação.
-</Note>
+<Note>**Em breve.** Contrato proposto; exemplos e valores fictícios.</Note>
 
-Veja quais fontes sustentam a leitura econômica de uma pessoa. O produto pretende reunir empregos, benefícios e faixas de renda quando houver evidência suficiente, distinguindo dados individuais de indicadores regionais.
+Envie um CPF ou CNPJ. Receba renda ou faturamento estimados, classificação, patrimônio e contexto de localização em uma resposta pronta para apresentar.
 
-**Ferramenta proposta:** perfil combinado, `POST /inteligencia/perfil/analisar`. A resposta desse perfil separa os blocos `financeira` e `patrimonial`; consultar as duas áreas não mistura seus totais.
-
-## Entrada proposta
+## Entrada
 
 ```json
 {
-  "cpf": "<CPF>",
-  "areas": ["financeira"],
-  "incluir": ["empregos", "beneficios", "contexto_ibge"]
+  "cpf": "00000000000"
 }
 ```
 
-## Saída proposta
+## Saída: pessoa
 
 ```json
 {
-  "financeira": {
-    "renda": {"faixa":null,"moeda":"BRL","periodo":null,"status":"sem_fontes_suficientes"},
-    "empregos": [{"id":"emprego_1","empresa":"Empresa Exemplo","inicio":null,"fim":null,"salario":null,"fonte":"Fonte Trabalhista Exemplo","consultado_em":"2026-10-13T12:00:00Z"}],
-    "beneficios": [],
-    "contexto_ibge": {"nivel":"municipio","referencia":null,"rendimento_medio_regional":null,"status":"nao_consultado","renda_individual_inferida":false},
-    "incertezas": ["Vínculo cadastral não informa salário nem confirma emprego atual."]
+  "tipo": "pessoa",
+  "nome": "Pessoa Exemplo",
+  "emprego": {
+    "empresa": "Empresa Exemplo",
+    "ocupacao": "Analista Exemplo"
   },
-  "patrimonial": null,
-  "cobertura": [{"fonte":"Fonte Trabalhista Exemplo","status":"consultada"},{"fonte":"IBGE","status":"nao_consultada"}]
+  "salario_mensal_estimado": {
+    "minimo": 4500,
+    "maximo": 6500,
+    "moeda": "BRL",
+    "periodo": "mensal",
+    "referencia": "2026-10",
+    "confianca": "moderada"
+  },
+  "salario_anual_estimado": {
+    "minimo": 54000,
+    "maximo": 78000,
+    "moeda": "BRL",
+    "periodo": "anual",
+    "referencia": "2026-10",
+    "confianca": "moderada"
+  },
+  "renda_mensal_estimada": {
+    "minimo": 4500,
+    "maximo": 6500,
+    "moeda": "BRL",
+    "periodo": "mensal",
+    "referencia": "2026-10",
+    "confianca": "moderada"
+  },
+  "renda_anual_estimada": {
+    "minimo": 54000,
+    "maximo": 78000,
+    "moeda": "BRL",
+    "periodo": "anual",
+    "referencia": "2026-10",
+    "confianca": "moderada"
+  },
+  "base_anual_meses": 12,
+  "classificacao_renda": {
+    "faixa": "media",
+    "confianca": "moderada",
+    "metodo": "proposta-0.1",
+    "criterio": "renda_mensal_individual_estimada"
+  },
+  "endereco": {
+    "normalizado": "Rua Exemplo, 123, Cidade Exemplo, SP",
+    "vinculo": "residencia_candidata",
+    "tipo_local": "condominio_residencial",
+    "contexto_regional": "medio"
+  },
+  "aluguel_residencial_estimado": {
+    "minimo": 1800,
+    "maximo": 2400,
+    "moeda": "BRL",
+    "periodo": "mensal",
+    "referencia": "2026-10",
+    "confianca": "moderada"
+  },
+  "patrimonio_estimado": {
+    "minimo": 280000,
+    "maximo": 380000,
+    "moeda": "BRL",
+    "periodo": "posicao",
+    "referencia": "2026-10",
+    "confianca": "moderada"
+  },
+  "beneficios": {
+    "renda_mensal_documentada": null,
+    "resumo": "Sem valor de benefício confirmado no exemplo."
+  },
+  "fontes": [
+    "Vínculo e referência salarial Exemplo",
+    "Comparáveis Residenciais Exemplo",
+    "Bens atribuídos por fontes Exemplo"
+  ]
 }
 ```
 
-## Exemplo visual
+O front pode organizar o resultado em **emprego, renda, localização, aluguel, patrimônio e benefícios**. No exemplo, salário anual usa 12 meses; não acrescenta 13º. Aluguel residencial é custo provável, não receita. Patrimônio e renda regional são contexto complementar da renda individual.
 
-```mermaid
-flowchart LR
-  E[Empregos e benefícios] --> F[Fontes individuais]
-  F --> R[Faixa de renda quando sustentada]
-  I[Indicadores IBGE] --> C[Contexto regional separado]
+<Accordion title="Exemplo para CNPJ">
+
+Entrada:
+
+```json
+{
+  "cnpj": "00000000000000"
+}
 ```
 
-Um emprego ou benefício não informa automaticamente renda total. Média de renda regional não é salário individual. A proposta não classifica uma pessoa pela aparência do imóvel ou pelo bairro.
+Saída:
 
-Para bens e valores, veja [Patrimonial](/inteligencia/patrimonial). O [perfil combinado](/inteligencia/perfil) detalha a coleta conjunta e suas evidências.
+```json
+{
+  "tipo": "empresa",
+  "nome": "Empresa Exemplo Ltda",
+  "faturamento_mensal_estimado": {
+    "minimo": 200000,
+    "maximo": 300000,
+    "moeda": "BRL",
+    "periodo": "mensal",
+    "referencia": "2026-10",
+    "confianca": "moderada"
+  },
+  "faturamento_anual_estimado": {
+    "minimo": 2400000,
+    "maximo": 3600000,
+    "moeda": "BRL",
+    "periodo": "anual",
+    "referencia": "2026-10",
+    "confianca": "moderada"
+  },
+  "base_anual_meses": 12,
+  "classificacao": {
+    "porte_estimado": "pequeno_no_criterio_ilustrativo",
+    "confianca": "moderada",
+    "metodo": "proposta-0.1",
+    "criterio": "faturamento_anual_estimado"
+  },
+  "patrimonio_estimado": {
+    "minimo": 900000,
+    "maximo": 1400000,
+    "moeda": "BRL",
+    "periodo": "posicao",
+    "referencia": "2026-10",
+    "confianca": "moderada"
+  },
+  "enderecos": [
+    {
+      "normalizado": "Avenida Exemplo, 500, Cidade Exemplo, SP",
+      "vinculo": "sede_cadastral",
+      "tipo_local": "predio_comercial",
+      "contexto_regional": "medio"
+    }
+  ],
+  "fontes": [
+    "Referências Econômicas Empresariais Exemplo",
+    "Bens atribuídos por fontes Exemplo"
+  ]
+}
+```
 
-## Cobrança e cobertura
+Para empresa, o produto estima faturamento e porte. Não apresenta “salário da empresa”; faturamento também não é lucro nem renda dos sócios.
 
-Tarifa e fontes ainda não definidas. Renda permanece nula sem base suficiente. Valores devem ter fonte, período, natureza e incerteza; fontes indisponíveis precisam ser informadas.
+</Accordion>
+
+<Accordion title="Integração, método e fontes">
+
+**Rota proposta:** `POST /inteligencia/financeira/analisar`. Envie CPF **ou** CNPJ, com `detalhamento` opcional (`resumido` ou `completo`). Fontes e cruzamentos são abstraídos: não há seleção obrigatória de módulos.
+
+A pesquisa reúne sinais de emprego, benefícios, endereço, indicadores regionais, aluguel, escrituras, referências FIPE e participações quando disponíveis. Reutiliza a pesquisa de Endereços para contexto de localização e custo residencial.
+
+A classificação usa um método proposto, documentado e calibrável. “Média” e o porte empresarial do exemplo são categorias ilustrativas, não classificação oficial. Sem base individual suficiente, a faixa e a classificação podem ficar indeterminadas; bairro não define renda da pessoa.
+
+A versão completa traz evidências, composição, períodos e incertezas. Consulte [Detalhamento financeiro](/inteligencia/perfil), [contexto patrimonial](/inteligencia/patrimonial) e [integração](/inteligencia/integracao). Tarifas e cobertura ainda não fechadas.
+
+</Accordion>

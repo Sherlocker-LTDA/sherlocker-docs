@@ -1,61 +1,77 @@
 ---
-title: "Imagens de perfil"
-description: "Em breve: fotos ordenadas, deduplicadas e acompanhadas de todas as origens"
+title: "Foto de perfil"
+description: "Dados disponíveis → imagens ordenadas, deduplicadas e com suas origens"
 icon: "image"
 ---
 
-<Note>
-**Em breve.** Contrato proposto, ainda indisponível para clientes. Os exemplos são simulações com dados fictícios. Rotas, limites, fontes, cobrança e cobertura dependem de implementação e publicação.
-</Note>
+<Note>**Em breve.** Contrato proposto; exemplos e valores fictícios.</Note>
 
-O produto pretende reunir fotos encontradas para emails e telefones que o consumidor atribui à mesma pessoa. A lista permite revisar imagens sem perder as fontes que as associaram aos identificadores.
+Envie os dados que tiver. Receba fotos encontradas nas fontes e perfis, ordenadas e deduplicadas, com todas as origens preservadas.
 
-**Rota proposta:** `POST /inteligencia/imagens/pesquisar`.
-
-## Entrada proposta
+## Entrada
 
 ```json
 {
-  "emails": ["pessoa@example.org", "contato@example.org"],
-  "telefones": ["5511999990000"]
+  "cpf": "00000000000",
+  "nome": "Pessoa Exemplo",
+  "emails": [
+    "pessoa@example.org"
+  ],
+  "telefones": [
+    "5511999990000"
+  ],
+  "perfis": [
+    {
+      "url": "https://example.org/perfil/pessoa"
+    }
+  ]
 }
 ```
 
-Pelo menos um array deve conter entrada. O vínculo entre os identificadores é uma informação do consumidor, não uma identidade já confirmada pelo serviço.
-
-## Saída proposta
+## Saída
 
 ```json
 {
-  "imagens": [{
-    "url": "https://example.org/foto.png",
-    "tem_rosto": true,
-    "quantidade_rostos": 1,
-    "origens": [
-      {"fonte":"Fonte A","identificador":"pessoa@example.org","consultado_em":"2026-10-13T12:00:00Z"},
-      {"fonte":"Fonte B","identificador":"5511999990000","consultado_em":"2026-10-13T12:00:01Z"}
-    ]
-  }]
+  "imagens": [
+    {
+      "url": "https://example.org/foto-1.png",
+      "tem_rosto": true,
+      "quantidade_rostos": 1,
+      "origens": [
+        {
+          "fonte": "Perfil Exemplo",
+          "url": "https://example.org/perfil/pessoa",
+          "identificador": "pessoa@example.org"
+        },
+        {
+          "fonte": "Fonte de Contato Exemplo",
+          "identificador": "5511999990000"
+        }
+      ]
+    },
+    {
+      "url": "https://example.org/foto-2.png",
+      "tem_rosto": true,
+      "quantidade_rostos": 1,
+      "origens": [
+        {
+          "fonte": "Outro Perfil Exemplo",
+          "url": "https://example.org/profissional/pessoa"
+        }
+      ]
+    }
+  ]
 }
 ```
 
-`imagens[]` é uma lista ordenada. A mesma foto encontrada em várias fontes aparece uma vez com todas as `origens[]`. Sem foto, o resultado é `{"imagens":[]}`. O contrato não usa campos `melhor` ou `alternativas`.
+Uma foto encontrada em duas fontes aparece uma vez, com duas origens. Sem imagem, a resposta é `{"imagens":[]}`. A lista não usa campos “melhor” ou “alternativas”.
 
-Contagem de rosto depende de análise da imagem; a proposta deve distinguir análise indisponível de zero rostos. A definição de ordenação e deduplicação deve ser transparente. Rosto detectado não confirma identidade.
+<Accordion title="Integração e como interpretar as imagens">
 
-## Exemplo visual
+**Rota proposta:** `POST /inteligencia/imagens/pesquisar`. CPF, nome, emails, telefones e perfis são pistas opcionais; envie os dados disponíveis. CPF pode enriquecer contatos cadastrais antes da pesquisa.
 
-```mermaid
-flowchart LR
-  I[Emails e telefones] --> A[Fontes compatíveis]
-  A --> D[Deduplicação]
-  D --> F[Uma foto com duas origens]
-```
+Fotos e perfis têm vínculos prováveis com as entradas, sem identificação garantida. `tem_rosto` e `quantidade_rostos` descrevem presença de rostos; a proposta não usa embeddings nem reconhecimento facial para identificar a pessoa. Análise indisponível deve ser distinta de zero rostos.
 
-## Uso atual e limites
+Critérios de ordenação e deduplicação serão documentados. Tarifas, cobertura e retenção ainda não fechadas.
 
-[Registros digitais](/entidades/registro-digital) podem incluir `foto` conforme a fonte. Essa capacidade não implementa a agregação, ordenação ou contagem de rostos propostas aqui.
-
-## Cobrança e cobertura
-
-Tarifa, limite de identificadores, critérios de ranking, tratamento de imagens inacessíveis e retenção ainda precisam ser definidos. Sem promessa de foto para toda entrada. Uma resposta parcial deve informar fontes que não puderam ser consultadas.
+</Accordion>

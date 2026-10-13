@@ -193,52 +193,31 @@
         "icon": "brain",
         "groups": [
           {
-            "group": "Começando",
+            "group": "Produtos · Em breve",
             "pages": [
               "inteligencia/introducao",
-              "inteligencia/integracao"
-            ]
-          },
-          {
-            "group": "Financeira",
-            "pages": [
               "inteligencia/financeira",
-              "inteligencia/perfil"
-            ]
-          },
-          {
-            "group": "Patrimonial",
-            "pages": [
-              "inteligencia/patrimonial",
-              "inteligencia/veiculos"
-            ]
-          },
-          {
-            "group": "Localização",
-            "pages": [
-              "inteligencia/localizacao",
               "inteligencia/enderecos",
-              "inteligencia/geoespacial"
-            ]
-          },
-          {
-            "group": "Redes sociais",
-            "pages": [
               "inteligencia/redessociais",
-              "inteligencia/contas",
               "inteligencia/imagens"
             ]
           },
           {
-            "group": "Conexões",
+            "group": "Outras ferramentas · Em breve",
             "pages": [
-              "inteligencia/conexoes"
+              "inteligencia/conexoes",
+              "inteligencia/geoespacial",
+              "inteligencia/midia",
+              "inteligencia/veiculos",
+              "inteligencia/contas"
             ]
           },
           {
-            "group": "Imagens",
+            "group": "Integração e detalhes",
             "pages": [
-              "inteligencia/midia"
+              "inteligencia/integracao",
+              "inteligencia/perfil",
+              "inteligencia/localizacao"
             ]
           }
         ]

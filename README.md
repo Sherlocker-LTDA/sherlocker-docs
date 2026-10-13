@@ -25,7 +25,7 @@ Publicada em **[docs.sherlocker.com.br](https://docs.sherlocker.com.br)** · Con
 | Tab | Módulos |
 |-----|---------|
 | **Cadastro** | Perfil, Pessoas, Empresas, Telefones, Emails, Dívidas, Benefícios, Licitações |
-| **Inteligência** | Financeira, Patrimonial, Localização, Redes sociais, Conexões e Imagens — propostas Em breve |
+| **Inteligência** | Financeira, Endereços, Redes sociais e Foto de perfil — Em breve; outras ferramentas em seção secundária |
 | **Patrimônio** | Imóveis urbanos, Rurais, Veículos, Aeronaves, Patentes |
 | **Jurídico** | Processos, Documentos públicos |
 

@@ -8,22 +8,23 @@ icon: "code"
 **Em breve.** Contrato proposto, ainda indisponível para clientes. Os exemplos são simulações com dados fictícios. Rotas, limites, fontes, cobrança e cobertura dependem de implementação e publicação.
 </Note>
 
-Este é o desenho de integração para os oito produtos. Não envie requisições a estas rotas enquanto não houver uma versão publicada com contrato definitivo.
+Este é o desenho de integração das ferramentas propostas. Não envie requisições a estas rotas enquanto não houver uma versão publicada com contrato definitivo.
 
 ## Rotas propostas
 
 | Produto | Criação de pesquisa proposta |
 | --- | --- |
-| Contas e registros | `POST /inteligencia/contas/pesquisar` |
-| Imagens de perfil | `POST /inteligencia/imagens/pesquisar` |
+| Redes sociais | `POST /inteligencia/redessociais/pesquisar` |
+| Contas e registros (secundário) | `POST /inteligencia/contas/pesquisar` |
+| Foto de perfil | `POST /inteligencia/imagens/pesquisar` |
 | Endereços | `POST /inteligencia/enderecos/pesquisar` |
 | Veículos | `POST /inteligencia/veiculos/pesquisar` |
 | Rede de conexões | `POST /inteligencia/conexoes/pesquisar` |
 | Geoespacial | `POST /inteligencia/locais/comparar` |
 | Mídia inversa | `POST /inteligencia/midia/pesquisar` |
-| Perfil patrimonial e econômico | `POST /inteligencia/perfil/analisar` |
+| Financeira | `POST /inteligencia/financeira/analisar` |
 
-As URLs propostas não contêm hífen. Entradas e saídas nas páginas dos produtos são propostas de estrutura e não schemas de uma API liberada.
+As URLs propostas não contêm hífen. Entradas e saídas nas páginas dos produtos são propostas de estrutura e não schemas de uma API liberada. A Financeira recebe `cpf` ou `cnpj` e apenas `detalhamento` opcional (`resumido` ou `completo`): seleção de fontes é responsabilidade interna.
 
 ## Etapas de uma pesquisa assíncrona
 

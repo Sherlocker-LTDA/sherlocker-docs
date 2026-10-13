@@ -1,236 +1,186 @@
 ---
-title: "Perfil combinado"
-description: "Em breve: bens atribuídos, faixas de valor, renda documentada e contexto regional"
-icon: "chart-pie"
+title: "Detalhamento financeiro"
+description: "Em breve: evidências e metodologia da mesma API Financeira"
+icon: "list-check"
 ---
 
 <Note>
-**Em breve.** Contrato proposto, ainda indisponível para clientes. Os exemplos são simulações com dados fictícios. Rotas, limites, fontes, cobrança e cobertura dependem de implementação e publicação.
+**Em breve.** Produto e contrato propostos, ainda indisponíveis para clientes. Dados e valores abaixo são ilustrativos; não representam uma pessoa real. Critérios, cobrança e cobertura serão definidos antes da publicação.
 </Note>
 
-O perfil combinado separa `financeira` e `patrimonial` na resposta. Ele pretende reunir sinais patrimoniais e econômicos de um CPF sem misturar patrimônio confirmado com endereços candidatos ou inferência regional. A visão compara bens, referências financeiras e qualidade das fontes para orientar uma investigação.
-
-**Rota proposta:** `POST /inteligencia/perfil/analisar`.
+A API Financeira consolida métricas de renda, salário, localização, aluguel, patrimônio e benefícios a partir de um CPF ou CNPJ. Esta página detalha a mesma pesquisa, com explicações para revisão das estimativas.
 
 ## Entrada proposta
 
 ```json
 {
   "cpf": "<CPF>",
-  "areas": ["financeira", "patrimonial"],
-  "incluir": ["imoveis", "escrituras", "veiculos", "enderecos", "beneficios", "empregos", "parentes", "contexto_ibge"]
+  "detalhamento": "completo"
 }
 ```
 
-O documento é um marcador. Escopo de parentes, profundidade e orçamento devem ser definidos. Um bem de parente não se torna automaticamente patrimônio do alvo.
+Não é necessário escolher fontes. A coleta poderá reunir vínculos profissionais, benefícios, endereços, contexto IBGE, aluguel, escrituras, FIPE e participações conforme disponibilidade. Esses insumos são abstraídos pelo produto.
 
-## Saída proposta
+## Como o resultado deve ser lido
+
+| Métrica | Interpretação |
+| --- | --- |
+| Salário estimado | Faixa sustentada por vínculo profissional e base de remuneração compatível; vínculo sem remuneração não vira salário confirmado |
+| Renda mensal/anual | Receitas individuais com natureza, período e evidência; sem somar estimativas redundantes |
+| Classificação por renda | Critério documentado, versionado e calibrável, com confiança e incertezas |
+| Contexto regional | Indicador do território; não é renda individual |
+| Aluguel residencial | Estimativa de despesa/contexto; não é recebimento da pessoa |
+| Patrimônio | Informação complementar sobre bens atribuídos por fonte; não renda mensal |
+| Benefícios | Receita só quando valor, período e atribuição forem sustentados |
+
+<Accordion title="Exemplo completo: método, composição e fontes">
+
+**Rota proposta:** `POST /inteligencia/financeira/analisar`.
 
 ```json
 {
-  "entidades": [
-    {
-      "id": "pessoa_1",
-      "tipo": "pessoa",
-      "nome": "Pessoa Exemplo"
-    }
-  ],
-  "financeira": {
-    "renda": {
-      "faixa": null,
-      "empregos": [],
-      "beneficios": [],
-      "status": "sem_fontes_suficientes"
+  "renda_estimada": {
+    "mensal": {
+      "minimo": 4500,
+      "maximo": 6500
     },
-    "contexto_ibge": {
-      "nivel": "municipio",
-      "codigo": "0000000",
-      "indicadores": [
-        {
-          "nome": "rendimento_medio_regional",
-          "valor": null,
-          "referencia": null,
-          "fonte": "IBGE",
-          "status": "nao_consultado"
-        }
-      ],
-      "renda_individual_inferida": false
-    }
-  },
-  "patrimonial": {
-    "bens_atribuidos": [
+    "anual": {
+      "minimo": 54000,
+      "maximo": 78000
+    },
+    "moeda": "BRL",
+    "base_anual_meses": 12,
+    "componentes": [
       {
-        "id": "imovel_1",
-        "tipo": "imovel",
-        "titular": "pessoa_1",
-        "vinculo": {
-          "natureza": "propriedade_informada_pela_fonte",
-          "evidencias": [
-            "evidencia_1"
-          ]
+        "id": "receita_1",
+        "tipo": "salario_estimado",
+        "mensal": {
+          "minimo": 4500,
+          "maximo": 6500
         },
-        "valores": {
-          "venal": {
-            "valor": 200000,
-            "moeda": "BRL",
-            "referencia": "2025",
-            "fonte": "Cadastro Fiscal Exemplo"
-          },
-          "mercado": {
-            "faixa": {
-              "minimo": 260000,
-              "maximo": 330000
-            },
-            "moeda": "BRL",
-            "referencia": "2026-10",
-            "fonte": "Comparáveis Exemplo",
-            "natureza": "estimativa",
-            "incerteza": "alta"
-          }
-        }
-      },
-      {
-        "id": "veiculo_1",
-        "tipo": "veiculo",
-        "titular": "pessoa_1",
-        "vinculo": {
-          "natureza": "proprietario_cadastral",
-          "evidencias": [
-            "evidencia_2"
-          ]
-        },
-        "valores": {
-          "fipe": {
-            "valor": 45000,
-            "moeda": "BRL",
-            "referencia": "2026-10",
-            "fonte": "Referência FIPE Exemplo",
-            "natureza": "referencia"
-          },
-          "mercado": null
-        }
-      }
-    ],
-    "bens_nao_confirmados": [],
-    "enderecos_candidatos": [
-      {
-        "id": "endereco_1",
-        "endereco": "Rua Exemplo, 123, Cidade Exemplo, SP",
-        "natureza": "residencia_candidata",
-        "propriedade_confirmada": false,
-        "aluguel_provavel": null,
-        "condominio": null,
+        "referencia": "2026-10",
         "evidencias": [
-          "evidencia_3"
+          "evidencia_1"
         ]
       }
     ],
-    "totais": {
-      "atribuido": {
-        "valor_venal_imoveis": {
-          "valor": 200000,
-          "moeda": "BRL",
-          "itens": [
-            "imovel_1"
-          ],
-          "referencia": "2025"
-        },
-        "referencia_fipe_veiculos": {
-          "valor": 45000,
-          "moeda": "BRL",
-          "itens": [
-            "veiculo_1"
-          ],
-          "referencia": "2026-10"
-        },
-        "mercado_imoveis_estimado": {
-          "faixa": {
-            "minimo": 260000,
-            "maximo": 330000
-          },
-          "moeda": "BRL",
-          "itens": [
-            "imovel_1"
-          ],
-          "referencia": "2026-10"
-        }
-      },
-      "nao_confirmado": null,
-      "patrimonio_total": null
-    },
-    "participacoes": []
+    "itens_excluidos": [
+      "Aluguel residencial estimado",
+      "Patrimônio estimado",
+      "Rendimento médio regional"
+    ]
   },
-  "parentes": [],
+  "classificacao_renda": {
+    "faixa": "media",
+    "confianca": "moderada",
+    "metodo": {
+      "nome": "faixas_ilustrativas_de_renda_mensal_individual",
+      "versao": "proposta-0.1",
+      "criterios_ilustrativos": [
+        {
+          "faixa": "baixa",
+          "mensal_inferior": 0,
+          "mensal_superior_exclusivo": 3000
+        },
+        {
+          "faixa": "media",
+          "mensal_inferior": 3000,
+          "mensal_superior_exclusivo": 10000
+        },
+        {
+          "faixa": "alta",
+          "mensal_inferior": 10000,
+          "mensal_superior_exclusivo": null
+        }
+      ],
+      "base": "renda_mensal_individual_estimativa_bruta",
+      "calibrado": false,
+      "observacao": "Limiares fictícios para demonstrar a estrutura; não são classificação oficial ou critério liberado."
+    },
+    "motivos": [
+      "Há vínculo profissional no exemplo e referência compatível de remuneração."
+    ],
+    "incertezas": [
+      "Faixa estimada não confirma pagamento individual nem continuidade do vínculo."
+    ]
+  },
+  "enderecos": [
+    {
+      "id": "endereco_1",
+      "normalizado": "Rua Exemplo, 123, Cidade Exemplo, SP",
+      "vinculo": "residencia_candidata",
+      "vigencia_residencial": null,
+      "contexto_regional": {
+        "nivel": "municipio",
+        "faixa": "media",
+        "referencia": "2026-10",
+        "fonte": "Indicadores Regionais Exemplo",
+        "renda_individual_inferida": false
+      },
+      "aluguel_estimado": {
+        "mensal": {
+          "minimo": 1800,
+          "maximo": 2400
+        },
+        "moeda": "BRL",
+        "referencia": "2026-10",
+        "fonte": "Comparáveis Residenciais Exemplo",
+        "receita_da_pessoa": false
+      }
+    }
+  ],
+  "patrimonio_estimado": {
+    "faixa": {
+      "minimo": 280000,
+      "maximo": 380000
+    },
+    "moeda": "BRL",
+    "referencia": "2026-10",
+    "natureza": "estimativa_complementar",
+    "compoe_renda": false,
+    "metodo": "Estimativa ilustrativa sobre bens atribuídos; atribuição, datas, dívidas e bases precisam de revisão."
+  },
   "evidencias": [
     {
       "id": "evidencia_1",
-      "fonte": "Registro de Imóvel Exemplo",
-      "consultado_em": "2026-10-13T12:00:00Z",
-      "descricao": "Fonte informa propriedade."
-    },
-    {
-      "id": "evidencia_2",
-      "fonte": "Cadastro Veicular Exemplo",
-      "consultado_em": "2026-10-13T12:00:00Z",
-      "descricao": "Fonte informa proprietário cadastral."
-    },
-    {
-      "id": "evidencia_3",
-      "fonte": "Endereço Cadastral Exemplo",
-      "consultado_em": "2026-10-13T12:00:00Z",
-      "descricao": "Endereço associado; residência atual não confirmada."
+      "fonte": "Vínculo Profissional e Referência Salarial Exemplo",
+      "descricao": "Insumos fictícios compatíveis com a faixa estimada.",
+      "referencia": "2026-10",
+      "consultado_em": "2026-10-13T12:00:00Z"
     }
   ],
   "cobertura": [
     {
-      "fonte": "Escrituras",
-      "status": "nao_consultada"
+      "fonte": "Vínculos profissionais",
+      "situacao": "consultada_no_exemplo"
     },
     {
-      "fonte": "IBGE",
-      "status": "nao_consultada"
+      "fonte": "Benefícios",
+      "situacao": "sem_valor_confirmado_no_exemplo"
     }
-  ],
-  "incertezas": [
-    "Valores e vínculos simulados para ilustrar o contrato; não há patrimônio total calculado.",
-    "Endereço candidato não é bem atribuído nem prova de residência."
   ]
 }
 ```
 
-Os valores são fictícios. Os subtotais apontam para bens existentes no próprio resultado e mantêm bases de avaliação separadas. `patrimonio_total` permanece nulo: somar valor venal, referência FIPE e estimativa de mercado sem uma metodologia comum produziria uma conclusão inadequada.
+A renda anual multiplica a mensal por 12 neste exemplo. Pagamentos adicionais só poderão entrar quando houver fonte e regra de composição explícitas. O produto não deve confundir limite desconhecido com renda zero.
 
-## Como interpretar
+Se a faixa estimada atravessar os limiares de classificação, o método deverá representar essa incerteza. Confiança mede qualidade da evidência e do método; não é probabilidade calibrada sem validação específica.
 
-| Categoria | Tratamento proposto |
-| --- | --- |
-| Imóvel e escritura | Preservar natureza do ato, titularidade, vigência e fonte; escritura não implica automaticamente propriedade atual |
-| Endereço associado | Manter como candidato de localização/residência; não atribuir propriedade |
-| Valor venal | Referência fiscal com origem e data |
-| Valor de mercado | Estimativa com faixa, critérios e incerteza |
-| FIPE | Referência de modelo/versão e mês; não preço realizado |
-| Aluguel e condomínio | Estimar somente com fontes; manter nulo sem evidência suficiente |
-| Emprego e benefício | Dados com fonte e período; sem presumir salário ou renda total |
-| Parentes | Relações com evidência; patrimônio individual separado |
-| Contexto IBGE | Indicadores regionais com nível e referência; sem inferir renda individual ou classe social pelo bairro |
-
-Uma faixa de renda só deve existir quando fontes sustentarem esse cálculo. Média regional, ocupação, benefício ou aparência do imóvel não autorizam inventar salário individual.
+</Accordion>
 
 ## Exemplo visual
 
 ```mermaid
-flowchart TD
-  P[Pessoa Exemplo] --> B[Bens atribuídos por fonte]
-  P --> C[Endereços candidatos]
-  B --> V[Valores com base e data]
-  C --> I[Indícios para verificar]
-  R[Contexto IBGE regional] --> K[Contexto econômico]
+flowchart LR
+  V[Vínculo e base salarial] --> S[Faixa de salário]
+  S --> R[Renda individual]
+  R --> C[Classificação versionada]
+  I[Contexto regional] --> L[Contexto complementar]
+  P[Patrimônio] --> L
 ```
 
-## Uso atual e limites
-
-As consultas atuais de imóveis, escrituras, veículos, benefícios e empregos continuam disponíveis em suas áreas. O agregador, os cruzamentos econômicos, a pesquisa imobiliária e as estimativas descritas aqui são novos contratos propostos. Não há classificação social individual prometida.
+Para CNPJ, a mesma API usa faturamento mensal/anual estimado e classificação de porte por método proposto. Não estima “salário da empresa” nem converte faturamento em lucro ou renda dos sócios.
 
 ## Cobrança e cobertura
 
-Preço, fontes, limites de parentes, regiões e critérios de agregação ainda serão definidos. O resultado deve informar cobertura e ausências por fonte. Um patrimônio total só poderá ser apresentado quando atribuição, datas, valores faltantes, dívida e metodologia forem explicitados; não é uma soma automática dos campos disponíveis.
+Sem tarifa ou cobertura comercial fechada. Fontes, períodos e incertezas acompanham a versão completa. A mesma API oferece detalhe resumido ou completo; não há um segundo produto patrimonial separado.

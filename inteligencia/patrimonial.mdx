@@ -1,67 +1,148 @@
 ---
-title: "Patrimonial"
-description: "Em breve: bens, valores e evolução patrimonial apoiados em fontes"
+title: "Patrimônio no resultado financeiro"
+description: "Em breve: bens e evolução como contexto complementar da API Financeira"
 icon: "landmark"
 ---
 
 <Note>
-**Em breve.** Contrato proposto, ainda indisponível para clientes. Exemplos com dados fictícios. Cobrança, fontes, limites e cobertura serão definidos antes da publicação.
+**Em breve.** Produto e contrato propostos, ainda indisponíveis para clientes. Dados e valores abaixo são ilustrativos; não representam uma pessoa real. Critérios, cobrança e cobertura serão definidos antes da publicação.
 </Note>
 
-O produto pretende reunir imóveis, escrituras, veículos e participações com sua origem e referências de valor. A visão separa bens atribuídos por fonte, bens não confirmados e endereços candidatos para evitar somas sem base.
+O patrimônio é um contexto complementar da API Financeira. Ele reúne bens atribuídos por fonte e referências de valor para revisão, mantendo renda e despesas residenciais em categorias próprias.
 
-**Ferramentas propostas:** [perfil combinado](/inteligencia/perfil), `POST /inteligencia/perfil/analisar`, e [veículos](/inteligencia/veiculos), `POST /inteligencia/veiculos/pesquisar`.
+A pesquisa continua simples: um CPF, com detalhamento opcional. Não há necessidade de selecionar imóveis, escrituras, FIPE ou participações; a API abstrai essas fontes.
 
 ## Entrada proposta
 
 ```json
 {
   "cpf": "<CPF>",
-  "areas": ["patrimonial"],
-  "incluir": ["imoveis", "escrituras", "veiculos", "participacoes", "evolucao"]
+  "detalhamento": "completo"
 }
 ```
 
-## Saída proposta: bens e evolução
+## Resultado ilustrativo: patrimônio e evolução
 
 ```json
 {
-  "financeira": null,
-  "patrimonial": {
-    "bens_atribuidos": [{"id":"imovel_1","tipo":"imovel","fonte":"Registro Exemplo","valor_venal":{"valor":200000,"moeda":"BRL","referencia":"2025"},"mercado":null}],
+  "patrimonio": {
+    "estimativa": {
+      "faixa": {
+        "minimo": 280000,
+        "maximo": 380000
+      },
+      "moeda": "BRL",
+      "referencia": "2026-10",
+      "natureza": "estimativa_complementar",
+      "compoe_renda": false,
+      "metodo": "Exemplo de estimativa após revisão dos bens atribuídos e bases de valor."
+    },
+    "bens_atribuidos": [
+      {
+        "id": "imovel_1",
+        "tipo": "imovel",
+        "fonte": "Registro Exemplo",
+        "valor_venal": {
+          "valor": 200000,
+          "moeda": "BRL",
+          "referencia": "2025"
+        },
+        "mercado_estimado": {
+          "faixa": {
+            "minimo": 235000,
+            "maximo": 335000
+          },
+          "moeda": "BRL",
+          "referencia": "2026-10",
+          "fonte": "Comparáveis Exemplo"
+        }
+      },
+      {
+        "id": "veiculo_1",
+        "tipo": "veiculo",
+        "fonte": "Cadastro Veicular Exemplo",
+        "fipe": {
+          "valor": 45000,
+          "moeda": "BRL",
+          "referencia": "2026-10",
+          "fonte": "Referência FIPE Exemplo"
+        }
+      }
+    ],
     "bens_nao_confirmados": [],
     "participacoes": [],
-    "totais": {"valor_venal_atribuido":{"valor":200000,"moeda":"BRL","itens":["imovel_1"],"referencia":"2025"},"nao_confirmado":null,"patrimonio_total":null},
+    "enderecos_residenciais_contados_como_bens": false,
     "evolucao": {
-      "status": "parcial",
-      "eventos_datados": [{"id":"evento_1","bem_id":"imovel_1","tipo":"aquisicao_informada","data":"2021-05-10","natureza_data":"data_do_ato","fonte":"Documento Exemplo","evidencia_id":"evidencia_1"}],
-      "eventos_sem_data": [{"id":"evento_2","bem_id":"imovel_1","tipo":"observacao_cadastral","data":null,"fonte":"Cadastro Exemplo","evidencia_id":"evidencia_2"}],
-      "limitacoes": ["Sem documento de venda consultado; ausência não confirma manutenção de propriedade.","Evento sem data não participa da ordenação cronológica."]
+      "situacao": "parcial",
+      "eventos_datados": [
+        {
+          "id": "evento_1",
+          "bem_id": "imovel_1",
+          "tipo": "aquisicao_informada",
+          "data": "2021-05-10",
+          "natureza_data": "data_do_ato",
+          "fonte": "Documento Exemplo",
+          "evidencia_id": "evidencia_1"
+        }
+      ],
+      "eventos_sem_data": [
+        {
+          "id": "evento_2",
+          "bem_id": "veiculo_1",
+          "tipo": "observacao_cadastral",
+          "data": null,
+          "fonte": "Cadastro Exemplo",
+          "evidencia_id": "evidencia_2"
+        }
+      ],
+      "limitacoes": [
+        "Sem documento de venda consultado; ausência não confirma manutenção de propriedade.",
+        "Evento sem data fica fora da ordenação cronológica."
+      ]
     }
   },
   "evidencias": [
-    {"id":"evidencia_1","fonte":"Documento Exemplo","descricao":"Documento atribui aquisição à pessoa do exemplo.","consultado_em":"2026-10-13T12:00:00Z"},
-    {"id":"evidencia_2","fonte":"Cadastro Exemplo","descricao":"Observação sem data de vigência.","consultado_em":"2026-10-13T12:00:00Z"}
+    {
+      "id": "evidencia_1",
+      "fonte": "Documento Exemplo",
+      "descricao": "Documento fictício atribui aquisição ao alvo.",
+      "consultado_em": "2026-10-13T12:00:00Z"
+    },
+    {
+      "id": "evidencia_2",
+      "fonte": "Cadastro Exemplo",
+      "descricao": "Observação fictícia sem data de vigência.",
+      "consultado_em": "2026-10-13T12:00:00Z"
+    }
+  ],
+  "incertezas": [
+    "Valores ilustrativos; atribuição atual, dívidas e metodologia precisam de verificação."
   ]
 }
 ```
 
-## Linha do tempo patrimonial
+O exemplo estima patrimônio com uma mesma referência de mercado para o imóvel e FIPE como referência complementar do veículo. Valor venal fiscal de 2025 permanece separado: não é somado de novo ao imóvel. Essa aproximação não comprova preço realizável nem patrimônio líquido; a metodologia deverá explicitar obrigações, dívidas e valores ausentes.
+
+## Linha do tempo
 
 ```mermaid
 flowchart LR
-  A[2021: aquisição documentada] --> B[2025: referência de valor venal]
-  C[Observação sem data] --> D[Registro separado, sem posição cronológica]
+  A[2021: aquisição documentada] --> B[2026: referência de valor]
+  C[Observação sem data] --> D[Registro separado, fora da cronologia]
 ```
 
-Evolução patrimonial real precisa de aquisição, venda ou transferência atribuída ao alvo em documentos, escrituras, registros de veículos ou participações. Um endereço residencial não é prova de propriedade e não entra no patrimônio.
+Evolução patrimonial precisa de aquisição, venda ou transferência atribuída em documentos, escrituras, veículos ou participações. Endereço de residência não comprova propriedade. Bem de parente não é patrimônio do alvo.
 
-Valor venal é fiscal; FIPE é referência de veículo; mercado é estimativa com faixa. Preserve base e data de cada valor. Não some categorias distintas como se formassem patrimônio líquido confirmado.
+Uma mudança para região de menor custo residencial, descrita em [Localização](/inteligencia/localizacao), não implica automaticamente queda de patrimônio ou renda.
 
-## Contexto residencial e limites
+<Accordion title="Como este detalhe integra a API Financeira">
 
-A [Localização](/inteligencia/localizacao) poderá mostrar mudanças de endereço e custo residencial regional com fontes e datas. “Mudança para região de menor custo residencial” pode descrever a comparação entre bases compatíveis. Isso não implica automaticamente queda de patrimônio ou renda.
+**Rota proposta:** `POST /inteligencia/financeira/analisar`.
+
+Este bloco será parte do detalhamento completo da mesma pesquisa. Leia [Financeira](/inteligencia/financeira) para o resultado consolidado e [Detalhamento financeiro](/inteligencia/perfil) para método, composição da renda e fontes.
+
+</Accordion>
 
 ## Cobrança e cobertura
 
-Preço e fontes ainda não definidos. A evolução será parcial quando faltar data, vigência, atribuição ou documento. Sem valor suficiente, totais permanecem nulos e explicam a ausência; bens de parentes não são atribuídos automaticamente ao alvo.
+Preço e fontes ainda não definidos. Atribuição, datas e valores podem estar ausentes; a evolução deve informar essas lacunas. Patrimônio estimado não é salário nem receita de aluguel.

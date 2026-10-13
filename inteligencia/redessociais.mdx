@@ -1,51 +1,82 @@
 ---
 title: "Redes sociais"
-description: "Em breve: contas, perfis e imagens encontrados a partir de contatos"
+description: "Nome, documento e contatos → perfis prováveis com link, origem e motivos"
 icon: "users"
 ---
 
-<Note>
-**Em breve.** Contrato proposto, ainda indisponível para clientes. Exemplos com dados fictícios. Cobrança, fontes, limites e cobertura serão definidos antes da publicação.
-</Note>
+<Note>**Em breve.** Contrato proposto; exemplos e valores fictícios.</Note>
 
-Parta de emails e telefones para organizar presenças digitais e imagens com suas origens. O produto pretende reunir resultados sem assumir que todos os identificadores ou perfis pertencem à mesma pessoa.
+Reúna perfis prováveis encontrados na web e nas redes a partir dos dados disponíveis. Cada resultado vem com link, origem, confiança e motivos da correspondência.
 
-**Ferramentas propostas:** [contas e registros](/inteligencia/contas), `POST /inteligencia/contas/pesquisar`, e [imagens de perfil](/inteligencia/imagens), `POST /inteligencia/imagens/pesquisar`.
-
-## Entrada proposta
+## Entrada
 
 ```json
 {
-  "emails": ["pessoa@example.org"],
-  "telefones": ["5511999990000"]
+  "nome": "Pessoa Exemplo",
+  "cpf": "00000000000",
+  "emails": [
+    "pessoa@example.org"
+  ],
+  "telefones": [
+    "5511999990000"
+  ]
 }
 ```
 
-## Saída proposta: imagens encontradas
+## Saída
 
 ```json
 {
-  "imagens": [{
-    "url": "https://example.org/perfil.png",
-    "tem_rosto": true,
-    "quantidade_rostos": 1,
-    "origens": [{"fonte":"Plataforma Exemplo","identificador":"pessoa@example.org","consultado_em":"2026-10-13T12:00:00Z"}]
-  }]
+  "perfis": [
+    {
+      "id": "perfil_1",
+      "plataforma": "Rede Exemplo",
+      "nome": "Pessoa Exemplo",
+      "url": "https://example.org/perfil/pessoa",
+      "correspondencia": "provavel",
+      "confianca": "moderada",
+      "motivos": [
+        "Nome compatível com a entrada.",
+        "Contato reconhecido pela fonte do exemplo."
+      ],
+      "origens": [
+        {
+          "fonte": "Pesquisa Web Exemplo",
+          "url": "https://example.org/fonte/perfil",
+          "consultado_em": "2026-10-13T12:00:00Z"
+        }
+      ]
+    },
+    {
+      "id": "perfil_2",
+      "plataforma": "Rede Profissional Exemplo",
+      "nome": "Pessoa Exemplo",
+      "url": "https://example.org/profissional/pessoa",
+      "correspondencia": "provavel",
+      "confianca": "baixa",
+      "motivos": [
+        "Nome compatível; contato ainda não corroborado."
+      ],
+      "origens": [
+        {
+          "fonte": "Pesquisa Web Exemplo",
+          "url": "https://example.org/fonte/profissional",
+          "consultado_em": "2026-10-13T12:00:00Z"
+        }
+      ]
+    }
+  ]
 }
 ```
 
-A lista será ordenada e deduplicada, preservando todas as origens. Nenhuma imagem produz lista vazia. Detecção de rosto não confirma identidade; análise indisponível não deve aparecer como zero rostos. As páginas das ferramentas detalham os resultados de contas e fotos separadamente.
+Mostre uma lista de perfis com confiança e motivos. Nome igual é uma pista; o resultado não garante identidade.
 
-## Exemplo visual
+<Accordion title="Integração e fontes">
 
-```mermaid
-flowchart LR
-  C[Contatos] --> P[Contas e perfis]
-  C --> I[Imagens]
-  P --> F[Fontes]
-  I --> F
-```
+**Rota proposta:** `POST /inteligencia/redessociais/pesquisar`. Aceita nome, documento CPF/CNPJ e contatos disponíveis; não exige que todos os campos sejam preenchidos. Para empresa, pode receber `cnpj` e nome empresarial.
 
-## Cobrança e cobertura
+A proposta pesquisa web e fontes compatíveis para descobrir perfis, não apenas verificar uma lista fixa de contas. Um documento pode enriquecer contatos para orientar a busca. Homônimos e vínculos incertos permanecem explícitos.
 
-Sem tarifa ou lista garantida de plataformas para o novo produto. Hoje [Rastro](/plataforma/rastro) e [Registros](/entidades/registro-digital) têm contratos próprios. A nova pesquisa agregada permanece em breve.
+Para reunir imagens desses resultados, use [Foto de perfil](/inteligencia/imagens). Tarifas, limites e cobertura ainda serão definidos; não há promessa de encontrar todos os perfis da web.
+
+</Accordion>
