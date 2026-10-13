@@ -189,6 +189,61 @@
         ]
       },
       {
+        "tab": "Inteligência",
+        "icon": "brain",
+        "groups": [
+          {
+            "group": "Começando",
+            "pages": [
+              "inteligencia/introducao",
+              "inteligencia/integracao"
+            ]
+          },
+          {
+            "group": "Financeira",
+            "pages": [
+              "inteligencia/financeira",
+              "inteligencia/perfil"
+            ]
+          },
+          {
+            "group": "Patrimonial",
+            "pages": [
+              "inteligencia/patrimonial",
+              "inteligencia/veiculos"
+            ]
+          },
+          {
+            "group": "Localização",
+            "pages": [
+              "inteligencia/localizacao",
+              "inteligencia/enderecos",
+              "inteligencia/geoespacial"
+            ]
+          },
+          {
+            "group": "Redes sociais",
+            "pages": [
+              "inteligencia/redessociais",
+              "inteligencia/contas",
+              "inteligencia/imagens"
+            ]
+          },
+          {
+            "group": "Conexões",
+            "pages": [
+              "inteligencia/conexoes"
+            ]
+          },
+          {
+            "group": "Imagens",
+            "pages": [
+              "inteligencia/midia"
+            ]
+          }
+        ]
+      },
+      {
         "tab": "Patrimônio",
         "icon": "landmark",
         "groups": [
