@@ -8,21 +8,16 @@ icon: "code"
 **Em breve.** Contrato proposto, ainda indisponível para clientes. Os exemplos são simulações com dados fictícios. Rotas, limites, fontes, cobrança e cobertura dependem de implementação e publicação.
 </Note>
 
-Este é o desenho de integração das ferramentas propostas. Não envie requisições a estas rotas enquanto não houver uma versão publicada com contrato definitivo.
+Este é o desenho de integração dos quatro produtos propostos. Não envie requisições a estas rotas enquanto não houver uma versão publicada com contrato definitivo.
 
 ## Rotas propostas
 
 | Produto | Criação de pesquisa proposta |
 | --- | --- |
-| Redes sociais | `POST /inteligencia/redessociais/pesquisar` |
-| Contas e registros (secundário) | `POST /inteligencia/contas/pesquisar` |
-| Foto de perfil | `POST /inteligencia/imagens/pesquisar` |
-| Endereços | `POST /inteligencia/enderecos/pesquisar` |
-| Veículos | `POST /inteligencia/veiculos/pesquisar` |
-| Rede de conexões | `POST /inteligencia/conexoes/pesquisar` |
-| Geoespacial | `POST /inteligencia/locais/comparar` |
-| Mídia inversa | `POST /inteligencia/midia/pesquisar` |
 | Financeira | `POST /inteligencia/financeira/analisar` |
+| Endereços | `POST /inteligencia/enderecos/pesquisar` |
+| Redes sociais | `POST /inteligencia/redessociais/pesquisar` |
+| Foto de perfil | `POST /inteligencia/imagens/pesquisar` |
 
 As URLs propostas não contêm hífen. Entradas e saídas nas páginas dos produtos são propostas de estrutura e não schemas de uma API liberada. A Financeira recebe `cpf` ou `cnpj` e apenas `detalhamento` opcional (`resumido` ou `completo`): seleção de fontes é responsabilidade interna.
 
@@ -82,14 +77,14 @@ Os códigos finais de HTTP, erro e cobrança serão fechados antes da publicaç�
 
 ## Fontes, visuais e revisão
 
-Cada achado deve manter fonte e data. Relações referenciam entidades e evidências existentes no mesmo resultado. GeoJSON segue a ordem `[longitude, latitude]`. Fotos repetidas acumulam suas origens; valores financeiros devem indicar referência e natureza do valor.
+Cada achado deve manter fonte e data quando disponíveis. Fotos repetidas acumulam suas origens; valores financeiros devem indicar referência, natureza e confiança. Endereços mantêm precisão e contexto separado da renda individual.
 
 ```mermaid
 flowchart LR
   A[JSON de entrada] --> B[Job]
   B --> C[Fontes e normalização]
   C --> D[Resultado estruturado]
-  D --> E[Cards, mapa ou grafo]
+  D --> E[Categorias e imagens]
 ```
 
 O visual apresenta o resultado estruturado; não cria vínculos, preços ou fatos que não foram coletados. Conteúdo sensível, imagens, URLs e retenção precisam de política definida por produto.

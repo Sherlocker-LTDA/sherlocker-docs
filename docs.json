@@ -203,21 +203,9 @@
             ]
           },
           {
-            "group": "Outras ferramentas · Em breve",
+            "group": "Integração",
             "pages": [
-              "inteligencia/conexoes",
-              "inteligencia/geoespacial",
-              "inteligencia/midia",
-              "inteligencia/veiculos",
-              "inteligencia/contas"
-            ]
-          },
-          {
-            "group": "Integração e detalhes",
-            "pages": [
-              "inteligencia/integracao",
-              "inteligencia/perfil",
-              "inteligencia/localizacao"
+              "inteligencia/integracao"
             ]
           }
         ]
