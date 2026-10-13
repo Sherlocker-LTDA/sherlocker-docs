@@ -272,19 +272,6 @@
                                 ]
                               },
                               {
-                                "nome": "[Menor de Idade, Protegido pela LGPD]",
-                                "cpf_cnpj": "***.***.***-**",
-                                "qualidade": "Herdeiro",
-                                "data_nascimento": null,
-                                "sexo": "M",
-                                "estrangeiro": false,
-                                "conjuge_tipo": null,
-                                "naturalidade_uf": null,
-                                "residencia": null,
-                                "documentos": [],
-                                "mascarado_motivo": "menor_de_idade"
-                              },
-                              {
                                 "nome": "ADVOGADO EXEMPLO",
                                 "cpf_cnpj": "11122233344",
                                 "qualidade": "Advogado",
