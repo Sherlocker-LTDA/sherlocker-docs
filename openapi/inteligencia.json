@@ -1,80 +1,29 @@
 {
-  "openapi": "3.0.3",
-  "info": {
-    "title": "Inteligência",
-    "version": "proposta-0.1",
-    "description": "Em breve. Contratos propostos, ainda indisponíveis para clientes. Exemplos fictícios."
-  },
-  "servers": [
-    {
-      "url": "https://221b-api.sherlocker.com.br/api/v1"
-    }
-  ],
-  "security": [
-    {
-      "bearerAuth": []
-    }
-  ],
-  "components": {
-    "securitySchemes": {
-      "bearerAuth": {
-        "type": "http",
-        "scheme": "bearer"
-      }
-    }
-  },
+  "openapi": "3.0.0",
   "paths": {
     "/inteligencia/financeira/analisar": {
       "post": {
-        "operationId": "inteligenciaFinanceiraAnalisar",
-        "summary": "Financeira",
-        "description": "**Em breve.** Rota planejada, ainda indisponível para clientes. Exemplos e valores fictícios.\n\nTransforma um CPF ou CNPJ em um perfil financeiro estimado para entender a faixa de renda da pessoa ou o faturamento da empresa, reunindo salário, patrimônio e contexto de moradia.\n\nApresente **emprego, renda, localização, aluguel, patrimônio e benefícios** para pessoa; para empresa, destaque faturamento e porte estimados. A base anual do exemplo é de 12 meses. Aluguel residencial é custo provável, e patrimônio e contexto regional não são renda individual; faturamento da empresa não é lucro ou renda dos sócios.\n\nCada métrica informa seu status. Quando não há dados suficientes, retorna `status: indisponivel`, valores `null` e um `motivo`; as demais métricas continuam na resposta. Informação ausente nunca vira zero.",
-        "tags": [
-          "Inteligência"
-        ],
+        "description": "**Em breve.** Ainda indisponível para clientes.\n\nEnvie um CPF ou CNPJ para reunir emprego, salário, renda, benefícios e patrimônio disponíveis. Cada métrica informa sua referência, seu status e o motivo quando não pode ser calculada. Informações históricas permanecem identificadas como históricas; dados ausentes retornam null.",
+        "operationId": "FinanceiraController_analisar",
+        "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "oneOf": [
-                  {
-                    "type": "object",
-                    "properties": {
-                      "cpf": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "cpf"
-                    ],
-                    "additionalProperties": false
-                  },
-                  {
-                    "type": "object",
-                    "properties": {
-                      "cnpj": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "cnpj"
-                    ],
-                    "additionalProperties": false
-                  }
-                ]
+                "$ref": "#/components/schemas/AnalisarFinanceiraDto"
               },
               "examples": {
                 "pessoa": {
-                  "summary": "Pessoa · CPF",
+                  "summary": "CPF de demonstração",
                   "value": {
-                    "cpf": "00000000000"
+                    "cpf": "52998224725"
                   }
                 },
                 "empresa": {
-                  "summary": "Empresa · CNPJ",
+                  "summary": "CNPJ de demonstração",
                   "value": {
-                    "cnpj": "00000000000000"
+                    "cnpj": "11222333000181"
                   }
                 }
               }
@@ -83,56 +32,383 @@
         },
         "responses": {
           "200": {
-            "description": "Resultado proposto — exemplo fictício.",
+            "description": "Perfil pessoa ou empresa; indisponibilidade por métrica não é valor zero.",
             "content": {
               "application/json": {
                 "schema": {
                   "oneOf": [
                     {
                       "type": "object",
+                      "required": [
+                        "tipo",
+                        "status",
+                        "total",
+                        "salario_mensal_estimado",
+                        "renda_mensal_estimada",
+                        "patrimonio_estimado"
+                      ],
                       "properties": {
-                        "tipo": {
-                          "type": "string"
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "parcial",
+                            "nao_encontrado",
+                            "indisponivel"
+                          ]
+                        },
+                        "total": {
+                          "type": "integer",
+                          "enum": [
+                            0,
+                            1
+                          ]
                         },
                         "nome": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "documento": {
                           "type": "string"
+                        },
+                        "metodo": {
+                          "type": "string",
+                          "enum": [
+                            "financeira/1.0.0"
+                          ]
+                        },
+                        "consultado_em": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "base_anual_meses": {
+                          "type": "integer",
+                          "enum": [
+                            12
+                          ]
+                        },
+                        "patrimonio_estimado": {
+                          "type": "object",
+                          "required": [
+                            "status",
+                            "minimo",
+                            "maximo",
+                            "moeda",
+                            "periodo",
+                            "referencia",
+                            "motivo"
+                          ],
+                          "properties": {
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "estimado",
+                                "observado",
+                                "indisponivel"
+                              ]
+                            },
+                            "minimo": {
+                              "type": "number",
+                              "nullable": true,
+                              "minimum": 0
+                            },
+                            "maximo": {
+                              "type": "number",
+                              "nullable": true,
+                              "minimum": 0
+                            },
+                            "moeda": {
+                              "type": "string",
+                              "enum": [
+                                "BRL"
+                              ]
+                            },
+                            "periodo": {
+                              "type": "string",
+                              "enum": [
+                                "mensal",
+                                "anual",
+                                "posicao"
+                              ]
+                            },
+                            "referencia": {
+                              "type": "string",
+                              "nullable": true,
+                              "description": "Competência da fonte, não a data de consulta. Null quando desconhecida."
+                            },
+                            "motivo": {
+                              "type": "string"
+                            },
+                            "confianca": {
+                              "type": "string",
+                              "nullable": true,
+                              "enum": [
+                                "baixa",
+                                "moderada"
+                              ]
+                            },
+                            "natureza": {
+                              "type": "string",
+                              "nullable": true,
+                              "enum": [
+                                "observado",
+                                "projecao"
+                              ]
+                            },
+                            "escopo": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "patrimonio_corroborado": {
+                          "type": "object",
+                          "properties": {
+                            "bens": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "classe": {
+                                    "type": "string",
+                                    "enum": [
+                                      "imovel",
+                                      "veiculo"
+                                    ]
+                                  },
+                                  "vinculo": {
+                                    "type": "string",
+                                    "enum": [
+                                      "titularidade_cadastral"
+                                    ]
+                                  },
+                                  "quantidade_cadastral": {
+                                    "type": "integer",
+                                    "nullable": true,
+                                    "description": "Multiplicidade indicada pela fonte, sem multiplicar valores."
+                                  },
+                                  "observacao": {
+                                    "type": "string"
+                                  },
+                                  "fonte": {
+                                    "type": "string"
+                                  },
+                                  "referencia_documental": {
+                                    "type": "string",
+                                    "nullable": true,
+                                    "description": "Ano do vínculo documental, não data da cotação."
+                                  },
+                                  "valor_disponivel": {
+                                    "type": "object",
+                                    "nullable": true,
+                                    "properties": {
+                                      "valor": {
+                                        "type": "number",
+                                        "minimum": 0
+                                      },
+                                      "moeda": {
+                                        "type": "string",
+                                        "enum": [
+                                          "BRL"
+                                        ]
+                                      },
+                                      "referencia": {
+                                        "type": "string",
+                                        "nullable": true
+                                      },
+                                      "tipo": {
+                                        "type": "string",
+                                        "enum": [
+                                          "valor_venal_fiscal",
+                                          "media_preco_cadastral"
+                                        ]
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            "quantidade": {
+                              "type": "integer"
+                            },
+                            "valor_total": {
+                              "type": "number",
+                              "nullable": true
+                            },
+                            "observacao": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "valores_disponiveis": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "nullable": true,
+                            "properties": {
+                              "valor": {
+                                "type": "number",
+                                "minimum": 0
+                              },
+                              "moeda": {
+                                "type": "string",
+                                "enum": [
+                                  "BRL"
+                                ]
+                              },
+                              "referencia": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "tipo": {
+                                "type": "string",
+                                "enum": [
+                                  "valor_venal_fiscal",
+                                  "media_preco_cadastral"
+                                ]
+                              }
+                            }
+                          }
+                        },
+                        "fontes": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "origem": {
+                                "type": "string"
+                              },
+                              "status": {
+                                "type": "string",
+                                "enum": [
+                                  "consultado",
+                                  "sem_dados_ou_indisponivel",
+                                  "indisponivel",
+                                  "identidade_nao_confirmada"
+                                ]
+                              },
+                              "consultado_em": {
+                                "type": "string",
+                                "format": "date-time"
+                              }
+                            }
+                          }
+                        },
+                        "indicadores": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "object",
+                            "properties": {
+                              "status": {
+                                "type": "string"
+                              },
+                              "motivo": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        },
+                        "limitacoes": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "tipo": {
+                          "type": "string",
+                          "enum": [
+                            "pessoa"
+                          ]
                         },
                         "emprego": {
                           "type": "object",
+                          "nullable": true,
                           "properties": {
                             "empresa": {
-                              "type": "string"
+                              "type": "string",
+                              "nullable": true
                             },
                             "ocupacao": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "status_cadastral": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "remuneracao_mensal_observada": {
+                              "type": "number",
+                              "nullable": true
+                            },
+                            "moeda": {
+                              "type": "string",
+                              "enum": [
+                                "BRL"
+                              ]
+                            },
+                            "referencia": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "motivo": {
                               "type": "string"
+                            }
+                          }
+                        },
+                        "empregos": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "nullable": true,
+                            "properties": {
+                              "empresa": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "ocupacao": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "status_cadastral": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "remuneracao_mensal_observada": {
+                                "type": "number",
+                                "nullable": true
+                              },
+                              "moeda": {
+                                "type": "string",
+                                "enum": [
+                                  "BRL"
+                                ]
+                              },
+                              "referencia": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "motivo": {
+                                "type": "string"
+                              }
                             }
                           }
                         },
                         "salario_mensal_estimado": {
                           "type": "object",
+                          "required": [
+                            "status",
+                            "minimo",
+                            "maximo",
+                            "moeda",
+                            "periodo",
+                            "referencia",
+                            "motivo"
+                          ],
                           "properties": {
-                            "minimo": {
-                              "type": "number",
-                              "nullable": true
-                            },
-                            "maximo": {
-                              "type": "number",
-                              "nullable": true
-                            },
-                            "moeda": {
-                              "type": "string"
-                            },
-                            "periodo": {
-                              "type": "string"
-                            },
-                            "referencia": {
-                              "type": "string",
-                              "nullable": true
-                            },
-                            "confianca": {
-                              "type": "string",
-                              "nullable": true
-                            },
                             "status": {
                               "type": "string",
                               "enum": [
@@ -141,45 +417,71 @@
                                 "indisponivel"
                               ]
                             },
-                            "motivo": {
+                            "minimo": {
+                              "type": "number",
+                              "nullable": true,
+                              "minimum": 0
+                            },
+                            "maximo": {
+                              "type": "number",
+                              "nullable": true,
+                              "minimum": 0
+                            },
+                            "moeda": {
+                              "type": "string",
+                              "enum": [
+                                "BRL"
+                              ]
+                            },
+                            "periodo": {
+                              "type": "string",
+                              "enum": [
+                                "mensal",
+                                "anual",
+                                "posicao"
+                              ]
+                            },
+                            "referencia": {
                               "type": "string",
                               "nullable": true,
-                              "description": "Explica por que a métrica não pôde ser calculada."
+                              "description": "Competência da fonte, não a data de consulta. Null quando desconhecida."
+                            },
+                            "motivo": {
+                              "type": "string"
+                            },
+                            "confianca": {
+                              "type": "string",
+                              "nullable": true,
+                              "enum": [
+                                "baixa",
+                                "moderada"
+                              ]
+                            },
+                            "natureza": {
+                              "type": "string",
+                              "nullable": true,
+                              "enum": [
+                                "observado",
+                                "projecao"
+                              ]
+                            },
+                            "escopo": {
+                              "type": "string"
                             }
-                          },
-                          "required": [
-                            "status",
-                            "minimo",
-                            "maximo",
-                            "moeda",
-                            "periodo"
-                          ]
+                          }
                         },
                         "salario_anual_estimado": {
                           "type": "object",
+                          "required": [
+                            "status",
+                            "minimo",
+                            "maximo",
+                            "moeda",
+                            "periodo",
+                            "referencia",
+                            "motivo"
+                          ],
                           "properties": {
-                            "minimo": {
-                              "type": "number",
-                              "nullable": true
-                            },
-                            "maximo": {
-                              "type": "number",
-                              "nullable": true
-                            },
-                            "moeda": {
-                              "type": "string"
-                            },
-                            "periodo": {
-                              "type": "string"
-                            },
-                            "referencia": {
-                              "type": "string",
-                              "nullable": true
-                            },
-                            "confianca": {
-                              "type": "string",
-                              "nullable": true
-                            },
                             "status": {
                               "type": "string",
                               "enum": [
@@ -188,45 +490,71 @@
                                 "indisponivel"
                               ]
                             },
-                            "motivo": {
+                            "minimo": {
+                              "type": "number",
+                              "nullable": true,
+                              "minimum": 0
+                            },
+                            "maximo": {
+                              "type": "number",
+                              "nullable": true,
+                              "minimum": 0
+                            },
+                            "moeda": {
+                              "type": "string",
+                              "enum": [
+                                "BRL"
+                              ]
+                            },
+                            "periodo": {
+                              "type": "string",
+                              "enum": [
+                                "mensal",
+                                "anual",
+                                "posicao"
+                              ]
+                            },
+                            "referencia": {
                               "type": "string",
                               "nullable": true,
-                              "description": "Explica por que a métrica não pôde ser calculada."
+                              "description": "Competência da fonte, não a data de consulta. Null quando desconhecida."
+                            },
+                            "motivo": {
+                              "type": "string"
+                            },
+                            "confianca": {
+                              "type": "string",
+                              "nullable": true,
+                              "enum": [
+                                "baixa",
+                                "moderada"
+                              ]
+                            },
+                            "natureza": {
+                              "type": "string",
+                              "nullable": true,
+                              "enum": [
+                                "observado",
+                                "projecao"
+                              ]
+                            },
+                            "escopo": {
+                              "type": "string"
                             }
-                          },
-                          "required": [
-                            "status",
-                            "minimo",
-                            "maximo",
-                            "moeda",
-                            "periodo"
-                          ]
+                          }
                         },
                         "renda_mensal_estimada": {
                           "type": "object",
+                          "required": [
+                            "status",
+                            "minimo",
+                            "maximo",
+                            "moeda",
+                            "periodo",
+                            "referencia",
+                            "motivo"
+                          ],
                           "properties": {
-                            "minimo": {
-                              "type": "number",
-                              "nullable": true
-                            },
-                            "maximo": {
-                              "type": "number",
-                              "nullable": true
-                            },
-                            "moeda": {
-                              "type": "string"
-                            },
-                            "periodo": {
-                              "type": "string"
-                            },
-                            "referencia": {
-                              "type": "string",
-                              "nullable": true
-                            },
-                            "confianca": {
-                              "type": "string",
-                              "nullable": true
-                            },
                             "status": {
                               "type": "string",
                               "enum": [
@@ -235,45 +563,71 @@
                                 "indisponivel"
                               ]
                             },
-                            "motivo": {
+                            "minimo": {
+                              "type": "number",
+                              "nullable": true,
+                              "minimum": 0
+                            },
+                            "maximo": {
+                              "type": "number",
+                              "nullable": true,
+                              "minimum": 0
+                            },
+                            "moeda": {
+                              "type": "string",
+                              "enum": [
+                                "BRL"
+                              ]
+                            },
+                            "periodo": {
+                              "type": "string",
+                              "enum": [
+                                "mensal",
+                                "anual",
+                                "posicao"
+                              ]
+                            },
+                            "referencia": {
                               "type": "string",
                               "nullable": true,
-                              "description": "Explica por que a métrica não pôde ser calculada."
+                              "description": "Competência da fonte, não a data de consulta. Null quando desconhecida."
+                            },
+                            "motivo": {
+                              "type": "string"
+                            },
+                            "confianca": {
+                              "type": "string",
+                              "nullable": true,
+                              "enum": [
+                                "baixa",
+                                "moderada"
+                              ]
+                            },
+                            "natureza": {
+                              "type": "string",
+                              "nullable": true,
+                              "enum": [
+                                "observado",
+                                "projecao"
+                              ]
+                            },
+                            "escopo": {
+                              "type": "string"
                             }
-                          },
-                          "required": [
-                            "status",
-                            "minimo",
-                            "maximo",
-                            "moeda",
-                            "periodo"
-                          ]
+                          }
                         },
                         "renda_anual_estimada": {
                           "type": "object",
+                          "required": [
+                            "status",
+                            "minimo",
+                            "maximo",
+                            "moeda",
+                            "periodo",
+                            "referencia",
+                            "motivo"
+                          ],
                           "properties": {
-                            "minimo": {
-                              "type": "number",
-                              "nullable": true
-                            },
-                            "maximo": {
-                              "type": "number",
-                              "nullable": true
-                            },
-                            "moeda": {
-                              "type": "string"
-                            },
-                            "periodo": {
-                              "type": "string"
-                            },
-                            "referencia": {
-                              "type": "string",
-                              "nullable": true
-                            },
-                            "confianca": {
-                              "type": "string",
-                              "nullable": true
-                            },
                             "status": {
                               "type": "string",
                               "enum": [
@@ -282,48 +636,92 @@
                                 "indisponivel"
                               ]
                             },
-                            "motivo": {
+                            "minimo": {
+                              "type": "number",
+                              "nullable": true,
+                              "minimum": 0
+                            },
+                            "maximo": {
+                              "type": "number",
+                              "nullable": true,
+                              "minimum": 0
+                            },
+                            "moeda": {
+                              "type": "string",
+                              "enum": [
+                                "BRL"
+                              ]
+                            },
+                            "periodo": {
+                              "type": "string",
+                              "enum": [
+                                "mensal",
+                                "anual",
+                                "posicao"
+                              ]
+                            },
+                            "referencia": {
                               "type": "string",
                               "nullable": true,
-                              "description": "Explica por que a métrica não pôde ser calculada."
+                              "description": "Competência da fonte, não a data de consulta. Null quando desconhecida."
+                            },
+                            "motivo": {
+                              "type": "string"
+                            },
+                            "confianca": {
+                              "type": "string",
+                              "nullable": true,
+                              "enum": [
+                                "baixa",
+                                "moderada"
+                              ]
+                            },
+                            "natureza": {
+                              "type": "string",
+                              "nullable": true,
+                              "enum": [
+                                "observado",
+                                "projecao"
+                              ]
+                            },
+                            "escopo": {
+                              "type": "string"
                             }
-                          },
-                          "required": [
-                            "status",
-                            "minimo",
-                            "maximo",
-                            "moeda",
-                            "periodo"
-                          ]
-                        },
-                        "base_anual_meses": {
-                          "type": "number"
+                          }
                         },
                         "classificacao_renda": {
                           "type": "object",
+                          "required": [
+                            "status",
+                            "faixa",
+                            "motivo",
+                            "metodo"
+                          ],
                           "properties": {
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "estimado",
+                                "indisponivel"
+                              ]
+                            },
                             "faixa": {
                               "type": "string",
                               "nullable": true
                             },
-                            "confianca": {
-                              "type": "string",
-                              "nullable": true
-                            },
                             "metodo": {
-                              "type": "string"
+                              "type": "string",
+                              "enum": [
+                                "financeira/1.0.0"
+                              ]
                             },
                             "criterio": {
                               "type": "string"
                             },
-                            "status": {
-                              "type": "string",
-                              "enum": [
-                                "estimado",
-                                "indisponivel"
-                              ]
-                            },
                             "motivo": {
+                              "type": "string"
+                            },
+                            "confianca": {
                               "type": "string",
                               "nullable": true
                             }
@@ -335,313 +733,27 @@
                             "normalizado": {
                               "type": "string"
                             },
+                            "complemento": {
+                              "type": "string",
+                              "nullable": true
+                            },
                             "vinculo": {
-                              "type": "string"
+                              "type": "string",
+                              "enum": [
+                                "endereco_cadastral_sem_residencia_confirmada",
+                                "endereco_cadastral_empresa"
+                              ]
                             },
                             "tipo_local": {
-                              "type": "string"
+                              "type": "string",
+                              "nullable": true
                             },
                             "contexto_regional": {
-                              "type": "string"
-                            }
-                          }
-                        },
-                        "aluguel_residencial_estimado": {
-                          "type": "object",
-                          "properties": {
-                            "minimo": {
-                              "type": "number",
-                              "nullable": true
-                            },
-                            "maximo": {
-                              "type": "number",
-                              "nullable": true
-                            },
-                            "moeda": {
-                              "type": "string"
-                            },
-                            "periodo": {
-                              "type": "string"
-                            },
-                            "referencia": {
                               "type": "string",
                               "nullable": true
-                            },
-                            "confianca": {
-                              "type": "string",
-                              "nullable": true
-                            },
-                            "status": {
-                              "type": "string",
-                              "enum": [
-                                "estimado",
-                                "observado",
-                                "indisponivel"
-                              ]
-                            },
-                            "motivo": {
-                              "type": "string",
-                              "nullable": true,
-                              "description": "Explica por que a métrica não pôde ser calculada."
                             }
                           },
-                          "required": [
-                            "status",
-                            "minimo",
-                            "maximo",
-                            "moeda",
-                            "periodo"
-                          ]
-                        },
-                        "patrimonio_estimado": {
-                          "type": "object",
-                          "properties": {
-                            "minimo": {
-                              "type": "number",
-                              "nullable": true
-                            },
-                            "maximo": {
-                              "type": "number",
-                              "nullable": true
-                            },
-                            "moeda": {
-                              "type": "string"
-                            },
-                            "periodo": {
-                              "type": "string"
-                            },
-                            "referencia": {
-                              "type": "string",
-                              "nullable": true
-                            },
-                            "confianca": {
-                              "type": "string",
-                              "nullable": true
-                            },
-                            "status": {
-                              "type": "string",
-                              "enum": [
-                                "estimado",
-                                "observado",
-                                "indisponivel"
-                              ]
-                            },
-                            "motivo": {
-                              "type": "string",
-                              "nullable": true,
-                              "description": "Explica por que a métrica não pôde ser calculada."
-                            }
-                          },
-                          "required": [
-                            "status",
-                            "minimo",
-                            "maximo",
-                            "moeda",
-                            "periodo"
-                          ]
-                        },
-                        "beneficios": {
-                          "type": "object",
-                          "properties": {
-                            "renda_mensal_documentada": {
-                              "nullable": true,
-                              "description": "Não disponível quando não há informação suficiente."
-                            },
-                            "resumo": {
-                              "type": "string"
-                            }
-                          }
-                        },
-                        "fontes": {
-                          "type": "array",
-                          "items": {
-                            "type": "string"
-                          }
-                        }
-                      }
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "tipo": {
-                          "type": "string"
-                        },
-                        "nome": {
-                          "type": "string"
-                        },
-                        "faturamento_mensal_estimado": {
-                          "type": "object",
-                          "properties": {
-                            "minimo": {
-                              "type": "number",
-                              "nullable": true
-                            },
-                            "maximo": {
-                              "type": "number",
-                              "nullable": true
-                            },
-                            "moeda": {
-                              "type": "string"
-                            },
-                            "periodo": {
-                              "type": "string"
-                            },
-                            "referencia": {
-                              "type": "string",
-                              "nullable": true
-                            },
-                            "confianca": {
-                              "type": "string",
-                              "nullable": true
-                            },
-                            "status": {
-                              "type": "string",
-                              "enum": [
-                                "estimado",
-                                "observado",
-                                "indisponivel"
-                              ]
-                            },
-                            "motivo": {
-                              "type": "string",
-                              "nullable": true,
-                              "description": "Explica por que a métrica não pôde ser calculada."
-                            }
-                          },
-                          "required": [
-                            "status",
-                            "minimo",
-                            "maximo",
-                            "moeda",
-                            "periodo"
-                          ]
-                        },
-                        "faturamento_anual_estimado": {
-                          "type": "object",
-                          "properties": {
-                            "minimo": {
-                              "type": "number",
-                              "nullable": true
-                            },
-                            "maximo": {
-                              "type": "number",
-                              "nullable": true
-                            },
-                            "moeda": {
-                              "type": "string"
-                            },
-                            "periodo": {
-                              "type": "string"
-                            },
-                            "referencia": {
-                              "type": "string",
-                              "nullable": true
-                            },
-                            "confianca": {
-                              "type": "string",
-                              "nullable": true
-                            },
-                            "status": {
-                              "type": "string",
-                              "enum": [
-                                "estimado",
-                                "observado",
-                                "indisponivel"
-                              ]
-                            },
-                            "motivo": {
-                              "type": "string",
-                              "nullable": true,
-                              "description": "Explica por que a métrica não pôde ser calculada."
-                            }
-                          },
-                          "required": [
-                            "status",
-                            "minimo",
-                            "maximo",
-                            "moeda",
-                            "periodo"
-                          ]
-                        },
-                        "base_anual_meses": {
-                          "type": "number"
-                        },
-                        "classificacao": {
-                          "type": "object",
-                          "properties": {
-                            "porte_estimado": {
-                              "type": "string",
-                              "nullable": true
-                            },
-                            "confianca": {
-                              "type": "string",
-                              "nullable": true
-                            },
-                            "metodo": {
-                              "type": "string"
-                            },
-                            "criterio": {
-                              "type": "string"
-                            },
-                            "status": {
-                              "type": "string",
-                              "enum": [
-                                "estimado",
-                                "indisponivel"
-                              ]
-                            },
-                            "motivo": {
-                              "type": "string",
-                              "nullable": true
-                            }
-                          }
-                        },
-                        "patrimonio_estimado": {
-                          "type": "object",
-                          "properties": {
-                            "minimo": {
-                              "type": "number",
-                              "nullable": true
-                            },
-                            "maximo": {
-                              "type": "number",
-                              "nullable": true
-                            },
-                            "moeda": {
-                              "type": "string"
-                            },
-                            "periodo": {
-                              "type": "string"
-                            },
-                            "referencia": {
-                              "type": "string",
-                              "nullable": true
-                            },
-                            "confianca": {
-                              "type": "string",
-                              "nullable": true
-                            },
-                            "status": {
-                              "type": "string",
-                              "enum": [
-                                "estimado",
-                                "observado",
-                                "indisponivel"
-                              ]
-                            },
-                            "motivo": {
-                              "type": "string",
-                              "nullable": true,
-                              "description": "Explica por que a métrica não pôde ser calculada."
-                            }
-                          },
-                          "required": [
-                            "status",
-                            "minimo",
-                            "maximo",
-                            "moeda",
-                            "periodo"
-                          ]
+                          "nullable": true
                         },
                         "enderecos": {
                           "type": "array",
@@ -651,14 +763,432 @@
                               "normalizado": {
                                 "type": "string"
                               },
+                              "complemento": {
+                                "type": "string",
+                                "nullable": true
+                              },
                               "vinculo": {
-                                "type": "string"
+                                "type": "string",
+                                "enum": [
+                                  "endereco_cadastral_sem_residencia_confirmada",
+                                  "endereco_cadastral_empresa"
+                                ]
                               },
                               "tipo_local": {
-                                "type": "string"
+                                "type": "string",
+                                "nullable": true
                               },
                               "contexto_regional": {
-                                "type": "string"
+                                "type": "string",
+                                "nullable": true
+                              }
+                            }
+                          }
+                        },
+                        "aluguel_residencial_estimado": {
+                          "type": "object",
+                          "required": [
+                            "status",
+                            "minimo",
+                            "maximo",
+                            "moeda",
+                            "periodo",
+                            "referencia",
+                            "motivo"
+                          ],
+                          "properties": {
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "estimado",
+                                "observado",
+                                "indisponivel"
+                              ]
+                            },
+                            "minimo": {
+                              "type": "number",
+                              "nullable": true,
+                              "minimum": 0
+                            },
+                            "maximo": {
+                              "type": "number",
+                              "nullable": true,
+                              "minimum": 0
+                            },
+                            "moeda": {
+                              "type": "string",
+                              "enum": [
+                                "BRL"
+                              ]
+                            },
+                            "periodo": {
+                              "type": "string",
+                              "enum": [
+                                "mensal",
+                                "anual",
+                                "posicao"
+                              ]
+                            },
+                            "referencia": {
+                              "type": "string",
+                              "nullable": true,
+                              "description": "Competência da fonte, não a data de consulta. Null quando desconhecida."
+                            },
+                            "motivo": {
+                              "type": "string"
+                            },
+                            "confianca": {
+                              "type": "string",
+                              "nullable": true,
+                              "enum": [
+                                "baixa",
+                                "moderada"
+                              ]
+                            },
+                            "natureza": {
+                              "type": "string",
+                              "nullable": true,
+                              "enum": [
+                                "observado",
+                                "projecao"
+                              ]
+                            },
+                            "escopo": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "beneficios": {
+                          "type": "object",
+                          "properties": {
+                            "renda_mensal_documentada": {
+                              "type": "object",
+                              "required": [
+                                "status",
+                                "minimo",
+                                "maximo",
+                                "moeda",
+                                "periodo",
+                                "referencia",
+                                "motivo"
+                              ],
+                              "properties": {
+                                "status": {
+                                  "type": "string",
+                                  "enum": [
+                                    "estimado",
+                                    "observado",
+                                    "indisponivel"
+                                  ]
+                                },
+                                "minimo": {
+                                  "type": "number",
+                                  "nullable": true,
+                                  "minimum": 0
+                                },
+                                "maximo": {
+                                  "type": "number",
+                                  "nullable": true,
+                                  "minimum": 0
+                                },
+                                "moeda": {
+                                  "type": "string",
+                                  "enum": [
+                                    "BRL"
+                                  ]
+                                },
+                                "periodo": {
+                                  "type": "string",
+                                  "enum": [
+                                    "mensal",
+                                    "anual",
+                                    "posicao"
+                                  ]
+                                },
+                                "referencia": {
+                                  "type": "string",
+                                  "nullable": true,
+                                  "description": "Competência da fonte, não a data de consulta. Null quando desconhecida."
+                                },
+                                "motivo": {
+                                  "type": "string"
+                                },
+                                "confianca": {
+                                  "type": "string",
+                                  "nullable": true,
+                                  "enum": [
+                                    "baixa",
+                                    "moderada"
+                                  ]
+                                },
+                                "natureza": {
+                                  "type": "string",
+                                  "nullable": true,
+                                  "enum": [
+                                    "observado",
+                                    "projecao"
+                                  ]
+                                },
+                                "escopo": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            "pagamentos_por_competencia": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "competencia": {
+                                    "type": "string"
+                                  },
+                                  "valor": {
+                                    "type": "number",
+                                    "nullable": true
+                                  },
+                                  "status": {
+                                    "type": "string"
+                                  }
+                                }
+                              }
+                            },
+                            "resumo": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "tipo",
+                        "status",
+                        "total",
+                        "faturamento_mensal_estimado",
+                        "faturamento_anual_estimado",
+                        "patrimonio_estimado"
+                      ],
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "parcial",
+                            "nao_encontrado",
+                            "indisponivel"
+                          ]
+                        },
+                        "total": {
+                          "type": "integer",
+                          "enum": [
+                            0,
+                            1
+                          ]
+                        },
+                        "nome": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "documento": {
+                          "type": "string"
+                        },
+                        "metodo": {
+                          "type": "string",
+                          "enum": [
+                            "financeira/1.0.0"
+                          ]
+                        },
+                        "consultado_em": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "base_anual_meses": {
+                          "type": "integer",
+                          "enum": [
+                            12
+                          ]
+                        },
+                        "patrimonio_estimado": {
+                          "type": "object",
+                          "required": [
+                            "status",
+                            "minimo",
+                            "maximo",
+                            "moeda",
+                            "periodo",
+                            "referencia",
+                            "motivo"
+                          ],
+                          "properties": {
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "estimado",
+                                "observado",
+                                "indisponivel"
+                              ]
+                            },
+                            "minimo": {
+                              "type": "number",
+                              "nullable": true,
+                              "minimum": 0
+                            },
+                            "maximo": {
+                              "type": "number",
+                              "nullable": true,
+                              "minimum": 0
+                            },
+                            "moeda": {
+                              "type": "string",
+                              "enum": [
+                                "BRL"
+                              ]
+                            },
+                            "periodo": {
+                              "type": "string",
+                              "enum": [
+                                "mensal",
+                                "anual",
+                                "posicao"
+                              ]
+                            },
+                            "referencia": {
+                              "type": "string",
+                              "nullable": true,
+                              "description": "Competência da fonte, não a data de consulta. Null quando desconhecida."
+                            },
+                            "motivo": {
+                              "type": "string"
+                            },
+                            "confianca": {
+                              "type": "string",
+                              "nullable": true,
+                              "enum": [
+                                "baixa",
+                                "moderada"
+                              ]
+                            },
+                            "natureza": {
+                              "type": "string",
+                              "nullable": true,
+                              "enum": [
+                                "observado",
+                                "projecao"
+                              ]
+                            },
+                            "escopo": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "patrimonio_corroborado": {
+                          "type": "object",
+                          "properties": {
+                            "bens": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "classe": {
+                                    "type": "string",
+                                    "enum": [
+                                      "imovel",
+                                      "veiculo"
+                                    ]
+                                  },
+                                  "vinculo": {
+                                    "type": "string",
+                                    "enum": [
+                                      "titularidade_cadastral"
+                                    ]
+                                  },
+                                  "quantidade_cadastral": {
+                                    "type": "integer",
+                                    "nullable": true,
+                                    "description": "Multiplicidade indicada pela fonte, sem multiplicar valores."
+                                  },
+                                  "observacao": {
+                                    "type": "string"
+                                  },
+                                  "fonte": {
+                                    "type": "string"
+                                  },
+                                  "referencia_documental": {
+                                    "type": "string",
+                                    "nullable": true,
+                                    "description": "Ano do vínculo documental, não data da cotação."
+                                  },
+                                  "valor_disponivel": {
+                                    "type": "object",
+                                    "nullable": true,
+                                    "properties": {
+                                      "valor": {
+                                        "type": "number",
+                                        "minimum": 0
+                                      },
+                                      "moeda": {
+                                        "type": "string",
+                                        "enum": [
+                                          "BRL"
+                                        ]
+                                      },
+                                      "referencia": {
+                                        "type": "string",
+                                        "nullable": true
+                                      },
+                                      "tipo": {
+                                        "type": "string",
+                                        "enum": [
+                                          "valor_venal_fiscal",
+                                          "media_preco_cadastral"
+                                        ]
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            "quantidade": {
+                              "type": "integer"
+                            },
+                            "valor_total": {
+                              "type": "number",
+                              "nullable": true
+                            },
+                            "observacao": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "valores_disponiveis": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "nullable": true,
+                            "properties": {
+                              "valor": {
+                                "type": "number",
+                                "minimum": 0
+                              },
+                              "moeda": {
+                                "type": "string",
+                                "enum": [
+                                  "BRL"
+                                ]
+                              },
+                              "referencia": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "tipo": {
+                                "type": "string",
+                                "enum": [
+                                  "valor_venal_fiscal",
+                                  "media_preco_cadastral"
+                                ]
                               }
                             }
                           }
@@ -666,7 +1196,276 @@
                         "fontes": {
                           "type": "array",
                           "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "origem": {
+                                "type": "string"
+                              },
+                              "status": {
+                                "type": "string",
+                                "enum": [
+                                  "consultado",
+                                  "sem_dados_ou_indisponivel",
+                                  "indisponivel",
+                                  "identidade_nao_confirmada"
+                                ]
+                              },
+                              "consultado_em": {
+                                "type": "string",
+                                "format": "date-time"
+                              }
+                            }
+                          }
+                        },
+                        "indicadores": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "object",
+                            "properties": {
+                              "status": {
+                                "type": "string"
+                              },
+                              "motivo": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        },
+                        "limitacoes": {
+                          "type": "array",
+                          "items": {
                             "type": "string"
+                          }
+                        },
+                        "tipo": {
+                          "type": "string",
+                          "enum": [
+                            "empresa"
+                          ]
+                        },
+                        "faturamento_mensal_estimado": {
+                          "type": "object",
+                          "required": [
+                            "status",
+                            "minimo",
+                            "maximo",
+                            "moeda",
+                            "periodo",
+                            "referencia",
+                            "motivo"
+                          ],
+                          "properties": {
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "estimado",
+                                "observado",
+                                "indisponivel"
+                              ]
+                            },
+                            "minimo": {
+                              "type": "number",
+                              "nullable": true,
+                              "minimum": 0
+                            },
+                            "maximo": {
+                              "type": "number",
+                              "nullable": true,
+                              "minimum": 0
+                            },
+                            "moeda": {
+                              "type": "string",
+                              "enum": [
+                                "BRL"
+                              ]
+                            },
+                            "periodo": {
+                              "type": "string",
+                              "enum": [
+                                "mensal",
+                                "anual",
+                                "posicao"
+                              ]
+                            },
+                            "referencia": {
+                              "type": "string",
+                              "nullable": true,
+                              "description": "Competência da fonte, não a data de consulta. Null quando desconhecida."
+                            },
+                            "motivo": {
+                              "type": "string"
+                            },
+                            "confianca": {
+                              "type": "string",
+                              "nullable": true,
+                              "enum": [
+                                "baixa",
+                                "moderada"
+                              ]
+                            },
+                            "natureza": {
+                              "type": "string",
+                              "nullable": true,
+                              "enum": [
+                                "observado",
+                                "projecao"
+                              ]
+                            },
+                            "escopo": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "faturamento_anual_estimado": {
+                          "type": "object",
+                          "required": [
+                            "status",
+                            "minimo",
+                            "maximo",
+                            "moeda",
+                            "periodo",
+                            "referencia",
+                            "motivo"
+                          ],
+                          "properties": {
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "estimado",
+                                "observado",
+                                "indisponivel"
+                              ]
+                            },
+                            "minimo": {
+                              "type": "number",
+                              "nullable": true,
+                              "minimum": 0
+                            },
+                            "maximo": {
+                              "type": "number",
+                              "nullable": true,
+                              "minimum": 0
+                            },
+                            "moeda": {
+                              "type": "string",
+                              "enum": [
+                                "BRL"
+                              ]
+                            },
+                            "periodo": {
+                              "type": "string",
+                              "enum": [
+                                "mensal",
+                                "anual",
+                                "posicao"
+                              ]
+                            },
+                            "referencia": {
+                              "type": "string",
+                              "nullable": true,
+                              "description": "Competência da fonte, não a data de consulta. Null quando desconhecida."
+                            },
+                            "motivo": {
+                              "type": "string"
+                            },
+                            "confianca": {
+                              "type": "string",
+                              "nullable": true,
+                              "enum": [
+                                "baixa",
+                                "moderada"
+                              ]
+                            },
+                            "natureza": {
+                              "type": "string",
+                              "nullable": true,
+                              "enum": [
+                                "observado",
+                                "projecao"
+                              ]
+                            },
+                            "escopo": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "classificacao": {
+                          "type": "object",
+                          "required": [
+                            "status",
+                            "faixa",
+                            "motivo",
+                            "metodo"
+                          ],
+                          "properties": {
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "estimado",
+                                "indisponivel"
+                              ]
+                            },
+                            "faixa": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "metodo": {
+                              "type": "string",
+                              "enum": [
+                                "financeira/1.0.0"
+                              ]
+                            },
+                            "criterio": {
+                              "type": "string"
+                            },
+                            "motivo": {
+                              "type": "string"
+                            },
+                            "confianca": {
+                              "type": "string",
+                              "nullable": true
+                            }
+                          }
+                        },
+                        "porte_cadastral": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "capital_social_declarado": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "enderecos": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "normalizado": {
+                                "type": "string"
+                              },
+                              "complemento": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "vinculo": {
+                                "type": "string",
+                                "enum": [
+                                  "endereco_cadastral_sem_residencia_confirmada",
+                                  "endereco_cadastral_empresa"
+                                ]
+                              },
+                              "tipo_local": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "contexto_regional": {
+                                "type": "string",
+                                "nullable": true
+                              }
+                            }
                           }
                         }
                       }
@@ -675,186 +1474,161 @@
                 },
                 "examples": {
                   "pessoa": {
-                    "summary": "Pessoa · CPF",
+                    "summary": "Exemplo sintético parcial",
                     "value": {
-                      "tipo": "pessoa",
-                      "nome": "Pessoa Exemplo",
-                      "emprego": {
-                        "empresa": "Empresa Exemplo",
-                        "ocupacao": "Analista Exemplo"
-                      },
-                      "salario_mensal_estimado": {
-                        "status": "estimado",
-                        "minimo": 4500,
-                        "maximo": 6500,
-                        "moeda": "BRL",
-                        "periodo": "mensal",
-                        "referencia": "2026-10",
-                        "confianca": "moderada",
-                        "motivo": null
-                      },
-                      "salario_anual_estimado": {
-                        "status": "estimado",
-                        "minimo": 54000,
-                        "maximo": 78000,
-                        "moeda": "BRL",
-                        "periodo": "anual",
-                        "referencia": "2026-10",
-                        "confianca": "moderada",
-                        "motivo": null
-                      },
-                      "renda_mensal_estimada": {
-                        "status": "estimado",
-                        "minimo": 4500,
-                        "maximo": 6500,
-                        "moeda": "BRL",
-                        "periodo": "mensal",
-                        "referencia": "2026-10",
-                        "confianca": "moderada",
-                        "motivo": null
-                      },
-                      "renda_anual_estimada": {
-                        "status": "estimado",
-                        "minimo": 54000,
-                        "maximo": 78000,
-                        "moeda": "BRL",
-                        "periodo": "anual",
-                        "referencia": "2026-10",
-                        "confianca": "moderada",
-                        "motivo": null
-                      },
+                      "status": "parcial",
+                      "total": 1,
+                      "nome": null,
+                      "documento": "52998224725",
+                      "metodo": "financeira/1.0.0",
+                      "consultado_em": "2026-10-13T12:00:00.000Z",
                       "base_anual_meses": 12,
-                      "classificacao_renda": {
-                        "status": "estimado",
-                        "faixa": "media",
-                        "confianca": "moderada",
-                        "metodo": "proposta-0.1",
-                        "criterio": "renda_mensal_individual_estimada",
-                        "motivo": null
-                      },
-                      "endereco": {
-                        "normalizado": "Rua Exemplo, 123, Cidade Exemplo, SP",
-                        "vinculo": "residencia_candidata",
-                        "tipo_local": "condominio_residencial",
-                        "contexto_regional": "medio"
-                      },
-                      "aluguel_residencial_estimado": {
-                        "status": "estimado",
-                        "minimo": 1800,
-                        "maximo": 2400,
-                        "moeda": "BRL",
-                        "periodo": "mensal",
-                        "referencia": "2026-10",
-                        "confianca": "moderada",
-                        "motivo": null
-                      },
                       "patrimonio_estimado": {
-                        "status": "estimado",
-                        "minimo": 280000,
-                        "maximo": 380000,
+                        "status": "indisponivel",
+                        "minimo": null,
+                        "maximo": null,
                         "moeda": "BRL",
                         "periodo": "posicao",
-                        "referencia": "2026-10",
-                        "confianca": "moderada",
-                        "motivo": null
+                        "referencia": null,
+                        "confianca": null,
+                        "natureza": null,
+                        "escopo": "",
+                        "motivo": "Valores fiscais e media_preco sem data de cotação não formam patrimônio de mercado. Titularidade atual/participação do alvo não é confirmada."
                       },
-                      "beneficios": {
-                        "renda_mensal_documentada": null,
-                        "resumo": "Sem valor de benefício confirmado no exemplo."
+                      "patrimonio_corroborado": {
+                        "bens": [],
+                        "quantidade": 0,
+                        "valor_total": null,
+                        "observacao": "Associação documental cadastral, não certidão de propriedade atual. Agregações prévias da fonte não são multiplicadas; valores sem data e natureza comparáveis não são somados."
+                      },
+                      "valores_disponiveis": [],
+                      "indicadores": {
+                        "patrimonio_estimado": {
+                          "status": "indisponivel",
+                          "motivo": "Valores fiscais e media_preco sem data de cotação não formam patrimônio de mercado. Titularidade atual/participação do alvo não é confirmada."
+                        },
+                        "faturamento": {
+                          "status": "indisponivel",
+                          "motivo": "Nenhuma fonte de faturamento foi integrada. Capital social, porte, empregados e patrimônio não são receita."
+                        },
+                        "classificacao": {
+                          "status": "indisponivel",
+                          "motivo": "Faltam métricas monetárias contemporâneas e intervalos completos compatíveis para aplicar as faixas financeira/1.0.0."
+                        },
+                        "aluguel_residencial_estimado": {
+                          "status": "indisponivel",
+                          "motivo": "Nenhum comparable de aluguel foi consultado. Endereço cadastral não comprova residência ou propriedade."
+                        },
+                        "salario_mensal_estimado": {
+                          "status": "historico",
+                          "motivo": "Valor histórico observado, sem competência; nome estimado preserva contrato, natureza=observado. Sem inferência de atualidade."
+                        },
+                        "salario_anual_estimado": {
+                          "status": "historico",
+                          "motivo": "Projeção do valor observado por 12 meses; não soma 13º, bônus nem salários de contratos sem simultaneidade comprovada."
+                        },
+                        "renda_mensal_estimada": {
+                          "status": "indisponivel",
+                          "motivo": "Salário sem competência e pagamentos de outros meses não são combinados como renda atual. Subtotal de benefício contemporâneo não fornece limite superior de renda."
+                        },
+                        "renda_anual_estimada": {
+                          "status": "indisponivel",
+                          "motivo": "Não há recorrência por 12 meses comprovada. Pagamento de benefício não é anualizado nem combinado com salário histórico."
+                        },
+                        "beneficios": {
+                          "status": "indisponivel",
+                          "motivo": "Apenas CPF confirmado e competência explícita; benefício sem identidade confirmada não entra na renda."
+                        }
                       },
                       "fontes": [
-                        "Vínculo e referência salarial Exemplo",
-                        "Comparáveis Residenciais Exemplo",
-                        "Bens atribuídos por fontes Exemplo"
-                      ]
-                    }
-                  },
-                  "empresa": {
-                    "summary": "Empresa · CNPJ",
-                    "value": {
-                      "tipo": "empresa",
-                      "nome": "Empresa Exemplo Ltda",
-                      "faturamento_mensal_estimado": {
-                        "status": "estimado",
-                        "minimo": 200000,
-                        "maximo": 300000,
-                        "moeda": "BRL",
-                        "periodo": "mensal",
-                        "referencia": "2026-10",
-                        "confianca": "moderada",
-                        "motivo": null
-                      },
-                      "faturamento_anual_estimado": {
-                        "status": "estimado",
-                        "minimo": 2400000,
-                        "maximo": 3600000,
-                        "moeda": "BRL",
-                        "periodo": "anual",
-                        "referencia": "2026-10",
-                        "confianca": "moderada",
-                        "motivo": null
-                      },
-                      "base_anual_meses": 12,
-                      "classificacao": {
-                        "status": "estimado",
-                        "porte_estimado": "pequeno_no_criterio_ilustrativo",
-                        "confianca": "moderada",
-                        "metodo": "proposta-0.1",
-                        "criterio": "faturamento_anual_estimado",
-                        "motivo": null
-                      },
-                      "patrimonio_estimado": {
-                        "status": "estimado",
-                        "minimo": 900000,
-                        "maximo": 1400000,
-                        "moeda": "BRL",
-                        "periodo": "posicao",
-                        "referencia": "2026-10",
-                        "confianca": "moderada",
-                        "motivo": null
-                      },
-                      "enderecos": [
                         {
-                          "normalizado": "Avenida Exemplo, 500, Cidade Exemplo, SP",
-                          "vinculo": "sede_cadastral",
-                          "tipo_local": "predio_comercial",
-                          "contexto_regional": "medio"
+                          "id": "cadastro",
+                          "origem": "Fixture sintética",
+                          "status": "consultado",
+                          "consultado_em": "2026-10-13T12:00:00.000Z"
+                        },
+                        {
+                          "id": "empregos",
+                          "origem": "Fixture sintética",
+                          "status": "consultado",
+                          "consultado_em": "2026-10-13T12:00:00.000Z"
+                        },
+                        {
+                          "id": "enderecos",
+                          "origem": "Fixture sintética",
+                          "status": "consultado",
+                          "consultado_em": "2026-10-13T12:00:00.000Z"
+                        },
+                        {
+                          "id": "imoveis",
+                          "origem": "Fixture sintética",
+                          "status": "consultado",
+                          "consultado_em": "2026-10-13T12:00:00.000Z"
+                        },
+                        {
+                          "id": "veiculos",
+                          "origem": "Fixture sintética",
+                          "status": "consultado",
+                          "consultado_em": "2026-10-13T12:00:00.000Z"
+                        },
+                        {
+                          "id": "beneficios",
+                          "origem": "Fixture sintética",
+                          "status": "consultado",
+                          "consultado_em": "2026-10-13T12:00:00.000Z"
                         }
                       ],
-                      "fontes": [
-                        "Referências Econômicas Empresariais Exemplo",
-                        "Bens atribuídos por fontes Exemplo"
-                      ]
-                    }
-                  },
-                  "renda_indisponivel": {
-                    "summary": "Pessoa · renda não calculável",
-                    "value": {
+                      "limitacoes": [
+                        "Método determinístico; não há modelo de renda por bairro, parentes, profissão ou atributo sensível.",
+                        "CNPJ: faturamento não é lucro ou renda pessoal; capital social fica separado.",
+                        "Fontes canônicas podem retornar vazio em falhas internas. Vazio não comprova ausência de bens, empregos ou benefícios.",
+                        "Cobertura patrimonial não é completa; valores de imóvel são fiscais e preços de veículo não são cotações FIPE.",
+                        "Datas de consulta não substituem datas de competência/avaliação. Nenhuma estimativa inventada é preenchida."
+                      ],
                       "tipo": "pessoa",
-                      "nome": "Pessoa Exemplo",
                       "emprego": {
-                        "empresa": "Empresa Exemplo",
-                        "ocupacao": "Analista Exemplo"
+                        "empresa": "Empresa Sintética",
+                        "ocupacao": "Cargo Sintético",
+                        "status_cadastral": "ACTIVE",
+                        "remuneracao_mensal_observada": 3000,
+                        "moeda": "BRL",
+                        "referencia": null,
+                        "motivo": "A fonte não informa competência da remuneração. Datas do vínculo e status ACTIVE não comprovam salário ou emprego atual. Faixas baseadas em salário mínimo fixo não são aplicadas."
                       },
+                      "empregos": [
+                        {
+                          "empresa": "Empresa Sintética",
+                          "ocupacao": "Cargo Sintético",
+                          "status_cadastral": "ACTIVE",
+                          "remuneracao_mensal_observada": 3000,
+                          "moeda": "BRL",
+                          "referencia": null,
+                          "motivo": "A fonte não informa competência da remuneração. Datas do vínculo e status ACTIVE não comprovam salário ou emprego atual. Faixas baseadas em salário mínimo fixo não são aplicadas."
+                        }
+                      ],
                       "salario_mensal_estimado": {
-                        "status": "indisponivel",
-                        "minimo": null,
-                        "maximo": null,
+                        "minimo": 3000,
+                        "maximo": 3000,
                         "moeda": "BRL",
                         "periodo": "mensal",
                         "referencia": null,
-                        "confianca": null,
-                        "motivo": "Não há informações suficientes para estimar a renda."
+                        "confianca": "baixa",
+                        "natureza": "observado",
+                        "escopo": "Uma remuneração mensal cadastrada sem competência; não salário atual comprovado nem renda total",
+                        "status": "observado",
+                        "motivo": "Valor histórico observado, sem competência; nome estimado preserva contrato, natureza=observado. Sem inferência de atualidade."
                       },
                       "salario_anual_estimado": {
-                        "status": "indisponivel",
-                        "minimo": null,
-                        "maximo": null,
+                        "minimo": 36000,
+                        "maximo": 36000,
                         "moeda": "BRL",
                         "periodo": "anual",
                         "referencia": null,
-                        "confianca": null,
-                        "motivo": "Não há informações suficientes para estimar a renda."
+                        "confianca": "baixa",
+                        "natureza": "projecao",
+                        "escopo": "Uma remuneração mensal cadastrada sem competência; não salário atual comprovado nem renda total; projeção de 12 meses, sem 13º, bônus ou confirmação de continuidade",
+                        "status": "estimado",
+                        "motivo": "Projeção do valor observado por 12 meses; não soma 13º, bônus nem salários de contratos sem simultaneidade comprovada."
                       },
                       "renda_mensal_estimada": {
                         "status": "indisponivel",
@@ -864,7 +1638,9 @@
                         "periodo": "mensal",
                         "referencia": null,
                         "confianca": null,
-                        "motivo": "Não há informações suficientes para estimar a renda."
+                        "natureza": null,
+                        "escopo": "",
+                        "motivo": "Salário sem competência e pagamentos de outros meses não são combinados como renda atual. Subtotal de benefício contemporâneo não fornece limite superior de renda."
                       },
                       "renda_anual_estimada": {
                         "status": "indisponivel",
@@ -874,397 +1650,370 @@
                         "periodo": "anual",
                         "referencia": null,
                         "confianca": null,
-                        "motivo": "Não há informações suficientes para estimar a renda."
+                        "natureza": null,
+                        "escopo": "",
+                        "motivo": "Não há recorrência por 12 meses comprovada. Pagamento de benefício não é anualizado nem combinado com salário histórico."
                       },
-                      "base_anual_meses": 12,
                       "classificacao_renda": {
                         "status": "indisponivel",
                         "faixa": null,
                         "confianca": null,
-                        "metodo": "proposta-0.1",
-                        "criterio": "renda_mensal_individual_estimada",
-                        "motivo": "A renda não pôde ser estimada."
+                        "metodo": "financeira/1.0.0",
+                        "criterio": "renda_mensal_individual",
+                        "motivo": "Faltam métricas monetárias contemporâneas e intervalos completos compatíveis para aplicar as faixas financeira/1.0.0."
                       },
-                      "endereco": {
-                        "normalizado": "Rua Exemplo, 123, Cidade Exemplo, SP",
-                        "vinculo": "residencia_candidata",
-                        "tipo_local": "condominio_residencial",
-                        "contexto_regional": "medio"
-                      },
+                      "endereco": null,
+                      "enderecos": [],
                       "aluguel_residencial_estimado": {
-                        "status": "estimado",
-                        "minimo": 1800,
-                        "maximo": 2400,
+                        "status": "indisponivel",
+                        "minimo": null,
+                        "maximo": null,
                         "moeda": "BRL",
                         "periodo": "mensal",
-                        "referencia": "2026-10",
-                        "confianca": "moderada",
-                        "motivo": null
-                      },
-                      "patrimonio_estimado": {
-                        "status": "estimado",
-                        "minimo": 280000,
-                        "maximo": 380000,
-                        "moeda": "BRL",
-                        "periodo": "posicao",
-                        "referencia": "2026-10",
-                        "confianca": "moderada",
-                        "motivo": null
+                        "referencia": null,
+                        "confianca": null,
+                        "natureza": null,
+                        "escopo": "",
+                        "motivo": "Nenhum comparable de aluguel foi consultado. Endereço cadastral não comprova residência ou propriedade."
                       },
                       "beneficios": {
-                        "renda_mensal_documentada": null,
-                        "resumo": "Sem valor de benefício confirmado no exemplo."
-                      },
-                      "fontes": [
-                        "Vínculo e referência salarial Exemplo",
-                        "Comparáveis Residenciais Exemplo",
-                        "Bens atribuídos por fontes Exemplo"
-                      ]
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/inteligencia/enderecos/pesquisar": {
-      "post": {
-        "operationId": "inteligenciaEnderecosPesquisar",
-        "summary": "Endereços",
-        "description": "**Em breve.** Rota planejada, ainda indisponível para clientes. Exemplos e valores fictícios.\n\nAjuda a entender um local: tipo de imóvel, localização provável, região e faixas de aluguel e venda. Esse contexto também compõe a pesquisa Financeira.\n\nApresente o local, sua localização provável e as faixas de aluguel, venda e condomínio quando houver referências suficientes. O exemplo estima uma unidade comercial comparável de 80 m², sem avaliar o prédio inteiro.",
-        "tags": [
-          "Inteligência"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "endereco": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "endereco"
-                ]
-              },
-              "examples": {
-                "exemplo": {
-                  "value": {
-                    "endereco": "Avenida Exemplo, 500, sala 12, Cidade Exemplo, SP"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Resultado proposto — exemplo fictício.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "endereco_normalizado": {
-                      "type": "string"
-                    },
-                    "tipo_local": {
-                      "type": "string"
-                    },
-                    "localizacao": {
-                      "type": "object",
-                      "properties": {
-                        "lat": {
-                          "type": "number"
-                        },
-                        "lng": {
-                          "type": "number"
-                        },
-                        "precisao": {
-                          "type": "string"
-                        },
-                        "confianca": {
-                          "type": "string"
-                        }
-                      }
-                    },
-                    "contexto_regional": {
-                      "type": "object",
-                      "properties": {
-                        "nivel": {
-                          "type": "string"
-                        },
-                        "faixa": {
-                          "type": "string"
-                        },
-                        "referencia": {
-                          "type": "string"
-                        }
-                      }
-                    },
-                    "imagens": {
-                      "type": "object",
-                      "properties": {
-                        "fachada_url": {
-                          "type": "string"
-                        },
-                        "mapa_url": {
-                          "type": "string"
-                        },
-                        "credito": {
-                          "type": "string"
-                        }
-                      }
-                    },
-                    "valores": {
-                      "type": "object",
-                      "properties": {
-                        "base": {
-                          "type": "string"
-                        },
-                        "area_referencia_m2": {
-                          "type": "number"
-                        },
-                        "aluguel": {
-                          "type": "object",
-                          "properties": {
-                            "minimo": {
-                              "type": "number"
-                            },
-                            "maximo": {
-                              "type": "number"
-                            },
-                            "moeda": {
-                              "type": "string"
-                            },
-                            "periodo": {
-                              "type": "string"
-                            },
-                            "referencia": {
-                              "type": "string"
-                            },
-                            "confianca": {
-                              "type": "string"
-                            }
-                          }
-                        },
-                        "venda": {
-                          "type": "object",
-                          "properties": {
-                            "minimo": {
-                              "type": "number"
-                            },
-                            "maximo": {
-                              "type": "number"
-                            },
-                            "moeda": {
-                              "type": "string"
-                            },
-                            "periodo": {
-                              "type": "string"
-                            },
-                            "referencia": {
-                              "type": "string"
-                            },
-                            "confianca": {
-                              "type": "string"
-                            }
-                          }
-                        },
-                        "condominio": {
-                          "nullable": true,
-                          "description": "Não disponível quando não há informação suficiente."
-                        }
-                      }
-                    },
-                    "fontes": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    },
-                    "referencia": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "examples": {
-                  "exemplo": {
-                    "value": {
-                      "endereco_normalizado": "Avenida Exemplo, 500, sala 12, Cidade Exemplo, SP",
-                      "tipo_local": "predio_comercial",
-                      "localizacao": {
-                        "lat": -23.5,
-                        "lng": -46.6,
-                        "precisao": "ROOFTOP",
-                        "confianca": "moderada"
-                      },
-                      "contexto_regional": {
-                        "nivel": "bairro",
-                        "faixa": "media",
-                        "referencia": "2026-10"
-                      },
-                      "imagens": {
-                        "fachada_url": "https://example.org/fachada.png",
-                        "mapa_url": "https://example.org/mapa.png",
-                        "credito": "Imagem Exemplo"
-                      },
-                      "valores": {
-                        "base": "estimativa_para_unidade_comercial_comparavel",
-                        "area_referencia_m2": 80,
-                        "aluguel": {
-                          "minimo": 3500,
-                          "maximo": 5000,
+                        "renda_mensal_documentada": {
+                          "status": "indisponivel",
+                          "minimo": null,
+                          "maximo": null,
                           "moeda": "BRL",
                           "periodo": "mensal",
-                          "referencia": "2026-10",
-                          "confianca": "moderada"
+                          "referencia": null,
+                          "confianca": null,
+                          "natureza": null,
+                          "escopo": "",
+                          "motivo": "Apenas CPF confirmado e competência explícita; benefício sem identidade confirmada não entra na renda."
                         },
-                        "venda": {
-                          "minimo": 650000,
-                          "maximo": 900000,
-                          "moeda": "BRL",
-                          "periodo": "valor_do_bem",
-                          "referencia": "2026-10",
-                          "confianca": "moderada"
+                        "pagamentos_por_competencia": [],
+                        "resumo": "Sem pagamentos monetários confirmados por CPF e competência nas fontes disponíveis."
+                      }
+                    }
+                  },
+                  "empresa": {
+                    "summary": "Exemplo sintético parcial",
+                    "value": {
+                      "status": "parcial",
+                      "total": 0,
+                      "nome": null,
+                      "documento": "11222333000181",
+                      "metodo": "financeira/1.0.0",
+                      "consultado_em": "2026-10-13T12:00:00.000Z",
+                      "base_anual_meses": 12,
+                      "patrimonio_estimado": {
+                        "status": "indisponivel",
+                        "minimo": null,
+                        "maximo": null,
+                        "moeda": "BRL",
+                        "periodo": "posicao",
+                        "referencia": null,
+                        "confianca": null,
+                        "natureza": null,
+                        "escopo": "",
+                        "motivo": "Valores fiscais e media_preco sem data de cotação não formam patrimônio de mercado. Titularidade atual/participação do alvo não é confirmada."
+                      },
+                      "patrimonio_corroborado": {
+                        "bens": [],
+                        "quantidade": 0,
+                        "valor_total": null,
+                        "observacao": "Associação documental cadastral, não certidão de propriedade atual. Agregações prévias da fonte não são multiplicadas; valores sem data e natureza comparáveis não são somados."
+                      },
+                      "valores_disponiveis": [],
+                      "indicadores": {
+                        "patrimonio_estimado": {
+                          "status": "indisponivel",
+                          "motivo": "Valores fiscais e media_preco sem data de cotação não formam patrimônio de mercado. Titularidade atual/participação do alvo não é confirmada."
                         },
-                        "condominio": null
+                        "faturamento": {
+                          "status": "indisponivel",
+                          "motivo": "Nenhuma fonte de faturamento foi integrada. Capital social, porte, empregados e patrimônio não são receita."
+                        },
+                        "classificacao": {
+                          "status": "indisponivel",
+                          "motivo": "Faltam métricas monetárias contemporâneas e intervalos completos compatíveis para aplicar as faixas financeira/1.0.0."
+                        },
+                        "aluguel_residencial_estimado": {
+                          "status": "indisponivel",
+                          "motivo": "Nenhum comparable de aluguel foi consultado. Endereço cadastral não comprova residência ou propriedade."
+                        }
                       },
                       "fontes": [
-                        "Fonte Geográfica Exemplo",
-                        "Comparáveis Comerciais Exemplo"
+                        {
+                          "id": "cadastro",
+                          "origem": "Fixture sintética",
+                          "status": "consultado",
+                          "consultado_em": "2026-10-13T12:00:00.000Z"
+                        },
+                        {
+                          "id": "empregos",
+                          "origem": "Fixture sintética",
+                          "status": "consultado",
+                          "consultado_em": "2026-10-13T12:00:00.000Z"
+                        },
+                        {
+                          "id": "enderecos",
+                          "origem": "Fixture sintética",
+                          "status": "consultado",
+                          "consultado_em": "2026-10-13T12:00:00.000Z"
+                        },
+                        {
+                          "id": "imoveis",
+                          "origem": "Fixture sintética",
+                          "status": "consultado",
+                          "consultado_em": "2026-10-13T12:00:00.000Z"
+                        },
+                        {
+                          "id": "veiculos",
+                          "origem": "Fixture sintética",
+                          "status": "consultado",
+                          "consultado_em": "2026-10-13T12:00:00.000Z"
+                        },
+                        {
+                          "id": "beneficios",
+                          "origem": "Fixture sintética",
+                          "status": "consultado",
+                          "consultado_em": "2026-10-13T12:00:00.000Z"
+                        }
                       ],
-                      "referencia": "2026-10"
+                      "limitacoes": [
+                        "Método determinístico; não há modelo de renda por bairro, parentes, profissão ou atributo sensível.",
+                        "CNPJ: faturamento não é lucro ou renda pessoal; capital social fica separado.",
+                        "Fontes canônicas podem retornar vazio em falhas internas. Vazio não comprova ausência de bens, empregos ou benefícios.",
+                        "Cobertura patrimonial não é completa; valores de imóvel são fiscais e preços de veículo não são cotações FIPE.",
+                        "Datas de consulta não substituem datas de competência/avaliação. Nenhuma estimativa inventada é preenchida."
+                      ],
+                      "tipo": "empresa",
+                      "faturamento_mensal_estimado": {
+                        "status": "indisponivel",
+                        "minimo": null,
+                        "maximo": null,
+                        "moeda": "BRL",
+                        "periodo": "mensal",
+                        "referencia": null,
+                        "confianca": null,
+                        "natureza": null,
+                        "escopo": "",
+                        "motivo": "Nenhuma fonte de faturamento foi integrada. Capital social, porte, empregados e patrimônio não são receita."
+                      },
+                      "faturamento_anual_estimado": {
+                        "status": "indisponivel",
+                        "minimo": null,
+                        "maximo": null,
+                        "moeda": "BRL",
+                        "periodo": "anual",
+                        "referencia": null,
+                        "confianca": null,
+                        "natureza": null,
+                        "escopo": "",
+                        "motivo": "Nenhuma fonte de faturamento foi integrada. Capital social, porte, empregados e patrimônio não são receita."
+                      },
+                      "classificacao": {
+                        "status": "indisponivel",
+                        "faixa": null,
+                        "confianca": null,
+                        "metodo": "financeira/1.0.0",
+                        "criterio": "faturamento_anual",
+                        "motivo": "Faltam métricas monetárias contemporâneas e intervalos completos compatíveis para aplicar as faixas financeira/1.0.0."
+                      },
+                      "porte_cadastral": null,
+                      "capital_social_declarado": null,
+                      "enderecos": []
                     }
                   }
                 }
               }
             }
+          },
+          "400": {
+            "description": "Envie exatamente um CPF/CNPJ válido."
+          },
+          "401": {
+            "description": "Bearer obrigatório."
+          },
+          "402": {
+            "description": "Saldo insuficiente."
+          },
+          "429": {
+            "description": "Rate limit."
           }
-        }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Financeira",
+        "tags": [
+          "Inteligência"
+        ]
       }
     },
     "/inteligencia/imagens/pesquisar": {
       "post": {
-        "operationId": "inteligenciaImagensPesquisar",
-        "summary": "Foto de perfil",
-        "description": "**Em breve.** Rota planejada, ainda indisponível para clientes. Exemplos e valores fictícios.\n\nReúne fotos prováveis a partir dos dados disponíveis da pessoa, ordenadas e com suas origens e presença de rosto. Ajuda a identificação visual em um cadastro ou dossiê.\n\nMostre as imagens com suas origens. Uma foto encontrada em duas fontes aparece uma vez; sem imagem, a lista fica vazia. Presença de rosto ajuda a apresentação visual, sem confirmar a identidade da pessoa.",
-        "tags": [
-          "Inteligência"
-        ],
+        "description": "**Em breve.** Ainda indisponível para clientes.\n\nEnvie os e-mails, telefones e outros dados disponíveis para encontrar imagens associadas aos contatos. A resposta reúne imagens, origens, verificação de WhatsApp e presença de rosto quando disponível. Uma imagem associada ao contato não confirma a identidade da pessoa.",
+        "operationId": "ImagensController_pesquisar",
+        "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "cpf": {
-                    "type": "string"
-                  },
-                  "nome": {
-                    "type": "string"
-                  },
-                  "emails": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "telefones": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "perfis": {
-                    "type": "array",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "url": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  }
-                },
-                "anyOf": [
-                  {
-                    "required": [
-                      "cpf"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "nome"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "emails"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "telefones"
-                    ]
-                  },
-                  {
-                    "required": [
-                      "perfis"
-                    ]
-                  }
-                ]
+                "$ref": "#/components/schemas/PesquisarImagensDto"
               },
-              "examples": {
-                "exemplo": {
-                  "value": {
-                    "cpf": "00000000000",
-                    "nome": "Pessoa Exemplo",
-                    "emails": [
-                      "pessoa@example.org"
-                    ],
-                    "telefones": [
-                      "5511999990000"
-                    ],
-                    "perfis": [
-                      {
-                        "url": "https://example.org/perfil/pessoa"
-                      }
-                    ]
-                  }
-                }
+              "example": {
+                "emails": [
+                  "pessoa@example.com"
+                ],
+                "telefones": [
+                  "5511999990000"
+                ]
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Resultado proposto — exemplo fictício.",
+            "description": "Imagens, origens, fontes/limitações e WhatsApp tri-state.",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
+                  "required": [
+                    "status",
+                    "total",
+                    "imagens",
+                    "whatsapp",
+                    "fontes",
+                    "limitacoes"
+                  ],
                   "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "encontrado",
+                        "parcial",
+                        "nao_encontrado",
+                        "indisponivel"
+                      ]
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "usage": {
+                      "type": "object",
+                      "description": "Metadados aditivos de consumo dos provedores. Valores monetários desconhecidos ficam null; não alteram a cobrança ao cliente.",
+                      "properties": {
+                        "version": {
+                          "type": "string",
+                          "enum": [
+                            "1.0.0"
+                          ]
+                        },
+                        "providers": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "provider": {
+                                "type": "string"
+                              },
+                              "operation": {
+                                "type": "string"
+                              },
+                              "operation_id": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "requests": {
+                                "type": "integer",
+                                "minimum": 0
+                              },
+                              "retries": {
+                                "type": "integer",
+                                "minimum": 0
+                              },
+                              "cache_hits": {
+                                "type": "integer",
+                                "minimum": 0
+                              },
+                              "units": {
+                                "type": "number",
+                                "nullable": true
+                              },
+                              "unit": {
+                                "type": "string",
+                                "enum": [
+                                  "credit",
+                                  "request"
+                                ]
+                              },
+                              "credits_used": {
+                                "type": "number",
+                                "nullable": true
+                              },
+                              "estimated_units": {
+                                "type": "number",
+                                "nullable": true
+                              },
+                              "cost_usd": {
+                                "type": "number",
+                                "nullable": true
+                              },
+                              "cost_status": {
+                                "type": "string",
+                                "enum": [
+                                  "determined",
+                                  "undetermined"
+                                ]
+                              },
+                              "model": {
+                                "type": "string"
+                              },
+                              "input_tokens": {
+                                "type": "integer",
+                                "nullable": true
+                              },
+                              "output_tokens": {
+                                "type": "integer",
+                                "nullable": true
+                              },
+                              "cached_input_tokens": {
+                                "type": "integer",
+                                "nullable": true
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
                     "imagens": {
                       "type": "array",
                       "items": {
                         "type": "object",
+                        "required": [
+                          "url",
+                          "tem_rosto",
+                          "quantidade_rostos",
+                          "origens",
+                          "detector"
+                        ],
                         "properties": {
                           "url": {
-                            "type": "string"
+                            "type": "string",
+                            "description": "JPEG data URI sanitizada, sem credenciais do provedor."
                           },
                           "tem_rosto": {
-                            "type": "boolean"
+                            "type": "boolean",
+                            "nullable": true
                           },
                           "quantidade_rostos": {
-                            "type": "number"
+                            "type": "integer",
+                            "nullable": true
                           },
                           "origens": {
                             "type": "array",
@@ -1282,52 +2031,177 @@
                                 }
                               }
                             }
+                          },
+                          "detector": {
+                            "type": "object",
+                            "properties": {
+                              "status": {
+                                "type": "string"
+                              },
+                              "fonte": {
+                                "type": "string"
+                              },
+                              "contagem_estimada": {
+                                "type": "boolean"
+                              }
+                            }
                           }
                         }
+                      }
+                    },
+                    "whatsapp": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "numero": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "encontrado",
+                              "nao_encontrado",
+                              "indisponivel"
+                            ]
+                          },
+                          "tem_whatsapp": {
+                            "type": "boolean",
+                            "nullable": true
+                          }
+                        }
+                      }
+                    },
+                    "fontes": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "limitacoes": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
                       }
                     }
                   }
                 },
-                "examples": {
-                  "exemplo": {
-                    "value": {
-                      "imagens": [
-                        {
-                          "url": "https://example.org/foto-1.png",
-                          "tem_rosto": true,
-                          "quantidade_rostos": 1,
-                          "origens": [
-                            {
-                              "fonte": "Perfil Exemplo",
-                              "url": "https://example.org/perfil/pessoa",
-                              "identificador": "pessoa@example.org"
-                            },
-                            {
-                              "fonte": "Fonte de Contato Exemplo",
-                              "identificador": "5511999990000"
-                            }
-                          ]
-                        },
-                        {
-                          "url": "https://example.org/foto-2.png",
-                          "tem_rosto": true,
-                          "quantidade_rostos": 1,
-                          "origens": [
-                            {
-                              "fonte": "Outro Perfil Exemplo",
-                              "url": "https://example.org/profissional/pessoa"
-                            }
-                          ]
-                        }
-                      ]
+                "example": {
+                  "status": "indisponivel",
+                  "total": 0,
+                  "imagens": [],
+                  "whatsapp": [
+                    {
+                      "numero": "5511999990000",
+                      "status": "indisponivel",
+                      "tem_whatsapp": null
                     }
-                  }
+                  ],
+                  "fontes": [],
+                  "limitacoes": [
+                    "Provedor indisponível nesta consulta."
+                  ]
                 }
               }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Foto de perfil",
+        "tags": [
+          "Inteligência"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Inteligência",
+    "version": "dev-1.0",
+    "description": "Em breve. Rotas ainda indisponíveis para clientes. Exemplos com dados sintéticos."
+  },
+  "tags": [],
+  "servers": [
+    {
+      "url": "https://221b-api.sherlocker.com.br/api/v1"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "schemas": {
+      "AnalisarFinanceiraDto": {
+        "type": "object",
+        "properties": {
+          "cpf": {
+            "type": "string",
+            "description": "CPF válido com ou sem máscara. Envie CPF ou CNPJ, exclusivamente.",
+            "example": "52998224725",
+            "maxLength": 14
+          },
+          "cnpj": {
+            "type": "string",
+            "description": "CNPJ válido numérico ou alfanumérico, com ou sem máscara.",
+            "example": "11222333000181",
+            "maxLength": 18
+          }
+        }
+      },
+      "PerfilImagemDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "example": "https://example.org/perfil/pessoa"
+          }
+        }
+      },
+      "PesquisarImagensDto": {
+        "type": "object",
+        "properties": {
+          "cpf": {
+            "type": "string",
+            "description": "CPF válido; resolve contatos da base existente, sem segunda cobrança."
+          },
+          "nome": {
+            "type": "string",
+            "example": "Pessoa Exemplo"
+          },
+          "emails": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "telefones": {
+            "example": [
+              "5511999990000"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "perfis": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PerfilImagemDto"
             }
           }
         }
       }
     }
-  }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ]
 }

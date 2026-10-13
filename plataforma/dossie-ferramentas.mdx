@@ -1,0 +1,54 @@
+---
+title: "Ferramentas do Dossiê"
+description: "Como a Holmes usa endereços, veículos, mapas e fontes na investigação"
+icon: "toolbox"
+---
+
+<Note>**Em breve para clientes.** Ferramentas integradas à fórmula Holmes no ambiente de desenvolvimento.</Note>
+
+A Holmes usa os dados coletados na investigação para consultar estas ferramentas e incluir resultados, fontes e imagens no dossiê. As ferramentas de endereço e veículo pertencem ao Dossiê.
+
+| Ferramenta | Objetivo | Entrada | Resultado |
+| --- | --- | --- | --- |
+| Endereço | Entender o que existe no local e seu contexto imobiliário | Endereço completo | Localização, nome do condomínio ou estabelecimento, tipo de imóvel, fachada e referências de aluguel, venda e condomínio |
+| Veículo | Avaliar um veículo registrado no alvo | Modelo, versão, ano e combustível coletados | FIPE com mês de referência, foto ilustrativa, estimativa para leilão calculada a partir da FIPE |
+| Geolocalização | Comparar locais e distâncias | Endereços ou pontos coletados | Mapas, distâncias, trajetos consultados e locais próximos |
+| Escrituras | Encontrar atos cartoriais associados ao documento | CPF ou CNPJ | Escrituras e sua origem, quando encontradas |
+| Rastro | Investigar contatos registrados no alvo | E-mail ou telefone coletado | Evidências e conexões digitais com suas fontes |
+| WhatsApp | Verificar quais contatos têm WhatsApp | Telefones coletados | Encontrado, não encontrado ou indisponível; foto quando encontrada |
+| Foto de perfil | Reunir imagens associadas aos contatos | E-mails e telefones coletados | Imagens, origens e presença de rosto quando disponível |
+| Financeira | Reunir as métricas financeiras disponíveis | CPF ou CNPJ do alvo | Emprego, salário, renda, benefícios e patrimônio, com estado por métrica |
+
+## Endereço
+
+A ferramenta recebe somente o endereço, sem campo de finalidade:
+
+```json
+{
+  "endereco": "Av. Jurema, 724 - Indianópolis, São Paulo - SP, 04079-002, Brasil"
+}
+```
+
+O objetivo é distinguir condomínio residencial, prédio comercial, casa ou uso misto e apresentar as evidências para a Holmes avaliar possíveis relações com moradia ou trabalho. No teste desse endereço, as fontes identificaram o **condomínio Via Condotti**.
+
+Referências de anúncios indicam a unidade e sua área quando disponíveis. O aluguel anunciado de um apartamento não representa o preço de todos os apartamentos do prédio. Se a pesquisa básica não trouxer evidências suficientes, a ferramenta pode recorrer ao agente de pesquisa.
+
+## Veículo
+
+```json
+{
+  "tipo": "carro",
+  "marca": "BMW",
+  "modelo": "X4 M Competition 3.0 Bi-TB 510cv Aut.",
+  "ano_modelo": 2021,
+  "combustivel": "Gasolina"
+}
+```
+
+O objetivo é apresentar uma avaliação com modelo e ano confirmados. A FIPE informa código e mês de referência; a foto ilustra o modelo. A estimativa para leilão aplica um percentual configurável à FIPE. A resposta informa a base, o percentual e o valor calculado; esse valor não representa uma arrematação observada. O padrão inicial é 70% da FIPE. A ferramenta não pesquisa anúncios de usados para esse cálculo.
+
+## Imagens e resultados
+
+As imagens ficam no Supabase. A ferramenta retorna links para anexar ao relatório, sem base64 no contexto da IA. Fotos associadas a pessoas usam acesso restrito ao dossiê.
+
+Cada consulta preserva fontes, limitações e consumo dos provedores. Valores não calculáveis retornam `null` e um motivo. Um endereço cadastral ou uma foto de contato, isoladamente, não confirma residência, propriedade ou identidade.

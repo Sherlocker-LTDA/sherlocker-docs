@@ -451,6 +451,7 @@
             "pages": [
               "plataforma/dossie",
               "plataforma/dossie-api",
+              "plataforma/dossie-ferramentas",
               "POST /dossies",
               "GET /dossies",
               "GET /dossies/{dossie_id}",
@@ -465,7 +466,6 @@
             "pages": [
               "inteligencia/introducao",
               "POST /inteligencia/financeira/analisar",
-              "POST /inteligencia/enderecos/pesquisar",
               "POST /inteligencia/imagens/pesquisar"
             ]
           },
