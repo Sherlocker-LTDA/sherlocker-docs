@@ -189,28 +189,6 @@
         ]
       },
       {
-        "tab": "Inteligência",
-        "icon": "brain",
-        "groups": [
-          {
-            "group": "Produtos · Em breve",
-            "pages": [
-              "inteligencia/introducao",
-              "inteligencia/financeira",
-              "inteligencia/enderecos",
-              "inteligencia/redessociais",
-              "inteligencia/imagens"
-            ]
-          },
-          {
-            "group": "Integração",
-            "pages": [
-              "inteligencia/integracao"
-            ]
-          }
-        ]
-      },
-      {
         "tab": "Patrimônio",
         "icon": "landmark",
         "groups": [
@@ -457,6 +435,16 @@
             "group": "Começando",
             "pages": [
               "plataforma/introducao"
+            ]
+          },
+          {
+            "group": "Inteligência",
+            "pages": [
+              "inteligencia/introducao",
+              "inteligencia/financeira",
+              "inteligencia/enderecos",
+              "inteligencia/redessociais",
+              "inteligencia/imagens"
             ]
           },
           {

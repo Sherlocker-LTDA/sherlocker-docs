@@ -1,26 +1,17 @@
 ---
 title: "Redes sociais"
-description: "Nome, documento e contatos → perfis prováveis com link, origem e motivos"
+description: "Localize perfis prováveis na web usando nome, documento e contatos"
 icon: "users"
 ---
 
 <Note>**Em breve.** Contrato proposto; exemplos e valores fictícios.</Note>
 
-Reúna perfis prováveis encontrados na web e nas redes a partir dos dados disponíveis. Cada resultado vem com link, origem, confiança e motivos da correspondência.
+Localiza perfis prováveis na web a partir de nome, documento e contatos, trazendo links e sinais que sustentam a associação com a pessoa ou empresa pesquisada.
 
 ## Entrada
 
 ```json
-{
-  "nome": "Pessoa Exemplo",
-  "cpf": "00000000000",
-  "emails": [
-    "pessoa@example.org"
-  ],
-  "telefones": [
-    "5511999990000"
-  ]
-}
+{"nome": "Pessoa Exemplo", "cpf": "00000000000", "emails": ["pessoa@example.org"], "telefones": ["5511999990000"]}
 ```
 
 ## Saída
@@ -35,17 +26,8 @@ Reúna perfis prováveis encontrados na web e nas redes a partir dos dados dispo
       "url": "https://example.org/perfil/pessoa",
       "correspondencia": "provavel",
       "confianca": "moderada",
-      "motivos": [
-        "Nome compatível com a entrada.",
-        "Contato reconhecido pela fonte do exemplo."
-      ],
-      "origens": [
-        {
-          "fonte": "Pesquisa Web Exemplo",
-          "url": "https://example.org/fonte/perfil",
-          "consultado_em": "2026-10-13T12:00:00Z"
-        }
-      ]
+      "motivos": ["Nome compatível com a entrada.", "Contato reconhecido pela fonte do exemplo."],
+      "origens": [{"fonte": "Pesquisa Web Exemplo", "url": "https://example.org/fonte/perfil", "consultado_em": "2026-10-13T12:00:00Z"}]
     },
     {
       "id": "perfil_2",
@@ -54,29 +36,13 @@ Reúna perfis prováveis encontrados na web e nas redes a partir dos dados dispo
       "url": "https://example.org/profissional/pessoa",
       "correspondencia": "provavel",
       "confianca": "baixa",
-      "motivos": [
-        "Nome compatível; contato ainda não corroborado."
-      ],
-      "origens": [
-        {
-          "fonte": "Pesquisa Web Exemplo",
-          "url": "https://example.org/fonte/profissional",
-          "consultado_em": "2026-10-13T12:00:00Z"
-        }
-      ]
+      "motivos": ["Nome compatível; contato ainda não corroborado."],
+      "origens": [{"fonte": "Pesquisa Web Exemplo", "url": "https://example.org/fonte/profissional", "consultado_em": "2026-10-13T12:00:00Z"}]
     }
   ]
 }
 ```
 
-Mostre uma lista de perfis com confiança e motivos. Nome igual é uma pista; o resultado não garante identidade.
+## Uso
 
-<Accordion title="Integração e fontes">
-
-**Rota proposta:** `POST /inteligencia/redessociais/pesquisar`. Aceita nome, documento CPF/CNPJ e contatos disponíveis; não exige que todos os campos sejam preenchidos. Para empresa, pode receber `cnpj` e nome empresarial.
-
-A proposta pesquisa web e fontes compatíveis para descobrir perfis, não apenas verificar uma lista fixa de contas. Um documento pode enriquecer contatos para orientar a busca. Homônimos e vínculos incertos permanecem explícitos.
-
-Para reunir imagens desses resultados, use [Foto de perfil](/inteligencia/imagens). Tarifas, limites e cobertura ainda serão definidos; não há promessa de encontrar todos os perfis da web.
-
-</Accordion>
+Apresente os perfis como uma lista de links com confiança, origem e motivos. Os sinais ajudam a revisar a associação; nome igual, sozinho, não confirma identidade.

@@ -1,12 +1,12 @@
 ---
 title: "Foto de perfil"
-description: "Dados disponíveis → imagens ordenadas, deduplicadas e com suas origens"
+description: "Reúna fotos prováveis para identificação visual em cadastros e dossiês"
 icon: "image"
 ---
 
 <Note>**Em breve.** Contrato proposto; exemplos e valores fictícios.</Note>
 
-Envie os dados que tiver. Receba fotos encontradas nas fontes e perfis, ordenadas e deduplicadas, com todas as origens preservadas.
+Reúne fotos prováveis a partir dos dados disponíveis da pessoa, ordenadas e com suas origens e presença de rosto. Ajuda a identificação visual em um cadastro ou dossiê.
 
 ## Entrada
 
@@ -14,17 +14,9 @@ Envie os dados que tiver. Receba fotos encontradas nas fontes e perfis, ordenada
 {
   "cpf": "00000000000",
   "nome": "Pessoa Exemplo",
-  "emails": [
-    "pessoa@example.org"
-  ],
-  "telefones": [
-    "5511999990000"
-  ],
-  "perfis": [
-    {
-      "url": "https://example.org/perfil/pessoa"
-    }
-  ]
+  "emails": ["pessoa@example.org"],
+  "telefones": ["5511999990000"],
+  "perfis": [{"url": "https://example.org/perfil/pessoa"}]
 }
 ```
 
@@ -38,40 +30,20 @@ Envie os dados que tiver. Receba fotos encontradas nas fontes e perfis, ordenada
       "tem_rosto": true,
       "quantidade_rostos": 1,
       "origens": [
-        {
-          "fonte": "Perfil Exemplo",
-          "url": "https://example.org/perfil/pessoa",
-          "identificador": "pessoa@example.org"
-        },
-        {
-          "fonte": "Fonte de Contato Exemplo",
-          "identificador": "5511999990000"
-        }
+        {"fonte": "Perfil Exemplo", "url": "https://example.org/perfil/pessoa", "identificador": "pessoa@example.org"},
+        {"fonte": "Fonte de Contato Exemplo", "identificador": "5511999990000"}
       ]
     },
     {
       "url": "https://example.org/foto-2.png",
       "tem_rosto": true,
       "quantidade_rostos": 1,
-      "origens": [
-        {
-          "fonte": "Outro Perfil Exemplo",
-          "url": "https://example.org/profissional/pessoa"
-        }
-      ]
+      "origens": [{"fonte": "Outro Perfil Exemplo", "url": "https://example.org/profissional/pessoa"}]
     }
   ]
 }
 ```
 
-Uma foto encontrada em duas fontes aparece uma vez, com duas origens. Sem imagem, a resposta é `{"imagens":[]}`. A lista não usa campos “melhor” ou “alternativas”.
+## Uso
 
-<Accordion title="Integração e como interpretar as imagens">
-
-**Rota proposta:** `POST /inteligencia/imagens/pesquisar`. CPF, nome, emails, telefones e perfis são pistas opcionais; envie os dados disponíveis. CPF pode enriquecer contatos cadastrais antes da pesquisa.
-
-Fotos e perfis têm vínculos prováveis com as entradas, sem identificação garantida. `tem_rosto` e `quantidade_rostos` descrevem presença de rostos; a proposta não usa embeddings nem reconhecimento facial para identificar a pessoa. Análise indisponível deve ser distinta de zero rostos.
-
-Critérios de ordenação e deduplicação serão documentados. Tarifas, cobertura e retenção ainda não fechadas.
-
-</Accordion>
+Mostre as imagens com suas origens. Uma foto encontrada em duas fontes aparece uma vez; sem imagem, a lista fica vazia. Presença de rosto ajuda a apresentação visual, sem confirmar a identidade da pessoa.
