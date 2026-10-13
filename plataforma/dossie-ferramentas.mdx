@@ -10,16 +10,15 @@ A Holmes usa os dados coletados na investigação para consultar estas ferrament
 
 | Ferramenta | Objetivo | Entrada | Resultado |
 | --- | --- | --- | --- |
-| Endereço | Entender o que existe no local e seu contexto imobiliário | Endereço completo | Localização, nome do condomínio ou estabelecimento, tipo de imóvel, fachada e referências de aluguel, venda e condomínio |
-| Veículo | Avaliar um veículo registrado no alvo | Modelo, versão, ano e combustível coletados | FIPE com mês de referência, foto ilustrativa, estimativa para leilão calculada a partir da FIPE |
-| Geolocalização | Comparar locais e distâncias | Endereços ou pontos coletados | Mapas, distâncias, trajetos consultados e locais próximos |
+| Verificação de endereço | Identificar o imóvel e seu uso para avaliar possíveis relações com moradia ou trabalho | Endereço completo | Localização, nome do condomínio ou estabelecimento, tipo de imóvel, fotos e referências de aluguel, venda e condomínio |
+| Veículo | Consultar o valor de referência e estimar o valor para leilão de um veículo registrado no alvo | Modelo, versão, ano e combustível coletados | FIPE com mês de referência, características, foto ilustrativa e estimativa para leilão com base e percentual |
+| Geolocalização | Visualizar os locais coletados e comparar proximidade, distâncias e possíveis trajetos | Endereços ou pontos coletados | Mapas, coordenadas, distâncias, rotas e locais próximos |
 | Escrituras | Encontrar atos cartoriais associados ao documento | CPF ou CNPJ | Escrituras e sua origem, quando encontradas |
-| Rastro | Investigar contatos registrados no alvo | E-mail ou telefone coletado | Evidências e conexões digitais com suas fontes |
-| WhatsApp | Verificar quais contatos têm WhatsApp | Telefones coletados | Encontrado, não encontrado ou indisponível; foto quando encontrada |
-| Foto de perfil | Reunir imagens associadas aos contatos | E-mails e telefones coletados | Imagens, origens e presença de rosto quando disponível |
-| Financeira | Reunir as métricas financeiras disponíveis | CPF ou CNPJ do alvo | Emprego, salário, renda, benefícios e patrimônio, com estado por métrica |
+| Redes sociais | Encontrar possíveis contas e perfis da pessoa a partir dos contatos coletados | E-mail ou telefone coletado | Contas encontradas, links de perfis, fotos disponíveis e fontes dos resultados |
+| WhatsApp | Verificar quais telefones coletados têm uma conta no WhatsApp | Telefones coletados | Resultado por número: encontrado, não encontrado ou indisponível; foto de perfil quando disponível |
+| Foto de perfil | Buscar possíveis fotos da pessoa e reunir imagens de diferentes fontes para comparação | E-mails e telefones coletados | Lista de imagens, links, fontes e indicação de rosto quando disponível |
 
-## Endereço
+## Verificação de endereço
 
 A ferramenta recebe somente o endereço, sem campo de finalidade:
 
@@ -48,6 +47,12 @@ Referências de anúncios indicam a unidade e sua área quando disponíveis. O a
 O objetivo é apresentar uma avaliação com modelo e ano confirmados. A FIPE informa código e mês de referência; a foto ilustra o modelo. A estimativa para leilão aplica um percentual configurável à FIPE. A resposta informa a base, o percentual e o valor calculado; esse valor não representa uma arrematação observada. O padrão inicial é 70% da FIPE. A ferramenta não pesquisa anúncios de usados para esse cálculo.
 
 ## Imagens e resultados
+
+**Redes sociais** ajuda a investigar a presença digital da pessoa: os contatos já coletados servem de ponto de partida para encontrar possíveis contas. Cada resultado preserva seu link e sua origem para que o agente avalie a conexão.
+
+**WhatsApp** permite comparar os telefones coletados pela presença de uma conta e pela foto disponível. Encontrar a conta não confirma que o número seja o mais recente ou esteja em uso pela pessoa.
+
+**Foto de perfil** reúne as imagens associadas aos contatos em uma lista para comparação. A indicação de rosto, quando disponível, descreve o conteúdo da imagem e não confirma a identidade da pessoa.
 
 As imagens ficam no Supabase. A ferramenta retorna links para anexar ao relatório, sem base64 no contexto da IA. Fotos associadas a pessoas usam acesso restrito ao dossiê.
 
