@@ -25,7 +25,7 @@ Publicada em **[docs.sherlocker.com.br](https://docs.sherlocker.com.br)** · Con
 | Tab | Módulos |
 |-----|---------|
 | **Cadastro** | Perfil, Pessoas, Empresas, Telefones, Emails, Dívidas, Benefícios, Licitações |
-| **Plataforma** | Dossiê, Rastro, Lente e categoria Inteligência: Financeira, Endereços, Redes sociais e Foto de perfil — Em breve |
+| **Plataforma** | Dossiê, Rastro e Lente; ferramentas do Dossiê: Verificação de endereço, Veículo, Geo, Escrituras, Redes sociais e WhatsApp — Em breve |
 | **Patrimônio** | Imóveis urbanos, Rurais, Veículos, Aeronaves, Patentes |
 | **Jurídico** | Processos, Documentos públicos |
 

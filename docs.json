@@ -461,15 +461,6 @@
             ]
           },
           {
-            "group": "Inteligência",
-            "openapi": "/openapi/inteligencia.json",
-            "pages": [
-              "inteligencia/introducao",
-              "POST /inteligencia/financeira/analisar",
-              "POST /inteligencia/imagens/pesquisar"
-            ]
-          },
-          {
             "group": "Rastro",
             "openapi": "/openapi/plataforma-rastro.json",
             "pages": [
