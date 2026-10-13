@@ -28,7 +28,7 @@
       "post": {
         "operationId": "inteligenciaFinanceiraAnalisar",
         "summary": "Financeira",
-        "description": "**Em breve.** Rota planejada, ainda indisponível para clientes. Exemplos e valores fictícios.\n\nTransforma um CPF ou CNPJ em um perfil financeiro estimado para entender a faixa de renda da pessoa ou o faturamento da empresa, reunindo salário, patrimônio e contexto de moradia.\n\nApresente **emprego, renda, localização, aluguel, patrimônio e benefícios** para pessoa; para empresa, destaque faturamento e porte estimados. A base anual do exemplo é de 12 meses. Aluguel residencial é custo provável, e patrimônio e contexto regional não são renda individual; faturamento da empresa não é lucro ou renda dos sócios.",
+        "description": "**Em breve.** Rota planejada, ainda indisponível para clientes. Exemplos e valores fictícios.\n\nTransforma um CPF ou CNPJ em um perfil financeiro estimado para entender a faixa de renda da pessoa ou o faturamento da empresa, reunindo salário, patrimônio e contexto de moradia.\n\nApresente **emprego, renda, localização, aluguel, patrimônio e benefícios** para pessoa; para empresa, destaque faturamento e porte estimados. A base anual do exemplo é de 12 meses. Aluguel residencial é custo provável, e patrimônio e contexto regional não são renda individual; faturamento da empresa não é lucro ou renda dos sócios.\n\nCada métrica informa seu status. Quando não há dados suficientes, retorna `status: indisponivel`, valores `null` e um `motivo`; as demais métricas continuam na resposta. Informação ausente nunca vira zero.",
         "tags": [
           "Inteligência"
         ],
@@ -112,10 +112,12 @@
                           "type": "object",
                           "properties": {
                             "minimo": {
-                              "type": "number"
+                              "type": "number",
+                              "nullable": true
                             },
                             "maximo": {
-                              "type": "number"
+                              "type": "number",
+                              "nullable": true
                             },
                             "moeda": {
                               "type": "string"
@@ -124,21 +126,45 @@
                               "type": "string"
                             },
                             "referencia": {
-                              "type": "string"
+                              "type": "string",
+                              "nullable": true
                             },
                             "confianca": {
-                              "type": "string"
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "estimado",
+                                "observado",
+                                "indisponivel"
+                              ]
+                            },
+                            "motivo": {
+                              "type": "string",
+                              "nullable": true,
+                              "description": "Explica por que a métrica não pôde ser calculada."
                             }
-                          }
+                          },
+                          "required": [
+                            "status",
+                            "minimo",
+                            "maximo",
+                            "moeda",
+                            "periodo"
+                          ]
                         },
                         "salario_anual_estimado": {
                           "type": "object",
                           "properties": {
                             "minimo": {
-                              "type": "number"
+                              "type": "number",
+                              "nullable": true
                             },
                             "maximo": {
-                              "type": "number"
+                              "type": "number",
+                              "nullable": true
                             },
                             "moeda": {
                               "type": "string"
@@ -147,21 +173,45 @@
                               "type": "string"
                             },
                             "referencia": {
-                              "type": "string"
+                              "type": "string",
+                              "nullable": true
                             },
                             "confianca": {
-                              "type": "string"
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "estimado",
+                                "observado",
+                                "indisponivel"
+                              ]
+                            },
+                            "motivo": {
+                              "type": "string",
+                              "nullable": true,
+                              "description": "Explica por que a métrica não pôde ser calculada."
                             }
-                          }
+                          },
+                          "required": [
+                            "status",
+                            "minimo",
+                            "maximo",
+                            "moeda",
+                            "periodo"
+                          ]
                         },
                         "renda_mensal_estimada": {
                           "type": "object",
                           "properties": {
                             "minimo": {
-                              "type": "number"
+                              "type": "number",
+                              "nullable": true
                             },
                             "maximo": {
-                              "type": "number"
+                              "type": "number",
+                              "nullable": true
                             },
                             "moeda": {
                               "type": "string"
@@ -170,21 +220,45 @@
                               "type": "string"
                             },
                             "referencia": {
-                              "type": "string"
+                              "type": "string",
+                              "nullable": true
                             },
                             "confianca": {
-                              "type": "string"
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "estimado",
+                                "observado",
+                                "indisponivel"
+                              ]
+                            },
+                            "motivo": {
+                              "type": "string",
+                              "nullable": true,
+                              "description": "Explica por que a métrica não pôde ser calculada."
                             }
-                          }
+                          },
+                          "required": [
+                            "status",
+                            "minimo",
+                            "maximo",
+                            "moeda",
+                            "periodo"
+                          ]
                         },
                         "renda_anual_estimada": {
                           "type": "object",
                           "properties": {
                             "minimo": {
-                              "type": "number"
+                              "type": "number",
+                              "nullable": true
                             },
                             "maximo": {
-                              "type": "number"
+                              "type": "number",
+                              "nullable": true
                             },
                             "moeda": {
                               "type": "string"
@@ -193,12 +267,34 @@
                               "type": "string"
                             },
                             "referencia": {
-                              "type": "string"
+                              "type": "string",
+                              "nullable": true
                             },
                             "confianca": {
-                              "type": "string"
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "estimado",
+                                "observado",
+                                "indisponivel"
+                              ]
+                            },
+                            "motivo": {
+                              "type": "string",
+                              "nullable": true,
+                              "description": "Explica por que a métrica não pôde ser calculada."
                             }
-                          }
+                          },
+                          "required": [
+                            "status",
+                            "minimo",
+                            "maximo",
+                            "moeda",
+                            "periodo"
+                          ]
                         },
                         "base_anual_meses": {
                           "type": "number"
@@ -207,16 +303,29 @@
                           "type": "object",
                           "properties": {
                             "faixa": {
-                              "type": "string"
+                              "type": "string",
+                              "nullable": true
                             },
                             "confianca": {
-                              "type": "string"
+                              "type": "string",
+                              "nullable": true
                             },
                             "metodo": {
                               "type": "string"
                             },
                             "criterio": {
                               "type": "string"
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "estimado",
+                                "indisponivel"
+                              ]
+                            },
+                            "motivo": {
+                              "type": "string",
+                              "nullable": true
                             }
                           }
                         },
@@ -241,10 +350,12 @@
                           "type": "object",
                           "properties": {
                             "minimo": {
-                              "type": "number"
+                              "type": "number",
+                              "nullable": true
                             },
                             "maximo": {
-                              "type": "number"
+                              "type": "number",
+                              "nullable": true
                             },
                             "moeda": {
                               "type": "string"
@@ -253,21 +364,45 @@
                               "type": "string"
                             },
                             "referencia": {
-                              "type": "string"
+                              "type": "string",
+                              "nullable": true
                             },
                             "confianca": {
-                              "type": "string"
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "estimado",
+                                "observado",
+                                "indisponivel"
+                              ]
+                            },
+                            "motivo": {
+                              "type": "string",
+                              "nullable": true,
+                              "description": "Explica por que a métrica não pôde ser calculada."
                             }
-                          }
+                          },
+                          "required": [
+                            "status",
+                            "minimo",
+                            "maximo",
+                            "moeda",
+                            "periodo"
+                          ]
                         },
                         "patrimonio_estimado": {
                           "type": "object",
                           "properties": {
                             "minimo": {
-                              "type": "number"
+                              "type": "number",
+                              "nullable": true
                             },
                             "maximo": {
-                              "type": "number"
+                              "type": "number",
+                              "nullable": true
                             },
                             "moeda": {
                               "type": "string"
@@ -276,12 +411,34 @@
                               "type": "string"
                             },
                             "referencia": {
-                              "type": "string"
+                              "type": "string",
+                              "nullable": true
                             },
                             "confianca": {
-                              "type": "string"
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "estimado",
+                                "observado",
+                                "indisponivel"
+                              ]
+                            },
+                            "motivo": {
+                              "type": "string",
+                              "nullable": true,
+                              "description": "Explica por que a métrica não pôde ser calculada."
                             }
-                          }
+                          },
+                          "required": [
+                            "status",
+                            "minimo",
+                            "maximo",
+                            "moeda",
+                            "periodo"
+                          ]
                         },
                         "beneficios": {
                           "type": "object",
@@ -316,10 +473,12 @@
                           "type": "object",
                           "properties": {
                             "minimo": {
-                              "type": "number"
+                              "type": "number",
+                              "nullable": true
                             },
                             "maximo": {
-                              "type": "number"
+                              "type": "number",
+                              "nullable": true
                             },
                             "moeda": {
                               "type": "string"
@@ -328,21 +487,45 @@
                               "type": "string"
                             },
                             "referencia": {
-                              "type": "string"
+                              "type": "string",
+                              "nullable": true
                             },
                             "confianca": {
-                              "type": "string"
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "estimado",
+                                "observado",
+                                "indisponivel"
+                              ]
+                            },
+                            "motivo": {
+                              "type": "string",
+                              "nullable": true,
+                              "description": "Explica por que a métrica não pôde ser calculada."
                             }
-                          }
+                          },
+                          "required": [
+                            "status",
+                            "minimo",
+                            "maximo",
+                            "moeda",
+                            "periodo"
+                          ]
                         },
                         "faturamento_anual_estimado": {
                           "type": "object",
                           "properties": {
                             "minimo": {
-                              "type": "number"
+                              "type": "number",
+                              "nullable": true
                             },
                             "maximo": {
-                              "type": "number"
+                              "type": "number",
+                              "nullable": true
                             },
                             "moeda": {
                               "type": "string"
@@ -351,12 +534,34 @@
                               "type": "string"
                             },
                             "referencia": {
-                              "type": "string"
+                              "type": "string",
+                              "nullable": true
                             },
                             "confianca": {
-                              "type": "string"
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "estimado",
+                                "observado",
+                                "indisponivel"
+                              ]
+                            },
+                            "motivo": {
+                              "type": "string",
+                              "nullable": true,
+                              "description": "Explica por que a métrica não pôde ser calculada."
                             }
-                          }
+                          },
+                          "required": [
+                            "status",
+                            "minimo",
+                            "maximo",
+                            "moeda",
+                            "periodo"
+                          ]
                         },
                         "base_anual_meses": {
                           "type": "number"
@@ -365,16 +570,29 @@
                           "type": "object",
                           "properties": {
                             "porte_estimado": {
-                              "type": "string"
+                              "type": "string",
+                              "nullable": true
                             },
                             "confianca": {
-                              "type": "string"
+                              "type": "string",
+                              "nullable": true
                             },
                             "metodo": {
                               "type": "string"
                             },
                             "criterio": {
                               "type": "string"
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "estimado",
+                                "indisponivel"
+                              ]
+                            },
+                            "motivo": {
+                              "type": "string",
+                              "nullable": true
                             }
                           }
                         },
@@ -382,10 +600,12 @@
                           "type": "object",
                           "properties": {
                             "minimo": {
-                              "type": "number"
+                              "type": "number",
+                              "nullable": true
                             },
                             "maximo": {
-                              "type": "number"
+                              "type": "number",
+                              "nullable": true
                             },
                             "moeda": {
                               "type": "string"
@@ -394,12 +614,34 @@
                               "type": "string"
                             },
                             "referencia": {
-                              "type": "string"
+                              "type": "string",
+                              "nullable": true
                             },
                             "confianca": {
-                              "type": "string"
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "estimado",
+                                "observado",
+                                "indisponivel"
+                              ]
+                            },
+                            "motivo": {
+                              "type": "string",
+                              "nullable": true,
+                              "description": "Explica por que a métrica não pôde ser calculada."
                             }
-                          }
+                          },
+                          "required": [
+                            "status",
+                            "minimo",
+                            "maximo",
+                            "moeda",
+                            "periodo"
+                          ]
                         },
                         "enderecos": {
                           "type": "array",
@@ -442,43 +684,53 @@
                         "ocupacao": "Analista Exemplo"
                       },
                       "salario_mensal_estimado": {
+                        "status": "estimado",
                         "minimo": 4500,
                         "maximo": 6500,
                         "moeda": "BRL",
                         "periodo": "mensal",
                         "referencia": "2026-10",
-                        "confianca": "moderada"
+                        "confianca": "moderada",
+                        "motivo": null
                       },
                       "salario_anual_estimado": {
+                        "status": "estimado",
                         "minimo": 54000,
                         "maximo": 78000,
                         "moeda": "BRL",
                         "periodo": "anual",
                         "referencia": "2026-10",
-                        "confianca": "moderada"
+                        "confianca": "moderada",
+                        "motivo": null
                       },
                       "renda_mensal_estimada": {
+                        "status": "estimado",
                         "minimo": 4500,
                         "maximo": 6500,
                         "moeda": "BRL",
                         "periodo": "mensal",
                         "referencia": "2026-10",
-                        "confianca": "moderada"
+                        "confianca": "moderada",
+                        "motivo": null
                       },
                       "renda_anual_estimada": {
+                        "status": "estimado",
                         "minimo": 54000,
                         "maximo": 78000,
                         "moeda": "BRL",
                         "periodo": "anual",
                         "referencia": "2026-10",
-                        "confianca": "moderada"
+                        "confianca": "moderada",
+                        "motivo": null
                       },
                       "base_anual_meses": 12,
                       "classificacao_renda": {
+                        "status": "estimado",
                         "faixa": "media",
                         "confianca": "moderada",
                         "metodo": "proposta-0.1",
-                        "criterio": "renda_mensal_individual_estimada"
+                        "criterio": "renda_mensal_individual_estimada",
+                        "motivo": null
                       },
                       "endereco": {
                         "normalizado": "Rua Exemplo, 123, Cidade Exemplo, SP",
@@ -487,20 +739,24 @@
                         "contexto_regional": "medio"
                       },
                       "aluguel_residencial_estimado": {
+                        "status": "estimado",
                         "minimo": 1800,
                         "maximo": 2400,
                         "moeda": "BRL",
                         "periodo": "mensal",
                         "referencia": "2026-10",
-                        "confianca": "moderada"
+                        "confianca": "moderada",
+                        "motivo": null
                       },
                       "patrimonio_estimado": {
+                        "status": "estimado",
                         "minimo": 280000,
                         "maximo": 380000,
                         "moeda": "BRL",
                         "periodo": "posicao",
                         "referencia": "2026-10",
-                        "confianca": "moderada"
+                        "confianca": "moderada",
+                        "motivo": null
                       },
                       "beneficios": {
                         "renda_mensal_documentada": null,
@@ -519,35 +775,43 @@
                       "tipo": "empresa",
                       "nome": "Empresa Exemplo Ltda",
                       "faturamento_mensal_estimado": {
+                        "status": "estimado",
                         "minimo": 200000,
                         "maximo": 300000,
                         "moeda": "BRL",
                         "periodo": "mensal",
                         "referencia": "2026-10",
-                        "confianca": "moderada"
+                        "confianca": "moderada",
+                        "motivo": null
                       },
                       "faturamento_anual_estimado": {
+                        "status": "estimado",
                         "minimo": 2400000,
                         "maximo": 3600000,
                         "moeda": "BRL",
                         "periodo": "anual",
                         "referencia": "2026-10",
-                        "confianca": "moderada"
+                        "confianca": "moderada",
+                        "motivo": null
                       },
                       "base_anual_meses": 12,
                       "classificacao": {
+                        "status": "estimado",
                         "porte_estimado": "pequeno_no_criterio_ilustrativo",
                         "confianca": "moderada",
                         "metodo": "proposta-0.1",
-                        "criterio": "faturamento_anual_estimado"
+                        "criterio": "faturamento_anual_estimado",
+                        "motivo": null
                       },
                       "patrimonio_estimado": {
+                        "status": "estimado",
                         "minimo": 900000,
                         "maximo": 1400000,
                         "moeda": "BRL",
                         "periodo": "posicao",
                         "referencia": "2026-10",
-                        "confianca": "moderada"
+                        "confianca": "moderada",
+                        "motivo": null
                       },
                       "enderecos": [
                         {
@@ -559,6 +823,101 @@
                       ],
                       "fontes": [
                         "Referências Econômicas Empresariais Exemplo",
+                        "Bens atribuídos por fontes Exemplo"
+                      ]
+                    }
+                  },
+                  "renda_indisponivel": {
+                    "summary": "Pessoa · renda não calculável",
+                    "value": {
+                      "tipo": "pessoa",
+                      "nome": "Pessoa Exemplo",
+                      "emprego": {
+                        "empresa": "Empresa Exemplo",
+                        "ocupacao": "Analista Exemplo"
+                      },
+                      "salario_mensal_estimado": {
+                        "status": "indisponivel",
+                        "minimo": null,
+                        "maximo": null,
+                        "moeda": "BRL",
+                        "periodo": "mensal",
+                        "referencia": null,
+                        "confianca": null,
+                        "motivo": "Não há informações suficientes para estimar a renda."
+                      },
+                      "salario_anual_estimado": {
+                        "status": "indisponivel",
+                        "minimo": null,
+                        "maximo": null,
+                        "moeda": "BRL",
+                        "periodo": "anual",
+                        "referencia": null,
+                        "confianca": null,
+                        "motivo": "Não há informações suficientes para estimar a renda."
+                      },
+                      "renda_mensal_estimada": {
+                        "status": "indisponivel",
+                        "minimo": null,
+                        "maximo": null,
+                        "moeda": "BRL",
+                        "periodo": "mensal",
+                        "referencia": null,
+                        "confianca": null,
+                        "motivo": "Não há informações suficientes para estimar a renda."
+                      },
+                      "renda_anual_estimada": {
+                        "status": "indisponivel",
+                        "minimo": null,
+                        "maximo": null,
+                        "moeda": "BRL",
+                        "periodo": "anual",
+                        "referencia": null,
+                        "confianca": null,
+                        "motivo": "Não há informações suficientes para estimar a renda."
+                      },
+                      "base_anual_meses": 12,
+                      "classificacao_renda": {
+                        "status": "indisponivel",
+                        "faixa": null,
+                        "confianca": null,
+                        "metodo": "proposta-0.1",
+                        "criterio": "renda_mensal_individual_estimada",
+                        "motivo": "A renda não pôde ser estimada."
+                      },
+                      "endereco": {
+                        "normalizado": "Rua Exemplo, 123, Cidade Exemplo, SP",
+                        "vinculo": "residencia_candidata",
+                        "tipo_local": "condominio_residencial",
+                        "contexto_regional": "medio"
+                      },
+                      "aluguel_residencial_estimado": {
+                        "status": "estimado",
+                        "minimo": 1800,
+                        "maximo": 2400,
+                        "moeda": "BRL",
+                        "periodo": "mensal",
+                        "referencia": "2026-10",
+                        "confianca": "moderada",
+                        "motivo": null
+                      },
+                      "patrimonio_estimado": {
+                        "status": "estimado",
+                        "minimo": 280000,
+                        "maximo": 380000,
+                        "moeda": "BRL",
+                        "periodo": "posicao",
+                        "referencia": "2026-10",
+                        "confianca": "moderada",
+                        "motivo": null
+                      },
+                      "beneficios": {
+                        "renda_mensal_documentada": null,
+                        "resumo": "Sem valor de benefício confirmado no exemplo."
+                      },
+                      "fontes": [
+                        "Vínculo e referência salarial Exemplo",
+                        "Comparáveis Residenciais Exemplo",
                         "Bens atribuídos por fontes Exemplo"
                       ]
                     }
