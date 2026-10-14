@@ -1,0 +1,68 @@
+---
+title: "Entidade mencionada"
+description: "Objeto extraído de um processo: veículo, imóvel, herança, bem penhorado, credor ou valor (prévia)"
+icon: "boxes-stacked"
+---
+
+<Warning>
+  **Prévia: ainda não disponível.** Schema planejado; pode mudar até a
+  publicação. Veja [Entidades mencionadas em processos](/processos/entidades-mencionadas).
+</Warning>
+
+Uma **Entidade mencionada** representa algo citado em um processo judicial
+(um bem, um valor, uma empresa, um credor), com o mesmo formato para todos
+os tipos. Os campos específicos de cada tipo ficam em `atributos`.
+
+## Campos
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | string | Identificador estável da entidade. A mesma placa citada em vários processos tem o mesmo `id` |
+| `tipo` | string | Tipo da entidade (`veiculo`, `imovel`, `heranca`, `bem_penhorado`, `conta_bloqueada`, `credor`, `empresa_citada`, `valor`) |
+| `chave` | string | Identificador principal normalizado do tipo (ex.: placa, inscrição + município) |
+| `atributos` | object | Campos específicos do tipo (ver abaixo) |
+| `situacao` | string \| null | Estado do bem no processo: `mencionado`, `penhorado`, `avaliado`, `leiloado`, `arrematado`, `adjudicado`, `arrecadado`, `partilhado`, `liberado` |
+| `valor` | number \| null | Valor em reais associado à menção |
+| `tipo_valor` | string \| null | `declarado`, `avaliacao`, `venal`, `arrematacao`, `condenacao`, `acordo`, `bloqueio` |
+| `data` | string \| null | Data ISO do evento que gerou ou atualizou a menção |
+| `entidade_pai_id` | string \| null | Entidade a que esta pertence (ex.: o imóvel que faz parte de uma `heranca`; o credor de uma recuperação judicial) |
+| `vinculos` | object[] | Pessoas ou empresas ligadas à entidade no processo: `documento`, `nome`, `papel` |
+| `evidencia` | object | `fonte` (`movimentacao`, `peca`, `capa`), `codigo_tpu`, `data`, `trecho` |
+| `resolucao` | object \| null | Correspondência na base Sherlocker: `base`, `id`, `confianca` (`exata` ou `provavel`) |
+
+## Atributos por tipo
+
+| Tipo | Atributos |
+|---|---|
+| `veiculo` | `placa`, `renavam`, `chassi`, `marca_modelo`, `ano` |
+| `imovel` | `inscricao_municipal`, `municipio_ibge`, `matricula`, `cartorio`, `endereco` |
+| `heranca` | `falecido` (`nome`, `documento`, `obito_confirmado`), `inventariante`, `herdeiros[]`, `monte_mor`, `itcmd`, `fase` |
+| `bem_penhorado` | `tipo_bem` e os atributos do bem (`veiculo` ou `imovel`) |
+| `conta_bloqueada` | `sistema` (ex.: Sisbajud), `valor_bloqueado`, `valor_liberado` |
+| `credor` | `classe_credito` (trabalhista, garantia real, quirografário, ME/EPP), `valor_credito` |
+| `empresa_citada` | `cnpj`, `razao_social` |
+| `valor` | `contexto` |
+
+## Exemplo
+
+```json
+{
+  "id": "veiculo:ABC1D23",
+  "tipo": "veiculo",
+  "chave": "ABC1D23",
+  "atributos": { "placa": "ABC1D23", "renavam": "01234567890", "marca_modelo": "FIAT/ARGO", "ano": 2021 },
+  "situacao": "penhorado",
+  "valor": 58000,
+  "tipo_valor": "avaliacao",
+  "data": "2025-03-02",
+  "entidade_pai_id": null,
+  "vinculos": [ { "documento": "98.765.432/0001-88", "nome": "Comércio Eletrônico Abc Ltda", "papel": "executado" } ],
+  "evidencia": { "fonte": "movimentacao", "codigo_tpu": "<código TPU do movimento>", "data": "2025-03-02", "trecho": "Penhora do veículo placa ABC1D23..." },
+  "resolucao": { "base": "veiculos", "id": "ABC1D23", "confianca": "exata" }
+}
+```
+
+<Note>
+  Os valores do exemplo são fictícios. A existência de uma menção não indica
+  propriedade atual do bem; use `situacao` e `data`.
+</Note>
