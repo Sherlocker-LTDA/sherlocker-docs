@@ -1,0 +1,112 @@
+---
+title: "Entidades mencionadas em processos"
+description: "Veículos, imóveis, heranças, bens penhorados, credores e valores extraídos dos processos (prévia)"
+icon: "boxes-stacked"
+---
+
+<Warning>
+  **Prévia: ainda não disponível.** Esta página descreve o contrato planejado
+  para entidades mencionadas em processos. Os parâmetros e as rotas abaixo
+  **ainda não respondem** na API. Os nomes de campos podem mudar até a
+  publicação. Não integre com base nesta página antes do anúncio de
+  disponibilidade.
+</Warning>
+
+Um processo não diz só **quem** está envolvido. Ele também cita **o quê**: o
+veículo apreendido, o imóvel penhorado, os bens de um inventário, a conta
+bloqueada, os credores de uma recuperação judicial. Hoje essas informações
+estão no texto das movimentações e das peças. A camada de **entidades
+mencionadas** transforma esse texto em objetos estruturados, com o mesmo
+formato para qualquer tipo de processo.
+
+## O que muda (e o que não muda) na API atual
+
+O contrato é **aditivo e opcional**:
+
+- As rotas atuais (`/processos/cpf/{cpf}`, `/processos/cnpj/{cnpj}`,
+  `/processos/numero/{numero}`) continuam respondendo **exatamente** como hoje
+  quando o parâmetro novo não é enviado.
+- Quem quiser as entidades pede explicitamente com `include_entidades`.
+- Nenhum campo existente muda de nome, tipo ou significado.
+
+```http
+GET /processos/cpf/{cpf}?include_entidades=veiculo,imovel,heranca
+GET /processos/numero/{numero}?include_entidades=all
+```
+
+Com o parâmetro, cada processo do resultado ganha o campo opcional
+`entidades`, uma lista de [Entidade mencionada](/entidades/entidade-mencionada).
+
+## Tipos de entidade
+
+| Tipo | O que representa | Identificador principal |
+|---|---|---|
+| `veiculo` | Veículo citado (apreensão, penhora, inventário, acidente) | placa normalizada |
+| `imovel` | Imóvel citado (penhora, usucapião, inventário, leilão) | inscrição municipal + município IBGE, ou matrícula + cartório |
+| `heranca` | Inventário ou arrolamento: falecido, inventariante, bens, fase | número do processo |
+| `bem_penhorado` | Bem atingido por penhora, avaliação, leilão ou adjudicação | conforme o tipo do bem |
+| `conta_bloqueada` | Bloqueio judicial de valores | processo + data do bloqueio |
+| `credor` | Credor listado em recuperação judicial ou falência | CPF/CNPJ do credor |
+| `empresa_citada` | Empresa mencionada no processo sem ser parte | CNPJ |
+| `valor` | Valor com contexto (condenação, acordo, avaliação, arrematação) | processo + contexto + data |
+
+O catálogo é dinâmico: novos tipos podem entrar sem mudar o formato do objeto.
+A lista vigente fica disponível em `GET /processos/entidades/tipos`.
+
+## Situação ao longo do processo
+
+Quando a entidade é um bem, `situacao` acompanha os eventos do processo,
+derivados dos códigos de movimento da Tabela Processual Unificada (TPU) do CNJ:
+
+```
+mencionado → penhorado → avaliado → leiloado → arrematado | adjudicado
+                       ↘ liberado
+mencionado → arrecadado (falência) | partilhado (inventário)
+```
+
+## Confiança e evidência
+
+Toda entidade traz de onde veio e como foi identificada, para que a decisão de
+uso fique com você:
+
+- `evidencia`: fonte (movimentação, peça ou capa), código TPU do movimento,
+  data e trecho de origem.
+- `resolucao`: quando o identificador foi encontrado na base da Sherlocker
+  (por exemplo, a placa na base de veículos ou a inscrição na base de imóveis),
+  o vínculo e o nível de confiança (`exata`, `provavel`).
+- Identificadores com dígito verificador (placa, RENAVAM, CPF, CNPJ) só entram
+  quando o dígito é válido.
+
+<Note>
+  Uma entidade **mencionada** em um processo não significa propriedade atual.
+  Um imóvel penhorado em 2019 pode ter sido liberado ou vendido. Use
+  `situacao` e `data` para interpretar.
+</Note>
+
+## Pesquisa geral por entidade (prévia)
+
+Além de enriquecer a consulta por CPF/CNPJ, as entidades podem ser pesquisadas
+diretamente:
+
+| Rota (planejada) | Para quê |
+|---|---|
+| `GET /processos/entidades/tipos` | Catálogo de tipos e o schema de cada um |
+| `GET /processos/entidades/pesquisar?tipo=veiculo&uf=SP&situacao=penhorado` | Listar entidades de um tipo com filtros (UF, tribunal, situação, período) |
+| `GET /processos/entidades/{tipo}/{chave}` | Tudo sobre uma entidade: processos que a citam e histórico de situação |
+| `GET /processos/entidades/por-documento/{documento}` | Entidades ligadas a um CPF/CNPJ em todos os processos |
+
+A paginação segue o mesmo padrão de cursor das demais rotas de processos.
+
+## Exemplos de uso
+
+- **Crédito:** bens penhorados e contas bloqueadas de um CNPJ antes de conceder crédito.
+- **Patrimônio:** heranças em que uma pessoa aparece como herdeira, com os bens do inventário.
+- **Garantias:** dado um veículo ou imóvel oferecido em garantia, os processos que o citam.
+- **Fornecedores:** em quais recuperações judiciais uma empresa aparece como credora.
+
+## Limites
+
+- Processos sob segredo de justiça não são processados.
+- A cobertura depende do texto disponível em cada tribunal. Movimentações
+  curtas ou só codificadas trazem menos entidades que peças completas.
+- A disponibilidade será anunciada por tipo de entidade e por tribunal.

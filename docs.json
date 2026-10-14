@@ -272,7 +272,8 @@
               "entidades/parte",
               "entidades/advogado",
               "entidades/documento",
-              "entidades/escritura"
+              "entidades/escritura",
+              "entidades/entidade-mencionada"
             ]
           },
           {
@@ -281,6 +282,7 @@
             "pages": [
               "processos/base-vs-tempo-real",
               "processos/vinculo-nome-documento",
+              "processos/entidades-mencionadas",
               "GET /processos/cpf/{cpf}",
               "GET /processos/cnpj/{cnpj}",
               "GET /processos/numero/{numero}",
