@@ -96,6 +96,7 @@
               "entidades/endereco",
               "entidades/divida",
               "entidades/beneficio",
+              "entidades/renda",
               "entidades/licitacao",
               "entidades/doacao-politica"
             ]
@@ -148,6 +149,13 @@
             "pages": [
               "GET /beneficios/cpf/{cpf}",
               "GET /beneficios/cnpj/{cnpj}"
+            ]
+          },
+          {
+            "group": "Renda e Classe Social",
+            "openapi": "/openapi/renda.json",
+            "pages": [
+              "GET /renda/cpf/{cpf}"
             ]
           },
           {

@@ -24,7 +24,7 @@ Publicada em **[docs.sherlocker.com.br](https://docs.sherlocker.com.br)** · Con
 
 | Tab | Módulos |
 |-----|---------|
-| **Cadastro** | Perfil, Pessoas, Empresas, Telefones, Emails, Dívidas, Benefícios, Licitações |
+| **Cadastro** | Perfil, Pessoas, Empresas, Telefones, Emails, Dívidas, Benefícios, Renda e Classe Social, Licitações |
 | **Patrimônio** | Imóveis urbanos, Rurais, Veículos, Aeronaves, Patentes |
 | **Jurídico** | Processos, Documentos públicos |
 
