@@ -1,0 +1,153 @@
+---
+title: "Renda e Classe Social"
+description: "Estimativa de renda mensal e classe social de uma pessoa física"
+icon: "chart-column"
+---
+
+A **Renda e Classe Social** estima quanto uma pessoa e o domicílio dela ganham por mês e em que classe social ela se encaixa. Basta enviar o CPF. Endereços, empregos, benefícios sociais, empresas e patrimônio são buscados internamente na base do Sherlocker.
+
+A estimativa vem de um **motor de regras determinístico**: o mesmo CPF com os mesmos dados sempre recebe a mesma resposta. O motor não usa IA e responde em poucos segundos, o que permite usá-lo em volume, por exemplo no onboarding.
+
+<Info>
+  É uma **estimativa**, não renda comprovada. Use-a para triagem, segmentação e análise de risco (PLD/KYC), sempre junto com a `confianca` e o intervalo mínimo–máximo.
+</Info>
+
+## Tipagem
+
+```json
+{
+  "documento": "123.456.789-01",
+  "status": "estimado",
+  "total": 1,
+  "renda_estimada": {
+    "domiciliar_mensal": { "central": 13593.71, "minimo": 10189.61, "maximo": 20401.91 },
+    "individual_mensal": { "central": 9726, "minimo": 6484, "maximo": 16210 },
+    "em_salarios_minimos": { "domiciliar": 8.39, "individual": 6 },
+    "salario_minimo_referencia": 1621
+  },
+  "classificacao": {
+    "classe_social": "B1",
+    "classe_minima": "B2",
+    "classe_maxima": "B1",
+    "padrao": "abep_2026_renda_equivalente",
+    "faixa_renda": "4 a 10 SM",
+    "confianca": "media"
+  }
+}
+```
+
+### Campos da resposta
+
+| Campo | Descrição |
+| --- | --- |
+| `documento` | CPF consultado, formatado |
+| `status` | `estimado` ou `sem_dados` |
+| `total` | `1` com estimativa, `0` sem dados (tokens estornados) |
+| `renda_estimada.domiciliar_mensal` | Renda mensal do domicílio em reais: `central` (melhor estimativa), `minimo` e `maximo`. `maximo` é `null` quando não há teto, como na faixa acima de 20 salários mínimos |
+| `renda_estimada.individual_mensal` | Renda mensal da própria pessoa, quando há vínculo formal ativo ou BPC. Campos `null` quando a renda individual não é observada |
+| `renda_estimada.em_salarios_minimos` | Os valores centrais em salários mínimos |
+| `renda_estimada.salario_minimo_referencia` | Salário mínimo usado na conversão (R$ 1.621 em 2026) |
+| `classificacao.classe_social` | Estrato equivalente ao Critério Brasil: `A`, `B1`, `B2`, `C1`, `C2` ou `DE` |
+| `classificacao.classe_minima` / `classe_maxima` | Estratos do mínimo e do máximo da renda domiciliar |
+| `classificacao.padrao` | Padrão usado na classe. Hoje sempre `abep_2026_renda_equivalente` |
+| `classificacao.faixa_renda` | Renda domiciliar em faixas de salário mínimo: `até 2 SM`, `2 a 4 SM`, `4 a 10 SM`, `10 a 20 SM`, `acima de 20 SM` |
+| `classificacao.confianca` | `alta`, `media` ou `baixa`. Veja abaixo |
+
+## Classe social
+
+O [Critério Brasil da ABEP](https://abep.org/criterio-brasil/) classifica domicílios pela posse de bens e pela escolaridade do chefe, não pela renda. A API devolve o estrato cuja **renda média domiciliar publicada pela ABEP 2026** (PNAD Contínua 2025) fica mais próxima da renda estimada. O corte entre dois estratos é a média geométrica das rendas médias deles.
+
+| Classe | Renda média ABEP 2026 | Renda domiciliar a partir de (2026) |
+| --- | --- | --- |
+| A | R$ 28.331 | R$ 20.989 |
+| B1 | R$ 13.636 | R$ 11.066 |
+| B2 | R$ 7.875 | R$ 6.376 |
+| C1 | R$ 4.527 | R$ 3.697 |
+| C2 | R$ 2.648 | R$ 1.886 |
+| DE | R$ 1.178 | abaixo de R$ 1.886 |
+
+Os cortes são guardados em salários mínimos e acompanham o reajuste do mínimo.
+
+## Confiança
+
+| Nível | Quando |
+| --- | --- |
+| `alta` | A pessoa recebe Bolsa Família ou BPC atualmente. Os critérios de renda desses programas limitam a renda do domicílio |
+| `media` | Há vínculo formal ativo com faixa salarial, ou empresa e patrimônio que garantem uma renda mínima |
+| `baixa` | Só há a localização (renda típica do bairro), só sinais antigos, ou sinais que se contradizem |
+
+## De onde vem a estimativa
+
+| Sinal | Como entra |
+| --- | --- |
+| **Vínculo formal ativo** | A faixa salarial do vínculo (até 2, 2 a 4, 4 a 10, 10 a 20 ou acima de 20 salários mínimos) é a renda individual. A base de vínculos não é atualizada todo mês, por isso esse sinal dá no máximo confiança média |
+| **Bolsa Família** | Para receber, a família precisa ter até R$ 218 por pessoa. Com a regra de proteção, recebe metade até R$ 706 por pessoa. A estimativa usa essas linhas mais o valor da parcela |
+| **BPC** | O benefício vale 1 salário mínimo e exige renda familiar de até ¼ de salário mínimo por pessoa |
+| **Endereço** | Renda média do responsável pelo domicílio no setor censitário de cada CEP da pessoa (IBGE, Censo 2022). Com vários endereços, vale a mediana |
+| **Empresas** | Sócio de empresa ativa com capital social a partir de R$ 100 mil ou de R$ 1 milhão garante uma renda mínima |
+| **Patrimônio** | Aeronave ou imóveis com valor venal somado a partir de R$ 2 milhões garantem uma renda mínima |
+
+A renda domiciliar combina a renda individual com a renda do bairro (75% e 25%) e multiplica por 1,4, a relação média entre a renda do domicílio e a de quem tem rendimento. Benefícios sociais limitam a estimativa por cima; empresas e patrimônio, por baixo. Quando os dois lados se contradizem, por exemplo alguém que recebe Bolsa Família e tem vínculo de 4 a 10 salários mínimos, vale o sinal mais recente (o benefício) e a confiança cai para `baixa`.
+
+<Note>
+  O endereço sozinho diz onde a pessoa mora, não quanto ela ganha: dentro de um mesmo bairro a renda varia muito. Por isso a estimativa só pela localização tem intervalo largo (metade a dobro do valor central) e confiança `baixa`.
+</Note>
+
+## Exemplos
+
+<AccordionGroup>
+  <Accordion title="Família no Bolsa Família">
+    Parcela de R$ 680, sem vínculo formal, CEP com 2,79 moradores por domicílio.
+
+    ```json
+    {
+      "documento": "987.654.321-00",
+      "status": "estimado",
+      "total": 1,
+      "renda_estimada": {
+        "domiciliar_mensal": { "central": 1288.22, "minimo": 680, "maximo": 2649.74 },
+        "individual_mensal": { "central": null, "minimo": null, "maximo": null },
+        "em_salarios_minimos": { "domiciliar": 0.79, "individual": null },
+        "salario_minimo_referencia": 1621
+      },
+      "classificacao": {
+        "classe_social": "DE",
+        "classe_minima": "DE",
+        "classe_maxima": "C2",
+        "padrao": "abep_2026_renda_equivalente",
+        "faixa_renda": "até 2 SM",
+        "confianca": "alta"
+      }
+    }
+    ```
+  </Accordion>
+  <Accordion title="Sem dados suficientes">
+    Nenhum vínculo, benefício, endereço mapeado, empresa ou patrimônio. Os tokens são estornados.
+
+    ```json
+    {
+      "documento": "111.444.777-35",
+      "status": "sem_dados",
+      "total": 0,
+      "renda_estimada": null,
+      "classificacao": null
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Erros
+
+| Status | Quando |
+| --- | --- |
+| 200 com `{ "erro": "CPF invalido" }` | CPF com dígito verificador inválido. Tokens estornados |
+| 401 | Token inválido |
+| 503 | Base temporariamente indisponível. Tokens estornados |
+
+## Endpoint
+
+<CardGroup cols={2}>
+  <Card title="Por CPF" icon="user" href="/api-reference/renda/renda-e-classe-social-por-cpf">
+    `GET /renda/cpf/{cpf}`
+  </Card>
+</CardGroup>
