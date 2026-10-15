@@ -6,6 +6,10 @@ icon: "handcuffs"
 
 Identifique **processos criminais** de pessoas ou empresas.
 
+<Tip>
+  Para ver processos, mandados de prisão, execuções penais e documentos policiais **ligados entre si** numa resposta só, use a [consulta Criminal](/entidades/criminal): `GET /criminal/cpf/{cpf}`.
+</Tip>
+
 ```bash
 curl "https://221b-api.sherlocker.com.br/api/v1/processos/cpf/{cpf}?categorias=criminal&token=SEU_TOKEN"
 ```

@@ -272,7 +272,8 @@
               "entidades/parte",
               "entidades/advogado",
               "entidades/documento",
-              "entidades/escritura"
+              "entidades/escritura",
+              "entidades/criminal"
             ]
           },
           {
@@ -295,6 +296,14 @@
               "GET /escrituras/cpf/{cpf}",
               "GET /escrituras/cnpj/{cnpj}",
               "GET /escrituras/jobs/{jobId}"
+            ]
+          },
+          {
+            "group": "Criminal",
+            "openapi": "/openapi/criminal.json",
+            "pages": [
+              "GET /criminal/cpf/{cpf}",
+              "GET /criminal/cnpj/{cnpj}"
             ]
           },
           {

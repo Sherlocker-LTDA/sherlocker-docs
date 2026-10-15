@@ -1,0 +1,213 @@
+---
+title: "Criminal"
+description: "Processos criminais, mandados de prisão, execuções penais e documentos policiais de uma pessoa, ligados entre si"
+icon: "handcuffs"
+---
+
+A **consulta Criminal** junta numa resposta só tudo o que é criminal de uma pessoa ou empresa: processos criminais, mandados de prisão do BNMP (CNJ), execuções penais do SEEU (CNJ), documentos policiais (boletim de ocorrência e inquérito) e, se pedido, a certidão de antecedentes da Polícia Federal.
+
+Os itens já vêm **ligados**: o processo que expediu o mandado, o mandado que levou à execução da pena e os itens do mesmo fato agrupados num **caso**, com linha do tempo. Cada item diz **como sabemos que é a pessoa**. O que está ligado só pelo nome, com risco de homônimo, fica fora do resumo.
+
+<Info>
+  Para uma tela, use `resumo.situacao`, o campo único com a situação criminal mais grave. Para o detalhe, use `casos`, que agrupam os itens de um mesmo fato. As listas `processos`, `mandados` e `execucoes` trazem cada item uma vez só, e os casos apontam para elas pelo `id`.
+</Info>
+
+## Tipagem
+
+```json
+{
+  "documento": { "tipo": "cpf", "numero": "12345678901" },
+  "consultado_em": "2026-10-15T22:30:00.000Z",
+  "pessoa": { "nome": "JOÃO SILVA", "nome_mae": "MARIA SILVA", "data_nascimento": "1990-04-12", "fonte": "cadastro" },
+  "resumo": {
+    "situacao": "mandado_de_prisao_vigente",
+    "mandados_vigentes": 1,
+    "execucoes": 1,
+    "reu_preso": false,
+    "processos_criminais": 1,
+    "documentos_policiais": 0,
+    "crimes": ["Roubo Majorado", "Art. 157, §2º, II do CP"],
+    "certidao_pf": null,
+    "itens_so_por_nome": 1
+  },
+  "casos": [
+    {
+      "id": "caso-1",
+      "descricao": "Roubo Majorado — TJMG — 2018",
+      "fase_atual": "mandado_pendente",
+      "itens": ["proc-1", "mand-1", "exec-1"],
+      "linha_do_tempo": [
+        { "data": "2018-06-20", "evento": "Ação Penal - Procedimento Ordinário ajuizado(a)", "item": "proc-1" },
+        { "data": "2020-02-05", "evento": "Mandado de Prisão expedido (Pendente de Cumprimento)", "item": "mand-1" },
+        { "data": "2020-11-18", "evento": "Execução da pena recebida no SEEU (Pena Privativa de Liberdade)", "item": "exec-1" }
+      ]
+    }
+  ],
+  "processos": [{ "id": "proc-1", "numero": "0098765-43.2018.8.13.0024", "classe": "Ação Penal - Procedimento Ordinário", "polo": "passivo", "vinculo_pessoa": { "tipo": "documento", "confianca": "alta" } }],
+  "mandados": [{ "id": "mand-1", "tipo": "Mandado de Prisão", "situacao": "Pendente de Cumprimento", "vigente": true, "processo_numero": "0098765-43.2018.8.13.0024", "vinculo_pessoa": { "tipo": "cpf", "confianca": "alta" } }],
+  "execucoes": [{ "id": "exec-1", "numero": "0098765-43.2018.8.13.0024", "classe": "Execução da Pena", "reu_preso": false, "vinculo_pessoa": { "tipo": "documento", "confianca": "alta" } }],
+  "documentos_policiais": [],
+  "vinculos": [
+    { "de": "proc-1", "para": "mand-1", "tipo": "expede_mandado", "evidencia": "número do processo no mandado (BNMP)" },
+    { "de": "proc-1", "para": "exec-1", "tipo": "mesmo_processo", "evidencia": "mesmo número CNJ na base de processos e no SEEU" }
+  ],
+  "certidao_pf": null,
+  "fontes": [
+    { "nome": "processos", "status": "ok" },
+    { "nome": "BNMP/CNJ", "status": "ok" },
+    { "nome": "SEEU/CNJ", "status": "ok" },
+    { "nome": "documentos_policiais", "status": "indisponivel", "motivo": "coleta de boletim de ocorrência e inquérito ainda não implementada" },
+    { "nome": "PF-SINIC", "status": "nao_solicitada" }
+  ],
+  "avisos": ["exec-2 está ligado à pessoa só pelo nome (possível homônimo) e não entra em casos nem no resumo"]
+}
+```
+
+O exemplo completo, com todos os campos de cada item, está na [referência da API](/api-reference/criminal/consulta-criminal-por-cpf).
+
+### Campos da resposta
+
+| Campo | Descrição |
+| --- | --- |
+| `documento` | CPF ou CNPJ consultado |
+| `pessoa` | Nome, nome da mãe e nascimento do cadastro, usados para achar e confirmar as execuções. `null` para CNPJ |
+| `resumo.situacao` | Situação mais grave. Veja abaixo |
+| `resumo.itens_so_por_nome` | Quantos itens ficaram fora do resumo por estarem ligados só pelo nome |
+| `casos` | Itens do mesmo fato: `itens` (ids nas listas), `crimes`, `fase_atual` e `linha_do_tempo` |
+| `processos` | Processos criminais, de execução penal e habeas corpus em que a pessoa é parte |
+| `mandados` | Mandados de prisão e de internação do BNMP (CNJ). `vigente` = pendente de cumprimento e dentro da validade |
+| `execucoes` | Execuções penais do SEEU (CNJ). `reu_preso` vem do marcador do próprio SEEU |
+| `documentos_policiais` | Boletins de ocorrência, inquéritos e autos de prisão em flagrante |
+| `vinculos` | Como um item liga ao outro (`de` → `para`), o `tipo` e a `evidencia` |
+| `certidao_pf` | Certidão de antecedentes da PF, quando pedida com `certidao=true` |
+| `fontes` | Situação de cada fonte nesta consulta: `ok`, `indisponivel`, `erro`, `nao_aplicavel` ou `nao_solicitada` |
+| `avisos` | Avisos legíveis, por exemplo um item ligado só pelo nome |
+
+## Situação (`resumo.situacao`)
+
+Da mais grave para a menos grave. Vale a primeira que se aplica:
+
+| Valor | Quando |
+| --- | --- |
+| `mandado_de_prisao_vigente` | Há mandado de prisão ou de internação pendente e dentro da validade |
+| `em_execucao_penal` | Há execução penal no SEEU |
+| `reu_em_processo_criminal` | Processo criminal em curso com a pessoa no polo passivo (réu, investigado, indiciado) |
+| `com_registros_criminais` | Só registros encerrados (processo arquivado ou extinto, mandado cumprido) ou certidão da PF que consta |
+| `sem_registros` | Nada ligado à pessoa por documento, CPF ou nome da mãe |
+
+## Como sabemos que é a pessoa (`vinculo_pessoa`)
+
+Todo item traz `vinculo_pessoa.tipo`, do mais forte para o mais fraco:
+
+| Tipo | O que significa |
+| --- | --- |
+| `documento` | O CPF ou CNPJ está na parte do processo, ou a execução tem o mesmo número de um desses processos |
+| `cpf` | O mandado é do CPF no BNMP; ou a execução está no processo de um mandado do CPF; ou o SEEU devolveu a execução na busca por CPF |
+| `mae` | A execução foi confirmada ao vivo no SEEU por **nome + nome da mãe** |
+| `nome` | Só o nome é igual. **Pode ser homônimo**: o item aparece na lista, mas fica fora de `casos` e do `resumo` e gera um aviso |
+
+<Note>
+  O SEEU não mostra o CPF nem o nome da mãe na consulta pública. Por isso cada execução encontrada pelo nome é confirmada **ao vivo** no SEEU, pelo CPF e pelo nome da mãe do cadastro. Uma mãe errada nunca confirma. Quando o nome da mãe registrado no SEEU tem outra grafia, a execução pode não confirmar e fica como `nome`.
+</Note>
+
+## Vínculos entre itens
+
+| Tipo | De → Para | Evidência |
+| --- | --- | --- |
+| `origina` | documento policial → processo | Processo de referência do documento policial |
+| `vira_acao_penal` | inquérito → ação penal | Processo de referência |
+| `expede_mandado` | processo ou execução → mandado | Número do processo no mandado (BNMP) |
+| `mesmo_processo` | processo → execução | Mesmo número CNJ na base de processos e no SEEU |
+| `gera_execucao` | processo → execução | Derivado: processo e execução ligados ao mesmo mandado |
+
+## Parâmetros
+
+| Parâmetro | Padrão | O que faz |
+| --- | --- | --- |
+| `confirmar` | `true` | Confirma as execuções ao vivo no SEEU. Com `false`, a resposta sai mais rápido e as execuções ficam como `nome`, fora do resumo |
+| `certidao` | `false` | Enfileira a certidão de antecedentes da PF e devolve `certidao_pf.poll_url`. Acompanhe em `GET /pessoas/antecedentes-criminais/jobs/{jobId}` |
+
+## Fontes e tempo de resposta
+
+| Fonte | O que traz | Observação |
+| --- | --- | --- |
+| Processos | Processos criminais da base do Sherlocker | Sempre consultada |
+| BNMP (CNJ) | Mandados de prisão e de internação | Por CPF |
+| SEEU (CNJ) | Execuções penais | Base atualizada diariamente + confirmação ao vivo |
+| Documentos policiais | Boletim de ocorrência e inquérito | Em implementação: hoje vem `indisponivel` |
+| PF | Certidão de antecedentes | Só com `certidao=true`, em fila |
+
+Cada fonte tem um tempo máximo. A que falha ou demora aparece em `fontes` com `status: erro`, e a resposta sai com o resto. A confirmação ao vivo no SEEU leva cerca de 2 segundos. A primeira consulta depois de um período sem uso pode sair sem confirmação, com um aviso.
+
+## Exemplos
+
+<AccordionGroup>
+  <Accordion title="Sem registros criminais">
+    ```json
+    {
+      "documento": { "tipo": "cpf", "numero": "11144477735" },
+      "resumo": { "situacao": "sem_registros", "mandados_vigentes": 0, "execucoes": 0, "reu_preso": false, "processos_criminais": 0, "documentos_policiais": 0, "crimes": [], "certidao_pf": null, "itens_so_por_nome": 0 },
+      "casos": [],
+      "processos": [],
+      "mandados": [],
+      "execucoes": [],
+      "vinculos": [],
+      "avisos": []
+    }
+    ```
+  </Accordion>
+  <Accordion title="Execução ligada só pelo nome (possível homônimo)">
+    A execução aparece na lista com `vinculo_pessoa.tipo: nome`, mas não entra em `casos` nem no `resumo`.
+
+    ```json
+    {
+      "resumo": { "situacao": "sem_registros", "execucoes": 0, "itens_so_por_nome": 1 },
+      "execucoes": [
+        {
+          "id": "exec-1",
+          "numero": "0004999-09.2026.8.26.0576",
+          "tribunal": "tjsp",
+          "vinculo_pessoa": { "tipo": "nome", "confianca": "baixa", "detalhe": "mesmo nome do executado; não confirmado no SEEU" }
+        }
+      ],
+      "avisos": ["exec-1 está ligado à pessoa só pelo nome (possível homônimo) e não entra em casos nem no resumo"]
+    }
+    ```
+  </Accordion>
+  <Accordion title="Empresa (CNPJ)">
+    Só processos criminais em que a empresa é parte. Mandados, execuções e certidão não se aplicam.
+
+    ```json
+    {
+      "documento": { "tipo": "cnpj", "numero": "12345678000190" },
+      "pessoa": null,
+      "fontes": [
+        { "nome": "processos", "status": "ok" },
+        { "nome": "BNMP/CNJ", "status": "nao_aplicavel" },
+        { "nome": "SEEU/CNJ", "status": "nao_aplicavel" },
+        { "nome": "PF-SINIC", "status": "nao_aplicavel" }
+      ]
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Erros
+
+| Status | Quando |
+| --- | --- |
+| 400 | CPF ou CNPJ inválido |
+| 401 | Token inválido |
+
+Uma fonte fora do ar não derruba a consulta: ela aparece em `fontes` com `status: erro` ou `indisponivel`.
+
+## Endpoints
+
+<CardGroup cols={2}>
+  <Card title="Por CPF" icon="user" href="/api-reference/criminal/consulta-criminal-por-cpf">
+    `GET /criminal/cpf/{cpf}`
+  </Card>
+  <Card title="Por CNPJ" icon="building" href="/api-reference/criminal/consulta-criminal-por-cnpj">
+    `GET /criminal/cnpj/{cnpj}`
+  </Card>
+</CardGroup>

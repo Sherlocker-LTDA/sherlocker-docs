@@ -26,7 +26,7 @@ Publicada em **[docs.sherlocker.com.br](https://docs.sherlocker.com.br)** · Con
 |-----|---------|
 | **Cadastro** | Perfil, Pessoas, Empresas, Telefones, Emails, Dívidas, Benefícios, Renda e Classe Social, Licitações |
 | **Patrimônio** | Imóveis urbanos, Rurais, Veículos, Aeronaves, Patentes |
-| **Jurídico** | Processos, Documentos públicos |
+| **Jurídico** | Processos, Criminal, Documentos públicos |
 
 ## Desenvolvimento local
 
