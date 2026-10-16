@@ -169,6 +169,29 @@ Guarde o `id` retornado e consulte `GET /dossies/{dossie_id}/status`. Respeite
 `poll_after_seconds` quando esse campo estiver presente, em vez de consultar em um
 laço contínuo.
 
+Além do estado, a resposta traz o bloco `progress`, com o andamento da geração:
+
+| Campo | O que informa |
+| --- | --- |
+| `phase` | `queued` (aceito, ainda não enviado para geração), `waiting_slot` (aguardando vaga), `generating` (em geração) ou `finished` |
+| `queue_position` | Posição na fila enquanto espera; `1` é o próximo a entrar em geração |
+| `recent_events` | Últimos marcos da geração, do mais recente ao mais antigo, como `Levantando patrimônio` |
+| `estimate` | Previsão de conclusão (`estimated_completion_at`, `remaining_seconds`) pela duração dos Dossiês concluídos nos últimos 30 dias |
+
+`estimate.confidence` indica como ler a previsão: `typical` enquanto o trabalho está
+dentro da duração mediana, `slow` quando passou dela (a previsão passa a usar o p90) e
+`overdue` quando passou do p90, sem previsão. A previsão é nula em estados terminais
+ou quando ainda não há histórico suficiente.
+
+Para ver tudo o que ainda está em andamento na conta, use `GET /dossies/queue`: a lista
+traz os Dossiês não concluídos, do mais antigo ao mais novo, cada um com o mesmo
+`progress` (com o último marco) e um resumo por fase.
+
+<Note>
+  A espera na fila não conta no tempo limite de geração. O prazo começa quando o
+  Dossiê entra em geração; enquanto aguarda vaga, ele não expira.
+</Note>
+
 Os estados públicos são `queued`, `running`, `completed`, `needs_review`, `failed` e
 `cancelled`. `completed` entrega a cobertura integral prevista pelo contrato.
 `needs_review` é terminal e entrega resultado parcial útil, que deve seguir para
