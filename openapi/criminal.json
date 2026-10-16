@@ -91,7 +91,8 @@
                           "Art. 157, §2º, II do CP"
                         ],
                         "certidao_pf": null,
-                        "itens_so_por_nome": 1
+                        "itens_so_por_nome": 1,
+                        "processos_como_outra_parte": 0
                       },
                       "casos": [
                         {
@@ -341,7 +342,8 @@
                         "documentos_policiais": 0,
                         "crimes": [],
                         "certidao_pf": null,
-                        "itens_so_por_nome": 0
+                        "itens_so_por_nome": 0,
+                        "processos_como_outra_parte": 0
                       },
                       "casos": [],
                       "documentos_policiais": [],
@@ -430,7 +432,8 @@
                         "documentos_policiais": 0,
                         "crimes": [],
                         "certidao_pf": "pendente",
-                        "itens_so_por_nome": 0
+                        "itens_so_por_nome": 0,
+                        "processos_como_outra_parte": 0
                       },
                       "casos": [],
                       "documentos_policiais": [],
@@ -560,7 +563,8 @@
                         "documentos_policiais": 0,
                         "crimes": [],
                         "certidao_pf": null,
-                        "itens_so_por_nome": 0
+                        "itens_so_por_nome": 0,
+                        "processos_como_outra_parte": 0
                       },
                       "casos": [],
                       "documentos_policiais": [],
@@ -1018,6 +1022,10 @@
           "itens_so_por_nome": {
             "type": "integer",
             "description": "Itens fora do resumo por estarem ligados só pelo nome"
+          },
+          "processos_como_outra_parte": {
+            "type": "integer",
+            "description": "Processos em que a pessoa está no polo ativo ou terceiro (acusação, vítima, testemunha): fora do resumo"
           }
         }
       },

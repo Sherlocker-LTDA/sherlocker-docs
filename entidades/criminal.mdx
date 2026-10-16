@@ -28,7 +28,8 @@ Os itens já vêm **ligados**: o processo que expediu o mandado, o mandado que l
     "documentos_policiais": 0,
     "crimes": ["Roubo Majorado", "Art. 157, §2º, II do CP"],
     "certidao_pf": null,
-    "itens_so_por_nome": 1
+    "itens_so_por_nome": 1,
+    "processos_como_outra_parte": 0
   },
   "casos": [
     {
@@ -76,6 +77,7 @@ O exemplo completo, com todos os campos de cada item, está na [referência da A
 | `pessoa` | Nome, nome da mãe e nascimento do cadastro, usados para achar e confirmar as execuções. `null` para CNPJ |
 | `resumo.situacao` | Situação mais grave. Veja abaixo |
 | `resumo.itens_so_por_nome` | Quantos itens ficaram fora do resumo por estarem ligados só pelo nome |
+| `resumo.processos_como_outra_parte` | Processos em que a pessoa está no polo ativo ou como terceiro (acusação, vítima, testemunha). Aparecem em `processos` com aviso, mas não contam como registro criminal dela |
 | `casos` | Itens do mesmo fato: `itens` (ids nas listas), `crimes`, `fase_atual` e `linha_do_tempo` |
 | `processos` | Processos criminais, de execução penal e habeas corpus em que a pessoa é parte |
 | `mandados` | Mandados de prisão e de internação do BNMP (CNJ). `vigente` = pendente de cumprimento e dentro da validade |
