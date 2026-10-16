@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "Dossiê API",
-    "description": "Geração assíncrona de Dossiês em três modos, com módulos selecionáveis, dados fornecidos e matriz determinística de risco. Modos personalizados e matriz têm acesso controlado por conta.",
+    "description": "Gere Dossiês de forma assíncrona: investigação padrão, módulos escolhidos ou relatório com seus próprios dados, com matriz de risco opcional. Acompanhe o andamento e a fila de cada Dossiê.",
     "version": "1.0"
   },
   "servers": [
@@ -819,6 +819,254 @@
             "description": "Caminhos exigidos sem dados adequados. Coleta parcial também impede classificação, mesmo sem campos faltantes."
           }
         }
+      },
+      "DossieProgressEvent": {
+        "type": "object",
+        "required": [
+          "type",
+          "message",
+          "created_at"
+        ],
+        "description": "Marco da geração. Só tipos de marco: avisos internos, chamadas de modelo e custo não são expostos.",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "expander_running",
+            "description": "investigation_started, expanding, expander_running, expander_complete, expansion_complete, red_flag, insight ou investigation_complete."
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 280,
+            "example": "Levantando patrimônio"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "DossieEstimate": {
+        "type": "object",
+        "nullable": true,
+        "description": "Previsão pela duração de dossiês concluídos nos últimos 30 dias. Nula quando terminal ou sem histórico suficiente.",
+        "required": [
+          "estimated_completion_at",
+          "remaining_seconds",
+          "typical_duration_seconds",
+          "slow_duration_seconds",
+          "confidence",
+          "basis",
+          "sample_size"
+        ],
+        "properties": {
+          "estimated_completion_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "remaining_seconds": {
+            "type": "integer",
+            "nullable": true
+          },
+          "typical_duration_seconds": {
+            "type": "integer",
+            "description": "Mediana (p50) da duração de ponta a ponta."
+          },
+          "slow_duration_seconds": {
+            "type": "integer",
+            "description": "p90 da duração de ponta a ponta."
+          },
+          "confidence": {
+            "type": "string",
+            "enum": [
+              "typical",
+              "slow",
+              "overdue"
+            ],
+            "description": "typical: dentro da mediana. slow: passou da mediana; previsão pelo p90. overdue: passou do p90; sem previsão."
+          },
+          "basis": {
+            "type": "string",
+            "enum": [
+              "same_type_30d",
+              "all_types_30d"
+            ],
+            "description": "Histórico do mesmo tipo de Dossiê ou, com menos de 20 amostras, de todos os tipos."
+          },
+          "sample_size": {
+            "type": "integer"
+          }
+        }
+      },
+      "DossieProgress": {
+        "type": "object",
+        "required": [
+          "phase",
+          "queue_position",
+          "last_event_at",
+          "recent_events",
+          "estimate"
+        ],
+        "properties": {
+          "phase": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "waiting_slot",
+              "generating",
+              "finished"
+            ],
+            "description": "queued: aceito, ainda não enviado para geração. waiting_slot: aguardando vaga de geração. generating: em geração. finished: estado terminal. A espera (queued e waiting_slot) não conta no tempo limite de geração."
+          },
+          "queue_position": {
+            "type": "integer",
+            "minimum": 1,
+            "nullable": true,
+            "description": "1 = próximo a entrar em geração. Nulo fora da fila."
+          },
+          "last_event_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "recent_events": {
+            "type": "array",
+            "description": "Últimos marcos, do mais recente ao mais antigo (até 10 no status; 1 na fila).",
+            "items": {
+              "$ref": "#/components/schemas/DossieProgressEvent"
+            }
+          },
+          "estimate": {
+            "$ref": "#/components/schemas/DossieEstimate"
+          }
+        }
+      },
+      "DossieStatus": {
+        "description": "Mesmo corpo de GET /dossies/{dossie_id}, mais o andamento.",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Dossie"
+          },
+          {
+            "type": "object",
+            "required": [
+              "progress"
+            ],
+            "properties": {
+              "progress": {
+                "$ref": "#/components/schemas/DossieProgress"
+              }
+            }
+          }
+        ]
+      },
+      "DossieQueueItem": {
+        "type": "object",
+        "required": [
+          "id",
+          "object",
+          "status",
+          "subject_type",
+          "kind",
+          "queued_at",
+          "progress"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "object": {
+            "type": "string",
+            "enum": [
+              "dossie"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "running"
+            ]
+          },
+          "subject_type": {
+            "type": "string",
+            "enum": [
+              "cpf",
+              "cnpj"
+            ],
+            "nullable": true
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "basic",
+              "advanced"
+            ]
+          },
+          "queued_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "progress": {
+            "$ref": "#/components/schemas/DossieProgress"
+          }
+        }
+      },
+      "DossieQueue": {
+        "type": "object",
+        "required": [
+          "object",
+          "summary",
+          "data",
+          "generated_at"
+        ],
+        "properties": {
+          "object": {
+            "type": "string",
+            "enum": [
+              "dossie_queue"
+            ]
+          },
+          "summary": {
+            "type": "object",
+            "required": [
+              "total",
+              "queued",
+              "waiting_slot",
+              "generating"
+            ],
+            "properties": {
+              "total": {
+                "type": "integer"
+              },
+              "queued": {
+                "type": "integer"
+              },
+              "waiting_slot": {
+                "type": "integer"
+              },
+              "generating": {
+                "type": "integer"
+              }
+            }
+          },
+          "data": {
+            "type": "array",
+            "description": "Dossiês ainda não concluídos, do mais antigo ao mais novo (até 100).",
+            "items": {
+              "$ref": "#/components/schemas/DossieQueueItem"
+            }
+          },
+          "generated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
       }
     },
     "responses": {
@@ -857,8 +1105,8 @@
   "paths": {
     "/dossies": {
       "post": {
-        "summary": "Criar Dossiê padrão, modular ou com dados fornecidos",
-        "description": "Geração assíncrona: retorna 202 e o ID para consulta. standard (default) mantém a investigação existente; modular consulta somente módulos selecionados; provided_data gera relatório/PDF somente com o JSON enviado. A chave exige entitlement dossies, escopo dossies:write e a conta deve ter public_api_dossies. modular, provided_data e qualquer risk_matrix também exigem public_api_dossies_custom, desligada por padrão. Use apenas em ambiente onde a versão está disponível e a conta foi liberada. A matriz retorna score de 0 a 100, low/medium/high e justificativas em risk_classification após a avaliação; ausência de dados obrigatórios ou coleta parcial retorna insufficient_data. Requisição inválida ou flag ausente é rejeitada antes de aceitar/cobrar.",
+        "summary": "Criar Dossiê",
+        "description": "Pede a geração de um Dossiê. A resposta chega na hora, com status `202` e o `id`. O Dossiê fica pronto em alguns minutos: acompanhe por `GET /dossies/{dossie_id}/status`.\n\nHá três formas de gerar:\n\n- **Padrão** (`standard`, usado quando `mode` não é enviado): investigação completa do CPF ou CNPJ.\n- **Modular** (`modular`): consulta só os módulos que você escolher.\n- **Com seus dados** (`provided_data`): monta o relatório e o PDF só com o JSON enviado, sem consultar fontes.\n\nSe quiser, envie também uma matriz de risco em `risk_matrix`. Ao final, `risk_classification` traz a pontuação (0 a 100), o nível (`low`, `medium` ou `high`) e as regras que pesaram. Se faltar um dado obrigatório ou a coleta for parcial, a classificação vem como `insufficient_data`.\n\n**Acesso:** a chave precisa do acesso a Dossiês (escopo `dossies:write`). Os modos modular e com seus dados, e a matriz de risco, dependem de uma liberação extra na conta; sem ela a API responde `403 dossie_custom_not_enabled`.\n\nUma requisição inválida ou sem liberação é recusada antes de qualquer cobrança.",
         "operationId": "createDossie",
         "parameters": [
           {
@@ -1051,10 +1299,103 @@
         }
       }
     },
+    "/dossies/queue": {
+      "get": {
+        "summary": "Listar a fila de Dossiês",
+        "description": "Lista os Dossiês da conta que ainda não terminaram, do mais antigo ao mais novo (até 100). Para cada um: fase, posição na fila, último evento e previsão de conclusão. Inclui um resumo com quantos estão em cada fase.\n\nO tempo na fila não conta para o limite de geração.",
+        "operationId": "getDossieQueue",
+        "responses": {
+          "200": {
+            "description": "Fila do workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DossieQueue"
+                },
+                "examples": {
+                  "fila": {
+                    "summary": "Um em geração e um aguardando vaga",
+                    "value": {
+                      "object": "dossie_queue",
+                      "summary": {
+                        "total": 2,
+                        "queued": 0,
+                        "waiting_slot": 1,
+                        "generating": 1
+                      },
+                      "data": [
+                        {
+                          "id": "55555555-5555-4555-8555-555555555555",
+                          "object": "dossie",
+                          "status": "running",
+                          "subject_type": "cnpj",
+                          "kind": "basic",
+                          "queued_at": "2026-10-16T15:47:20Z",
+                          "started_at": "2026-10-16T15:47:31Z",
+                          "progress": {
+                            "phase": "generating",
+                            "queue_position": null,
+                            "last_event_at": "2026-10-16T15:51:32Z",
+                            "recent_events": [
+                              {
+                                "type": "insight",
+                                "message": "Mapeamento concluído: 1 empresas",
+                                "created_at": "2026-10-16T15:51:32Z"
+                              }
+                            ],
+                            "estimate": {
+                              "estimated_completion_at": "2026-10-16T15:55:20Z",
+                              "remaining_seconds": 228,
+                              "typical_duration_seconds": 480,
+                              "slow_duration_seconds": 888,
+                              "confidence": "typical",
+                              "basis": "same_type_30d",
+                              "sample_size": 342
+                            }
+                          }
+                        },
+                        {
+                          "id": "66666666-6666-4666-8666-666666666666",
+                          "object": "dossie",
+                          "status": "running",
+                          "subject_type": "cpf",
+                          "kind": "basic",
+                          "queued_at": "2026-10-16T15:48:10Z",
+                          "started_at": "2026-10-16T15:48:20Z",
+                          "progress": {
+                            "phase": "waiting_slot",
+                            "queue_position": 2,
+                            "last_event_at": null,
+                            "recent_events": [],
+                            "estimate": {
+                              "estimated_completion_at": "2026-10-16T15:56:00Z",
+                              "remaining_seconds": 470,
+                              "typical_duration_seconds": 480,
+                              "slow_duration_seconds": 888,
+                              "confidence": "typical",
+                              "basis": "same_type_30d",
+                              "sample_size": 342
+                            }
+                          }
+                        }
+                      ],
+                      "generated_at": "2026-10-16T15:48:30Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
     "/dossies/{dossie_id}": {
       "get": {
         "summary": "Consultar Dossiê",
-        "description": "Retorna o estado atual, tentativa, cobertura, resultado e artefatos do Dossiê. Inclui mode e risk_classification após avaliar a matriz enviada. Sem matriz, risk_classification é omitida.",
+        "description": "Retorna o Dossiê como está agora: estado, tentativa atual, cobertura, resultado e links do PDF/DOCX.\n\nQuando uma matriz de risco foi enviada, `risk_classification` aparece depois da avaliação.",
         "operationId": "getDossie",
         "parameters": [
           {
@@ -1167,7 +1508,7 @@
     "/dossies/{dossie_id}/status": {
       "get": {
         "summary": "Consultar andamento do Dossiê",
-        "description": "Leitura leve do estado atual para acompanhamento assíncrono. Inclui mode e risk_classification após avaliar a matriz enviada. Sem matriz, risk_classification é omitida.",
+        "description": "Use para acompanhar a geração. Traz o mesmo conteúdo de `GET /dossies/{dossie_id}` e mais o bloco `progress`:\n\n- **fase**: na fila (`queued`), aguardando vaga (`waiting_slot`), em geração (`generating`) ou terminado (`finished`);\n- **posição na fila**, enquanto espera;\n- **últimos eventos** da geração, do mais recente ao mais antigo;\n- **previsão de conclusão**, com base nos Dossiês concluídos nos últimos 30 dias.\n\nO tempo na fila não conta para o limite de geração: o Dossiê não expira enquanto espera vaga.",
         "operationId": "getDossieStatus",
         "parameters": [
           {
@@ -1180,9 +1521,73 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Dossie"
+                  "$ref": "#/components/schemas/DossieStatus"
                 },
                 "examples": {
+                  "generating": {
+                    "summary": "Em geração, com últimos eventos e previsão",
+                    "value": {
+                      "id": "55555555-5555-4555-8555-555555555555",
+                      "object": "dossie",
+                      "status": "running",
+                      "subject_type": "cnpj",
+                      "mode": "standard",
+                      "kind": "basic",
+                      "contract_version": "v1",
+                      "billing_policy_version": "v1-public",
+                      "current_attempt": {
+                        "id": "33333333-3333-4333-8333-333333333333",
+                        "number": 1,
+                        "status": "running",
+                        "queued_at": "2026-10-16T15:47:20Z",
+                        "billing": {
+                          "id": "44444444-4444-4444-8444-444444444444",
+                          "status": "charge_pending",
+                          "amount": 35,
+                          "unit": "tokens",
+                          "price_version": "dossie-basic-2026-08",
+                          "billing_policy_version": "v1-public"
+                        },
+                        "started_at": "2026-10-16T15:47:31Z"
+                      },
+                      "artifacts": [],
+                      "stale": false,
+                      "created_at": "2026-10-16T15:47:20Z",
+                      "updated_at": "2026-10-16T15:47:31Z",
+                      "progress": {
+                        "phase": "generating",
+                        "queue_position": null,
+                        "last_event_at": "2026-10-16T15:51:32Z",
+                        "recent_events": [
+                          {
+                            "type": "insight",
+                            "message": "Mapeamento concluído: 1 empresas",
+                            "created_at": "2026-10-16T15:51:32Z"
+                          },
+                          {
+                            "type": "expansion_complete",
+                            "message": "Análise concluída, 3 dados novos",
+                            "created_at": "2026-10-16T15:51:10Z"
+                          },
+                          {
+                            "type": "expander_running",
+                            "message": "Levantando patrimônio",
+                            "created_at": "2026-10-16T15:50:41Z"
+                          }
+                        ],
+                        "estimate": {
+                          "estimated_completion_at": "2026-10-16T15:55:20Z",
+                          "remaining_seconds": 228,
+                          "typical_duration_seconds": 480,
+                          "slow_duration_seconds": 888,
+                          "confidence": "typical",
+                          "basis": "same_type_30d",
+                          "sample_size": 342
+                        }
+                      },
+                      "poll_after_seconds": 3
+                    }
+                  },
                   "provided_data_risk": {
                     "summary": "Dados fornecidos classificados como alto risco",
                     "value": {
@@ -1264,7 +1669,20 @@
                       ],
                       "stale": false,
                       "created_at": "2026-10-06T21:00:00Z",
-                      "updated_at": "2026-10-06T21:01:00Z"
+                      "updated_at": "2026-10-06T21:01:00Z",
+                      "progress": {
+                        "phase": "finished",
+                        "queue_position": null,
+                        "last_event_at": "2026-10-06T21:00:58Z",
+                        "recent_events": [
+                          {
+                            "type": "investigation_complete",
+                            "message": "Relatório finalizado",
+                            "created_at": "2026-10-06T21:00:58Z"
+                          }
+                        ],
+                        "estimate": null
+                      }
                     }
                   }
                 }

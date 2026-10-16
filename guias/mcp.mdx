@@ -90,6 +90,23 @@ Depois de conectar, basta pedir ao agente em linguagem natural:
 
 O agente selecionara automaticamente as tools mais relevantes para cada solicitacao.
 
+## Acompanhar Dossiês
+
+Para quem gera Dossiês pela [API de Dossiê](/plataforma/dossie), o MCP traz duas tools de
+acompanhamento. Elas usam a mesma chave e exigem acesso a Dossiês na conta.
+
+| Tool | Parâmetros | O que retorna |
+| --- | --- | --- |
+| `dossie_status` | `id` (UUID do Dossiê) | Estado, fase (`queued`, `waiting_slot`, `generating`, `finished`), posição na fila, últimos marcos da geração e previsão de conclusão. Quando terminou, também resultado e artefatos |
+| `dossies_fila` | nenhum | Todos os Dossiês da conta que ainda não terminaram, do mais antigo ao mais novo, com fase, posição, último marco e previsão de cada um |
+
+Exemplos de pedido ao agente:
+
+- *"Como está o dossiê 55555555-5555-4555-8555-555555555555? Quando fica pronto?"*
+- *"Quantos dossiês ainda estão na fila e qual termina primeiro?"*
+
+A espera na fila não conta no tempo limite de geração.
+
 <Tip>
   As tools disponiveis sao listadas automaticamente pelo servidor MCP quando o cliente conecta. Nao e necessario configurar nada alem da URL e do token.
 </Tip>
