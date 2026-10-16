@@ -59,6 +59,9 @@ Os itens já vêm **ligados**: o processo que expediu o mandado, o mandado que l
     { "nome": "documentos_policiais", "status": "indisponivel", "motivo": "coleta de boletim de ocorrência e inquérito ainda não implementada" },
     { "nome": "PF-SINIC", "status": "nao_solicitada" }
   ],
+  "cobertura": [
+    { "fonte": "SEEU/CNJ", "alcance": "execuções penais na consulta pública do SEEU: 27 TJs, TJMs e TRFs 1 a 6", "nao_cobre": ["execuções do TJSP fora do SEEU (cobertura parcial)", "execuções sigilosas", "penas extintas ou cumpridas que saíram da consulta pública", "execuções originárias do STF e do STJ"] }
+  ],
   "avisos": ["exec-2 está ligado à pessoa só pelo nome (possível homônimo) e não entra em casos nem no resumo"]
 }
 ```
@@ -81,6 +84,7 @@ O exemplo completo, com todos os campos de cada item, está na [referência da A
 | `vinculos` | Como um item liga ao outro (`de` → `para`), o `tipo` e a `evidencia` |
 | `certidao_pf` | Certidão de antecedentes da PF, quando pedida com `certidao=true` |
 | `fontes` | Situação de cada fonte nesta consulta: `ok`, `indisponivel`, `erro`, `nao_aplicavel` ou `nao_solicitada` |
+| `cobertura` | O que cada fonte alcança (`alcance`) e o que fica de fora (`nao_cobre`). O exemplo acima mostra só o SEEU; a resposta traz processos, BNMP e SEEU |
 | `avisos` | Avisos legíveis, por exemplo um item ligado só pelo nome |
 
 ## Situação (`resumo.situacao`)
@@ -93,7 +97,11 @@ Da mais grave para a menos grave. Vale a primeira que se aplica:
 | `em_execucao_penal` | Há execução penal no SEEU |
 | `reu_em_processo_criminal` | Processo criminal em curso com a pessoa no polo passivo (réu, investigado, indiciado) |
 | `com_registros_criminais` | Só registros encerrados (processo arquivado ou extinto, mandado cumprido) ou certidão da PF que consta |
-| `sem_registros` | Nada ligado à pessoa por documento, CPF ou nome da mãe |
+| `nada_encontrado_nas_fontes` | Nada ligado à pessoa por documento, CPF ou nome da mãe **nas fontes consultadas**. Não é certidão negativa: veja `cobertura` |
+
+<Warning>
+  `nada_encontrado_nas_fontes` não quer dizer que a pessoa não tem antecedentes. O SEEU não tem todas as execuções do TJSP, nem as sigilosas, nem as penas já extintas, e nem todo processo publica o documento da parte. Para uma declaração formal, peça a certidão da PF (`certidao=true`) e as certidões dos tribunais.
+</Warning>
 
 ## Como sabemos que é a pessoa (`vinculo_pessoa`)
 
@@ -101,13 +109,15 @@ Todo item traz `vinculo_pessoa.tipo`, do mais forte para o mais fraco:
 
 | Tipo | O que significa |
 | --- | --- |
-| `documento` | O CPF ou CNPJ está na parte do processo, ou a execução tem o mesmo número de um desses processos |
-| `cpf` | O mandado é do CPF no BNMP; ou a execução está no processo de um mandado do CPF; ou o SEEU devolveu a execução na busca por CPF |
-| `mae` | A execução foi confirmada ao vivo no SEEU por **nome + nome da mãe** |
-| `nome` | Só o nome é igual. **Pode ser homônimo**: o item aparece na lista, mas fica fora de `casos` e do `resumo` e gera um aviso |
+| `documento` | O tribunal publicou o CPF ou CNPJ na parte do processo; ou a execução tem o mesmo número de um desses processos **e o executado tem o mesmo nome** |
+| `cpf` | O mandado é do CPF no BNMP; ou a execução está no processo de um mandado do CPF **e o executado tem o mesmo nome**; ou o SEEU devolveu a execução na busca por CPF |
+| `mae` | A execução foi confirmada ao vivo no SEEU por **nome + nome completo da mãe**, com o executado de mesmo nome |
+| `nome` | Só o nome é igual. **Pode ser homônimo**: o item aparece na lista, mas fica fora de `casos` e do `resumo` e gera um aviso. Também vem `nome` quando o número bate mas o executado tem outro nome (possível corréu) e quando o CPF foi ligado ao processo só pelo nome, sem ter sido publicado pelo tribunal |
+
+`vinculo_pessoa.confianca` é `alta` nos três primeiros tipos. A exceção é o processo em que o tribunal publicou o documento censurado (ex.: `***.456.789-**`) e nós completamos os dígitos pelo nome, com um único candidato: ele vem como `documento` com confiança `media` e entra no resumo. `nome` é sempre `baixa`. O `detalhe` explica o que bateu.
 
 <Note>
-  O SEEU não mostra o CPF nem o nome da mãe na consulta pública. Por isso cada execução encontrada pelo nome é confirmada **ao vivo** no SEEU, pelo CPF e pelo nome da mãe do cadastro. Uma mãe errada nunca confirma. Quando o nome da mãe registrado no SEEU tem outra grafia, a execução pode não confirmar e fica como `nome`.
+  O SEEU não mostra o CPF nem o nome da mãe na consulta pública. Por isso cada execução encontrada pelo nome é confirmada **ao vivo** no SEEU, pelo CPF e pelo **nome completo** da mãe do cadastro. Partes do nome da mãe não confirmam, porque em nomes comuns elas acertam outras pessoas. Mãe genérica no cadastro ("não informado", "ignorada") não é usada. Quando o nome da mãe registrado no SEEU tem outra grafia, a execução pode não confirmar e fica como `nome`.
 </Note>
 
 ## Vínculos entre itens
@@ -142,17 +152,17 @@ Cada fonte tem um tempo máximo. A que falha ou demora aparece em `fontes` com `
 ## Exemplos
 
 <AccordionGroup>
-  <Accordion title="Sem registros criminais">
+  <Accordion title="Nada encontrado nas fontes">
     ```json
     {
       "documento": { "tipo": "cpf", "numero": "11144477735" },
-      "resumo": { "situacao": "sem_registros", "mandados_vigentes": 0, "execucoes": 0, "reu_preso": false, "processos_criminais": 0, "documentos_policiais": 0, "crimes": [], "certidao_pf": null, "itens_so_por_nome": 0 },
+      "resumo": { "situacao": "nada_encontrado_nas_fontes", "mandados_vigentes": 0, "execucoes": 0, "reu_preso": false, "processos_criminais": 0, "documentos_policiais": 0, "crimes": [], "certidao_pf": null, "itens_so_por_nome": 0 },
       "casos": [],
       "processos": [],
       "mandados": [],
       "execucoes": [],
       "vinculos": [],
-      "avisos": []
+      "avisos": ["nada encontrado nas fontes consultadas; não é certidão negativa — ver `cobertura` para o que cada fonte não alcança"]
     }
     ```
   </Accordion>
@@ -161,7 +171,7 @@ Cada fonte tem um tempo máximo. A que falha ou demora aparece em `fontes` com `
 
     ```json
     {
-      "resumo": { "situacao": "sem_registros", "execucoes": 0, "itens_so_por_nome": 1 },
+      "resumo": { "situacao": "nada_encontrado_nas_fontes", "execucoes": 0, "itens_so_por_nome": 1 },
       "execucoes": [
         {
           "id": "exec-1",
@@ -170,7 +180,10 @@ Cada fonte tem um tempo máximo. A que falha ou demora aparece em `fontes` com `
           "vinculo_pessoa": { "tipo": "nome", "confianca": "baixa", "detalhe": "mesmo nome do executado; não confirmado no SEEU" }
         }
       ],
-      "avisos": ["exec-1 está ligado à pessoa só pelo nome (possível homônimo) e não entra em casos nem no resumo"]
+      "avisos": [
+        "nada encontrado nas fontes consultadas; não é certidão negativa — ver `cobertura` para o que cada fonte não alcança",
+        "exec-1 está ligado à pessoa só pelo nome (possível homônimo) e não entra em casos nem no resumo"
+      ]
     }
     ```
   </Accordion>
