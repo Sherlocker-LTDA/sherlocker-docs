@@ -1,0 +1,1223 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Sherlocker Criminal API",
+    "description": "Consulta criminal única por CPF ou CNPJ: processos criminais, mandados de prisão (BNMP), execuções penais (SEEU), documentos policiais e certidão da PF, ligados entre si.",
+    "version": "1.0"
+  },
+  "servers": [
+    {
+      "url": "https://221b-api.sherlocker.com.br/api/v1"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/criminal/cpf/{cpf}": {
+      "get": {
+        "operationId": "getCriminalByCpf",
+        "summary": "Consulta criminal por CPF",
+        "description": "Devolve numa resposta só os processos criminais, mandados de prisão (BNMP), execuções penais (SEEU), documentos policiais e, sob pedido, a certidão da PF, já ligados entre si (`vinculos`) e agrupados por fato (`casos`). Cada item diz como foi ligado à pessoa (`vinculo_pessoa`); item ligado só pelo nome fica fora do resumo. Veja [como os vínculos funcionam](/entidades/criminal).",
+        "tags": [
+          "Criminal"
+        ],
+        "parameters": [
+          {
+            "name": "cpf",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "12345678901"
+            },
+            "description": "CPF com ou sem máscara"
+          },
+          {
+            "name": "confirmar",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true
+            },
+            "description": "Confirma as execuções ao vivo no SEEU por CPF e por nome + nome da mãe. Com false a resposta sai mais rápido e as execuções ficam ligadas só pelo nome (fora do resumo)."
+          },
+          {
+            "name": "certidao",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "description": "Enfileira a certidão de antecedentes criminais da Polícia Federal e devolve `certidao_pf.poll_url` para acompanhar."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resumo, casos, listas por fonte, vínculos, fontes e avisos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CriminalResponse"
+                },
+                "examples": {
+                  "completo": {
+                    "summary": "Processo, mandado vigente e execução ligados (e uma execução só pelo nome)",
+                    "value": {
+                      "documento": {
+                        "tipo": "cpf",
+                        "numero": "12345678901"
+                      },
+                      "consultado_em": "2026-10-15T22:30:00.000Z",
+                      "pessoa": {
+                        "nome": "JOÃO SILVA",
+                        "nome_mae": "MARIA SILVA",
+                        "data_nascimento": "1990-04-12",
+                        "fonte": "cadastro"
+                      },
+                      "resumo": {
+                        "situacao": "mandado_de_prisao_vigente",
+                        "mandados_vigentes": 1,
+                        "execucoes": 1,
+                        "reu_preso": false,
+                        "processos_criminais": 1,
+                        "documentos_policiais": 0,
+                        "crimes": [
+                          "Roubo Majorado",
+                          "Art. 157, §2º, II do CP"
+                        ],
+                        "certidao_pf": null,
+                        "itens_so_por_nome": 1,
+                        "processos_como_outra_parte": 0
+                      },
+                      "casos": [
+                        {
+                          "id": "caso-1",
+                          "descricao": "Roubo Majorado — TJMG — 2018",
+                          "crimes": [
+                            "Roubo Majorado",
+                            "Art. 157, §2º, II do CP"
+                          ],
+                          "fase_atual": "mandado_pendente",
+                          "itens": [
+                            "proc-1",
+                            "mand-1",
+                            "exec-1"
+                          ],
+                          "linha_do_tempo": [
+                            {
+                              "data": "2018-06-20",
+                              "evento": "Ação Penal - Procedimento Ordinário ajuizado(a)",
+                              "item": "proc-1"
+                            },
+                            {
+                              "data": "2020-02-05",
+                              "evento": "Mandado de Prisão expedido (Pendente de Cumprimento)",
+                              "item": "mand-1"
+                            },
+                            {
+                              "data": "2020-11-18",
+                              "evento": "Execução da pena recebida no SEEU (Pena Privativa de Liberdade)",
+                              "item": "exec-1"
+                            }
+                          ]
+                        }
+                      ],
+                      "documentos_policiais": [],
+                      "processos": [
+                        {
+                          "id": "proc-1",
+                          "numero": "0098765-43.2018.8.13.0024",
+                          "tribunal": "tjmg",
+                          "classe": "Ação Penal - Procedimento Ordinário",
+                          "categoria": "criminal",
+                          "assuntos": [
+                            "Roubo Majorado"
+                          ],
+                          "polo": "passivo",
+                          "situacao": "Transitado em julgado",
+                          "orgao": "1ª Vara Criminal de Belo Horizonte",
+                          "juiz": null,
+                          "data_ajuizamento": "2018-06-20",
+                          "ultima_movimentacao": {
+                            "data": "2020-02-05",
+                            "evento": "Sentença condenatória"
+                          },
+                          "sinais": [],
+                          "vinculo_pessoa": {
+                            "tipo": "documento",
+                            "confianca": "alta",
+                            "detalhe": "documento da parte no processo"
+                          }
+                        }
+                      ],
+                      "mandados": [
+                        {
+                          "id": "mand-1",
+                          "numero": "0098765-43.2018.8.13.0024.01.0001-80",
+                          "tipo": "Mandado de Prisão",
+                          "especie_prisao": "Definitiva",
+                          "regime_prisional": "Fechado",
+                          "situacao": "Pendente de Cumprimento",
+                          "vigente": true,
+                          "data_expedicao": "2020-02-05",
+                          "data_validade": "2032-02-05",
+                          "tipificacao_penal": "Art. 157, §2º, II do CP",
+                          "processo_numero": "0098765-43.2018.8.13.0024",
+                          "orgao": "1ª Vara Criminal de Belo Horizonte",
+                          "tribunal": "TJMG",
+                          "magistrado": null,
+                          "fonte": "BNMP/CNJ",
+                          "vinculo_pessoa": {
+                            "tipo": "cpf",
+                            "confianca": "alta",
+                            "detalhe": "CPF do mandado no BNMP"
+                          }
+                        }
+                      ],
+                      "execucoes": [
+                        {
+                          "id": "exec-1",
+                          "numero": "0098765-43.2018.8.13.0024",
+                          "tribunal": "tjmg",
+                          "classe": "Execução da Pena",
+                          "assunto": "Pena Privativa de Liberdade",
+                          "data_recebimento": "2020-11-18",
+                          "reu_preso": false,
+                          "flags": [],
+                          "partes": [
+                            {
+                              "papel": "Autoridade",
+                              "nome": "O ESTADO DE MINAS GERAIS"
+                            },
+                            {
+                              "papel": "Executado",
+                              "nome": "JOÃO SILVA"
+                            }
+                          ],
+                          "fonte": "SEEU/CNJ",
+                          "coletado_em": "2026-10-15T18:26:21Z",
+                          "vinculo_pessoa": {
+                            "tipo": "documento",
+                            "confianca": "alta",
+                            "detalhe": "mesmo número de um processo com o documento da pessoa"
+                          }
+                        },
+                        {
+                          "id": "exec-2",
+                          "numero": "0004999-09.2026.8.26.0576",
+                          "tribunal": "tjsp",
+                          "classe": "Execução da Pena",
+                          "assunto": "Pena Restritiva de Direitos",
+                          "data_recebimento": "2026-03-23",
+                          "reu_preso": false,
+                          "flags": [],
+                          "partes": [
+                            {
+                              "papel": "Autoridade",
+                              "nome": "ESTADO DE SAO PAULO"
+                            },
+                            {
+                              "papel": "Executado",
+                              "nome": "João Silva"
+                            }
+                          ],
+                          "fonte": "SEEU/CNJ",
+                          "coletado_em": "2026-10-15T18:23:27Z",
+                          "vinculo_pessoa": {
+                            "tipo": "nome",
+                            "confianca": "baixa",
+                            "detalhe": "mesmo nome do executado; não confirmado no SEEU"
+                          }
+                        }
+                      ],
+                      "vinculos": [
+                        {
+                          "de": "proc-1",
+                          "para": "mand-1",
+                          "tipo": "expede_mandado",
+                          "evidencia": "número do processo no mandado (BNMP)"
+                        },
+                        {
+                          "de": "exec-1",
+                          "para": "mand-1",
+                          "tipo": "expede_mandado",
+                          "evidencia": "número da execução no mandado (BNMP)"
+                        },
+                        {
+                          "de": "proc-1",
+                          "para": "exec-1",
+                          "tipo": "mesmo_processo",
+                          "evidencia": "mesmo número CNJ na base de processos e no SEEU"
+                        },
+                        {
+                          "de": "proc-1",
+                          "para": "exec-1",
+                          "tipo": "gera_execucao",
+                          "evidencia": "derivado de proc-1→mand-1←exec-1"
+                        }
+                      ],
+                      "certidao_pf": null,
+                      "fontes": [
+                        {
+                          "nome": "processos",
+                          "status": "ok"
+                        },
+                        {
+                          "nome": "BNMP/CNJ",
+                          "status": "ok"
+                        },
+                        {
+                          "nome": "SEEU/CNJ",
+                          "status": "ok"
+                        },
+                        {
+                          "nome": "documentos_policiais",
+                          "status": "indisponivel",
+                          "motivo": "coleta de boletim de ocorrência e inquérito ainda não implementada"
+                        },
+                        {
+                          "nome": "PF-SINIC",
+                          "status": "nao_solicitada"
+                        }
+                      ],
+                      "cobertura": [
+                        {
+                          "fonte": "processos",
+                          "alcance": "processos criminais em que o tribunal publicou o documento da parte",
+                          "nao_cobre": [
+                            "processos sigilosos",
+                            "processos sem documento da parte publicado",
+                            "tribunais ainda não coletados"
+                          ]
+                        },
+                        {
+                          "fonte": "BNMP/CNJ",
+                          "alcance": "mandados de prisão do BNMP com CPF no mandado",
+                          "nao_cobre": [
+                            "mandados sem CPF (só nome ou RJI)",
+                            "mandados sigilosos"
+                          ]
+                        },
+                        {
+                          "fonte": "SEEU/CNJ",
+                          "alcance": "execuções penais na consulta pública do SEEU: 27 TJs, TJMs e TRFs 1 a 6",
+                          "nao_cobre": [
+                            "execuções do TJSP fora do SEEU (cobertura parcial)",
+                            "execuções sigilosas",
+                            "penas extintas ou cumpridas que saíram da consulta pública",
+                            "execuções originárias do STF e do STJ"
+                          ]
+                        }
+                      ],
+                      "avisos": [
+                        "exec-2 está ligado à pessoa só pelo nome (possível homônimo) e não entra em casos nem no resumo"
+                      ]
+                    }
+                  },
+                  "nada_encontrado": {
+                    "summary": "Nada encontrado nas fontes",
+                    "value": {
+                      "documento": {
+                        "tipo": "cpf",
+                        "numero": "11144477735"
+                      },
+                      "consultado_em": "2026-10-15T22:31:00.000Z",
+                      "pessoa": {
+                        "nome": "ANA SOUZA",
+                        "nome_mae": "JOANA SOUZA",
+                        "data_nascimento": "1985-01-30",
+                        "fonte": "cadastro"
+                      },
+                      "resumo": {
+                        "situacao": "nada_encontrado_nas_fontes",
+                        "mandados_vigentes": 0,
+                        "execucoes": 0,
+                        "reu_preso": false,
+                        "processos_criminais": 0,
+                        "documentos_policiais": 0,
+                        "crimes": [],
+                        "certidao_pf": null,
+                        "itens_so_por_nome": 0,
+                        "processos_como_outra_parte": 0
+                      },
+                      "casos": [],
+                      "documentos_policiais": [],
+                      "processos": [],
+                      "mandados": [],
+                      "execucoes": [],
+                      "vinculos": [],
+                      "certidao_pf": null,
+                      "fontes": [
+                        {
+                          "nome": "processos",
+                          "status": "ok"
+                        },
+                        {
+                          "nome": "BNMP/CNJ",
+                          "status": "ok"
+                        },
+                        {
+                          "nome": "SEEU/CNJ",
+                          "status": "ok"
+                        },
+                        {
+                          "nome": "documentos_policiais",
+                          "status": "indisponivel",
+                          "motivo": "coleta de boletim de ocorrência e inquérito ainda não implementada"
+                        },
+                        {
+                          "nome": "PF-SINIC",
+                          "status": "nao_solicitada"
+                        }
+                      ],
+                      "cobertura": [
+                        {
+                          "fonte": "processos",
+                          "alcance": "processos criminais em que o tribunal publicou o documento da parte",
+                          "nao_cobre": [
+                            "processos sigilosos",
+                            "processos sem documento da parte publicado",
+                            "tribunais ainda não coletados"
+                          ]
+                        },
+                        {
+                          "fonte": "BNMP/CNJ",
+                          "alcance": "mandados de prisão do BNMP com CPF no mandado",
+                          "nao_cobre": [
+                            "mandados sem CPF (só nome ou RJI)",
+                            "mandados sigilosos"
+                          ]
+                        },
+                        {
+                          "fonte": "SEEU/CNJ",
+                          "alcance": "execuções penais na consulta pública do SEEU: 27 TJs, TJMs e TRFs 1 a 6",
+                          "nao_cobre": [
+                            "execuções do TJSP fora do SEEU (cobertura parcial)",
+                            "execuções sigilosas",
+                            "penas extintas ou cumpridas que saíram da consulta pública",
+                            "execuções originárias do STF e do STJ"
+                          ]
+                        }
+                      ],
+                      "avisos": [
+                        "nada encontrado nas fontes consultadas; não é certidão negativa — ver `cobertura` para o que cada fonte não alcança"
+                      ]
+                    }
+                  },
+                  "com_certidao": {
+                    "summary": "Com certidao=true",
+                    "value": {
+                      "documento": {
+                        "tipo": "cpf",
+                        "numero": "98765432100"
+                      },
+                      "consultado_em": "2026-10-15T22:31:00.000Z",
+                      "pessoa": {
+                        "nome": "ANA SOUZA",
+                        "nome_mae": "JOANA SOUZA",
+                        "data_nascimento": "1985-01-30",
+                        "fonte": "cadastro"
+                      },
+                      "resumo": {
+                        "situacao": "nada_encontrado_nas_fontes",
+                        "mandados_vigentes": 0,
+                        "execucoes": 0,
+                        "reu_preso": false,
+                        "processos_criminais": 0,
+                        "documentos_policiais": 0,
+                        "crimes": [],
+                        "certidao_pf": "pendente",
+                        "itens_so_por_nome": 0,
+                        "processos_como_outra_parte": 0
+                      },
+                      "casos": [],
+                      "documentos_policiais": [],
+                      "processos": [],
+                      "mandados": [],
+                      "execucoes": [],
+                      "vinculos": [],
+                      "certidao_pf": {
+                        "status": "pendente",
+                        "job_id": "8f1c…",
+                        "poll_url": "/api/v1/pessoas/antecedentes-criminais/jobs/8f1c…"
+                      },
+                      "fontes": [
+                        {
+                          "nome": "processos",
+                          "status": "ok"
+                        },
+                        {
+                          "nome": "BNMP/CNJ",
+                          "status": "ok"
+                        },
+                        {
+                          "nome": "SEEU/CNJ",
+                          "status": "ok"
+                        },
+                        {
+                          "nome": "documentos_policiais",
+                          "status": "indisponivel",
+                          "motivo": "coleta de boletim de ocorrência e inquérito ainda não implementada"
+                        },
+                        {
+                          "nome": "PF-SINIC",
+                          "status": "ok"
+                        }
+                      ],
+                      "cobertura": [
+                        {
+                          "fonte": "processos",
+                          "alcance": "processos criminais em que o tribunal publicou o documento da parte",
+                          "nao_cobre": [
+                            "processos sigilosos",
+                            "processos sem documento da parte publicado",
+                            "tribunais ainda não coletados"
+                          ]
+                        },
+                        {
+                          "fonte": "BNMP/CNJ",
+                          "alcance": "mandados de prisão do BNMP com CPF no mandado",
+                          "nao_cobre": [
+                            "mandados sem CPF (só nome ou RJI)",
+                            "mandados sigilosos"
+                          ]
+                        },
+                        {
+                          "fonte": "SEEU/CNJ",
+                          "alcance": "execuções penais na consulta pública do SEEU: 27 TJs, TJMs e TRFs 1 a 6",
+                          "nao_cobre": [
+                            "execuções do TJSP fora do SEEU (cobertura parcial)",
+                            "execuções sigilosas",
+                            "penas extintas ou cumpridas que saíram da consulta pública",
+                            "execuções originárias do STF e do STJ"
+                          ]
+                        }
+                      ],
+                      "avisos": [
+                        "nada encontrado nas fontes consultadas; não é certidão negativa — ver `cobertura` para o que cada fonte não alcança"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Documento inválido"
+          },
+          "401": {
+            "description": "Token inválido"
+          }
+        }
+      }
+    },
+    "/criminal/cnpj/{cnpj}": {
+      "get": {
+        "operationId": "getCriminalByCnpj",
+        "summary": "Consulta criminal por CNPJ",
+        "description": "Processos criminais em que a empresa é parte (ex.: crime ambiental), no mesmo formato da consulta por CPF. Mandados, execuções e certidão não se aplicam a empresas e vêm com `status: nao_aplicavel` em `fontes`.",
+        "tags": [
+          "Criminal"
+        ],
+        "parameters": [
+          {
+            "name": "cnpj",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "12345678000190"
+            },
+            "description": "CNPJ com ou sem máscara"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resumo, casos, listas por fonte, vínculos, fontes e avisos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CriminalResponse"
+                },
+                "examples": {
+                  "nada_encontrado": {
+                    "summary": "Nada encontrado para a empresa",
+                    "value": {
+                      "documento": {
+                        "tipo": "cnpj",
+                        "numero": "12345678000190"
+                      },
+                      "consultado_em": "2026-10-15T22:31:00.000Z",
+                      "pessoa": null,
+                      "resumo": {
+                        "situacao": "nada_encontrado_nas_fontes",
+                        "mandados_vigentes": 0,
+                        "execucoes": 0,
+                        "reu_preso": false,
+                        "processos_criminais": 0,
+                        "documentos_policiais": 0,
+                        "crimes": [],
+                        "certidao_pf": null,
+                        "itens_so_por_nome": 0,
+                        "processos_como_outra_parte": 0
+                      },
+                      "casos": [],
+                      "documentos_policiais": [],
+                      "processos": [],
+                      "mandados": [],
+                      "execucoes": [],
+                      "vinculos": [],
+                      "certidao_pf": null,
+                      "fontes": [
+                        {
+                          "nome": "processos",
+                          "status": "ok"
+                        },
+                        {
+                          "nome": "BNMP/CNJ",
+                          "status": "nao_aplicavel"
+                        },
+                        {
+                          "nome": "SEEU/CNJ",
+                          "status": "nao_aplicavel"
+                        },
+                        {
+                          "nome": "documentos_policiais",
+                          "status": "indisponivel",
+                          "motivo": "coleta de boletim de ocorrência e inquérito ainda não implementada"
+                        },
+                        {
+                          "nome": "PF-SINIC",
+                          "status": "nao_aplicavel"
+                        }
+                      ],
+                      "cobertura": [
+                        {
+                          "fonte": "processos",
+                          "alcance": "processos criminais em que o tribunal publicou o documento da parte",
+                          "nao_cobre": [
+                            "processos sigilosos",
+                            "processos sem documento da parte publicado",
+                            "tribunais ainda não coletados"
+                          ]
+                        }
+                      ],
+                      "avisos": [
+                        "nada encontrado nas fontes consultadas; não é certidão negativa — ver `cobertura` para o que cada fonte não alcança"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Documento inválido"
+          },
+          "401": {
+            "description": "Token inválido"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "VinculoPessoa": {
+        "type": "object",
+        "properties": {
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "documento",
+              "cpf",
+              "mae",
+              "nome"
+            ],
+            "description": "Como o item foi ligado à pessoa: documento (CPF/CNPJ publicado pelo tribunal na parte do processo, ou execução com o mesmo número de um desses processos e executado de mesmo nome), cpf (mandado do BNMP pelo CPF; execução no processo de um mandado do CPF com executado de mesmo nome; ou achada pela busca por CPF no SEEU), mae (execução confirmada no SEEU por nome + nome completo da mãe, executado de mesmo nome), nome (só o nome; também quando o número bate mas o executado tem outro nome, ou quando o CPF foi ligado ao processo só pelo nome)."
+          },
+          "confianca": {
+            "type": "string",
+            "enum": [
+              "alta",
+              "media",
+              "baixa"
+            ],
+            "description": "alta: documento publicado pelo tribunal, CPF do mandado, ou CPF / nome + mãe completa conferidos no SEEU. media: documento censurado no processo, completado pelos dígitos visíveis + nome. baixa: só o nome (possível homônimo), fora de casos e do resumo."
+          },
+          "detalhe": {
+            "type": "string"
+          }
+        }
+      },
+      "ProcessoCriminal": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "proc-1"
+          },
+          "numero": {
+            "type": "string"
+          },
+          "tribunal": {
+            "type": "string"
+          },
+          "classe": {
+            "type": "string"
+          },
+          "categoria": {
+            "type": "string",
+            "description": "criminal, execucao-penal ou habeas-corpus"
+          },
+          "assuntos": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "polo": {
+            "type": "string",
+            "nullable": true
+          },
+          "situacao": {
+            "type": "string",
+            "nullable": true
+          },
+          "orgao": {
+            "type": "string",
+            "nullable": true
+          },
+          "juiz": {
+            "type": "string",
+            "nullable": true
+          },
+          "data_ajuizamento": {
+            "type": "string",
+            "nullable": true
+          },
+          "ultima_movimentacao": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "data": {
+                "type": "string"
+              },
+              "evento": {
+                "type": "string"
+              }
+            }
+          },
+          "sinais": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "vinculo_pessoa": {
+            "$ref": "#/components/schemas/VinculoPessoa"
+          }
+        }
+      },
+      "MandadoPrisao": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "mand-1"
+          },
+          "numero": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string",
+            "example": "Mandado de Prisão"
+          },
+          "especie_prisao": {
+            "type": "string",
+            "nullable": true
+          },
+          "regime_prisional": {
+            "type": "string",
+            "nullable": true
+          },
+          "situacao": {
+            "type": "string",
+            "example": "Pendente de Cumprimento"
+          },
+          "vigente": {
+            "type": "boolean",
+            "description": "Pendente de cumprimento e dentro da validade"
+          },
+          "data_expedicao": {
+            "type": "string",
+            "nullable": true
+          },
+          "data_validade": {
+            "type": "string",
+            "nullable": true
+          },
+          "tipificacao_penal": {
+            "type": "string",
+            "nullable": true
+          },
+          "processo_numero": {
+            "type": "string",
+            "description": "Processo que expediu o mandado (liga o mandado ao processo ou à execução)"
+          },
+          "orgao": {
+            "type": "string",
+            "nullable": true
+          },
+          "tribunal": {
+            "type": "string",
+            "nullable": true
+          },
+          "magistrado": {
+            "type": "string",
+            "nullable": true
+          },
+          "fonte": {
+            "type": "string",
+            "example": "BNMP/CNJ"
+          },
+          "vinculo_pessoa": {
+            "$ref": "#/components/schemas/VinculoPessoa"
+          }
+        }
+      },
+      "ExecucaoPenal": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "exec-1"
+          },
+          "numero": {
+            "type": "string"
+          },
+          "tribunal": {
+            "type": "string"
+          },
+          "classe": {
+            "type": "string",
+            "example": "Execução da Pena"
+          },
+          "assunto": {
+            "type": "string",
+            "example": "Pena Privativa de Liberdade"
+          },
+          "data_recebimento": {
+            "type": "string",
+            "nullable": true
+          },
+          "reu_preso": {
+            "type": "boolean"
+          },
+          "flags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "REU_PRESO"
+            ]
+          },
+          "partes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "papel": {
+                  "type": "string"
+                },
+                "nome": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "fonte": {
+            "type": "string",
+            "example": "SEEU/CNJ"
+          },
+          "coletado_em": {
+            "type": "string"
+          },
+          "vinculo_pessoa": {
+            "$ref": "#/components/schemas/VinculoPessoa"
+          }
+        }
+      },
+      "DocumentoPolicial": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "bo-1"
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "boletim_de_ocorrencia",
+              "inquerito_policial",
+              "auto_de_prisao_em_flagrante",
+              "outro"
+            ]
+          },
+          "numero": {
+            "type": "string"
+          },
+          "delegacia": {
+            "type": "string",
+            "nullable": true
+          },
+          "municipio": {
+            "type": "string",
+            "nullable": true
+          },
+          "data": {
+            "type": "string",
+            "nullable": true
+          },
+          "processo_referencia": {
+            "type": "string",
+            "nullable": true
+          },
+          "fonte": {
+            "type": "string"
+          },
+          "vinculo_pessoa": {
+            "$ref": "#/components/schemas/VinculoPessoa"
+          }
+        }
+      },
+      "Vinculo": {
+        "type": "object",
+        "properties": {
+          "de": {
+            "type": "string"
+          },
+          "para": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "origina",
+              "vira_acao_penal",
+              "expede_mandado",
+              "mesmo_processo",
+              "mandado_transferido",
+              "gera_execucao"
+            ]
+          },
+          "evidencia": {
+            "type": "string",
+            "description": "De onde veio o vínculo"
+          }
+        }
+      },
+      "Caso": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "descricao": {
+            "type": "string"
+          },
+          "crimes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "fase_atual": {
+            "type": "string",
+            "enum": [
+              "investigacao",
+              "processo",
+              "mandado_pendente",
+              "execucao_da_pena",
+              "encerrado"
+            ]
+          },
+          "itens": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "ids dos itens do caso nas listas"
+          },
+          "linha_do_tempo": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "data": {
+                  "type": "string"
+                },
+                "evento": {
+                  "type": "string"
+                },
+                "item": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "Resumo": {
+        "type": "object",
+        "properties": {
+          "situacao": {
+            "type": "string",
+            "enum": [
+              "mandado_de_prisao_vigente",
+              "em_execucao_penal",
+              "reu_em_processo_criminal",
+              "com_registros_criminais",
+              "nada_encontrado_nas_fontes",
+              "consulta_incompleta"
+            ]
+          },
+          "mandados_vigentes": {
+            "type": "integer"
+          },
+          "execucoes": {
+            "type": "integer"
+          },
+          "reu_preso": {
+            "type": "boolean"
+          },
+          "processos_criminais": {
+            "type": "integer"
+          },
+          "documentos_policiais": {
+            "type": "integer"
+          },
+          "crimes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "certidao_pf": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "consta",
+              "nada_consta",
+              "pendente",
+              null
+            ]
+          },
+          "itens_so_por_nome": {
+            "type": "integer",
+            "description": "Itens fora do resumo por estarem ligados só pelo nome"
+          },
+          "processos_como_outra_parte": {
+            "type": "integer",
+            "description": "Processos em que a pessoa está no polo ativo ou terceiro (acusação, vítima, testemunha): fora do resumo"
+          }
+        }
+      },
+      "Fonte": {
+        "type": "object",
+        "properties": {
+          "nome": {
+            "type": "string",
+            "enum": [
+              "processos",
+              "SEEU/CNJ",
+              "BNMP/CNJ",
+              "documentos_policiais",
+              "PF-SINIC"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "indisponivel",
+              "erro",
+              "nao_aplicavel",
+              "nao_solicitada"
+            ]
+          },
+          "motivo": {
+            "type": "string"
+          }
+        }
+      },
+      "CertidaoPf": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "pendente",
+              "pronta",
+              "indisponivel"
+            ]
+          },
+          "resultado": {
+            "type": "string",
+            "nullable": true
+          },
+          "job_id": {
+            "type": "string"
+          },
+          "poll_url": {
+            "type": "string"
+          }
+        }
+      },
+      "CriminalResponse": {
+        "type": "object",
+        "properties": {
+          "documento": {
+            "type": "object",
+            "properties": {
+              "tipo": {
+                "type": "string",
+                "enum": [
+                  "cpf",
+                  "cnpj"
+                ]
+              },
+              "numero": {
+                "type": "string"
+              }
+            }
+          },
+          "consultado_em": {
+            "type": "string"
+          },
+          "pessoa": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "nome": {
+                "type": "string"
+              },
+              "nome_mae": {
+                "type": "string",
+                "nullable": true
+              },
+              "data_nascimento": {
+                "type": "string",
+                "nullable": true
+              },
+              "fonte": {
+                "type": "string",
+                "example": "cadastro"
+              }
+            }
+          },
+          "resumo": {
+            "$ref": "#/components/schemas/Resumo"
+          },
+          "casos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Caso"
+            }
+          },
+          "documentos_policiais": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DocumentoPolicial"
+            }
+          },
+          "processos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProcessoCriminal"
+            }
+          },
+          "mandados": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MandadoPrisao"
+            }
+          },
+          "execucoes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExecucaoPenal"
+            }
+          },
+          "vinculos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Vinculo"
+            }
+          },
+          "certidao_pf": {
+            "$ref": "#/components/schemas/CertidaoPf"
+          },
+          "fontes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Fonte"
+            }
+          },
+          "cobertura": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Cobertura"
+            }
+          },
+          "avisos": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Cobertura": {
+        "type": "object",
+        "description": "O que a fonte alcança e o que fica de fora. Ausência numa fonte só vale dentro do alcance dela.",
+        "properties": {
+          "fonte": {
+            "type": "string",
+            "enum": [
+              "processos",
+              "BNMP/CNJ",
+              "SEEU/CNJ"
+            ]
+          },
+          "alcance": {
+            "type": "string"
+          },
+          "nao_cobre": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "fonte",
+          "alcance",
+          "nao_cobre"
+        ]
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}
