@@ -980,7 +980,8 @@
               "em_execucao_penal",
               "reu_em_processo_criminal",
               "com_registros_criminais",
-              "nada_encontrado_nas_fontes"
+              "nada_encontrado_nas_fontes",
+              "consulta_incompleta"
             ]
           },
           "mandados_vigentes": {

@@ -98,6 +98,7 @@ Da mais grave para a menos grave. Vale a primeira que se aplica:
 | `reu_em_processo_criminal` | Processo criminal em curso com a pessoa no polo passivo (réu, investigado, indiciado) |
 | `com_registros_criminais` | Só registros encerrados (processo arquivado ou extinto, mandado cumprido) ou certidão da PF que consta |
 | `nada_encontrado_nas_fontes` | Nada ligado à pessoa por documento, CPF ou nome da mãe **nas fontes consultadas**. Não é certidão negativa: veja `cobertura` |
+| `consulta_incompleta` | Nada encontrado, mas uma fonte principal (processos, BNMP ou SEEU) não respondeu nesta consulta. Veja `fontes` e repita a consulta |
 
 <Warning>
   `nada_encontrado_nas_fontes` não quer dizer que a pessoa não tem antecedentes. O SEEU não tem todas as execuções do TJSP, nem as sigilosas, nem as penas já extintas, e nem todo processo publica o documento da parte. Para uma declaração formal, peça a certidão da PF (`certidao=true`) e as certidões dos tribunais.
@@ -114,7 +115,7 @@ Todo item traz `vinculo_pessoa.tipo`, do mais forte para o mais fraco:
 | `mae` | A execução foi confirmada ao vivo no SEEU por **nome + nome completo da mãe**, com o executado de mesmo nome |
 | `nome` | Só o nome é igual. **Pode ser homônimo**: o item aparece na lista, mas fica fora de `casos` e do `resumo` e gera um aviso. Também vem `nome` quando o número bate mas o executado tem outro nome (possível corréu) e quando o CPF foi ligado ao processo só pelo nome, sem ter sido publicado pelo tribunal |
 
-`vinculo_pessoa.confianca` é `alta` nos três primeiros tipos. A exceção é o processo em que o tribunal publicou o documento censurado (ex.: `***.456.789-**`) e nós completamos os dígitos pelo nome, com um único candidato: ele vem como `documento` com confiança `media` e entra no resumo. `nome` é sempre `baixa`. O `detalhe` explica o que bateu.
+`vinculo_pessoa.confianca` é `alta` nos três primeiros tipos, com duas exceções que vêm como `documento` com confiança `media` e entram no resumo: o processo em que o tribunal publicou o documento censurado (ex.: `***.456.789-**`) e nós completamos os dígitos pelo nome, com um único candidato; e o processo cuja origem do documento não pôde ser conferida naquela consulta. `nome` é sempre `baixa`. O `detalhe` explica o que bateu.
 
 <Note>
   O SEEU não mostra o CPF nem o nome da mãe na consulta pública. Por isso cada execução encontrada pelo nome é confirmada **ao vivo** no SEEU, pelo CPF e pelo **nome completo** da mãe do cadastro. Partes do nome da mãe não confirmam, porque em nomes comuns elas acertam outras pessoas. Mãe genérica no cadastro ("não informado", "ignorada") não é usada. Quando o nome da mãe registrado no SEEU tem outra grafia, a execução pode não confirmar e fica como `nome`.
