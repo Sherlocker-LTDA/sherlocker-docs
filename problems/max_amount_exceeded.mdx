@@ -1,0 +1,31 @@
+---
+title: "max_amount_exceeded"
+description: "Erro 409: o desbloqueio custaria mais que max_amount"
+icon: "circle-dollar-to-slot"
+---
+
+**Status HTTP:** `409`
+
+O custo de rodar os contatos pedidos passa do teto enviado em `max_amount`. Nada foi cobrado. Em `context`, `required_amount` traz o custo atual; para uma lista, use `remaining_unlock_amount` de `GET /leads/lists/{list_id}`.
+
+```json
+{
+  "type": "https://docs.sherlocker.com.br/problems/max_amount_exceeded",
+  "title": "Max Amount Exceeded",
+  "status": 409,
+  "code": "max_amount_exceeded",
+  "detail": "Unlocking these companies costs 149 tokens, above max_amount (100).",
+  "instance": "/api/v1/leads/unlocks",
+  "request_id": "req_01JEXEMPLO",
+  "retryable": false,
+  "context": {
+    "required_amount": 149,
+    "max_amount": 100
+  }
+}
+```
+
+## Relacionado
+
+- [Leads](/plataforma/leads)
+- [Erros da Plataforma](/plataforma/erros)

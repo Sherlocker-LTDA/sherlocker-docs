@@ -1,0 +1,27 @@
+---
+title: "rate_limit_exceeded"
+description: "Erro 429: muitas buscas em pouco tempo"
+icon: "gauge-high"
+---
+
+**Status HTTP:** `429`
+
+O workspace passou de 60 buscas por minuto (a tela e a API somam no mesmo limite). Espere os segundos indicados no cabeçalho `Retry-After`.
+
+```json
+{
+  "type": "https://docs.sherlocker.com.br/problems/rate_limit_exceeded",
+  "title": "Rate Limit Exceeded",
+  "status": 429,
+  "code": "rate_limit_exceeded",
+  "detail": "Too many searches in a short time. Retry after 60 seconds.",
+  "instance": "/api/v1/leads/search",
+  "request_id": "req_01JEXEMPLO",
+  "retryable": true
+}
+```
+
+## Relacionado
+
+- [Leads](/plataforma/leads)
+- [Erros da Plataforma](/plataforma/erros)

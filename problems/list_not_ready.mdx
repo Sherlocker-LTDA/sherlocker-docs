@@ -1,0 +1,27 @@
+---
+title: "list_not_ready"
+description: "Erro 409: a lista ainda está sendo montada"
+icon: "hourglass-half"
+---
+
+**Status HTTP:** `409`
+
+Não dá para rodar os contatos de uma lista enquanto ela monta, porque o conjunto final de empresas ainda não existe. Consulte a lista até `status` ser `completed` e repita.
+
+```json
+{
+  "type": "https://docs.sherlocker.com.br/problems/list_not_ready",
+  "title": "List Not Ready",
+  "status": 409,
+  "code": "list_not_ready",
+  "detail": "The list is still being built. Wait until its status is completed.",
+  "instance": "/api/v1/leads/unlocks",
+  "request_id": "req_01JEXEMPLO",
+  "retryable": true
+}
+```
+
+## Relacionado
+
+- [Leads](/plataforma/leads)
+- [Erros da Plataforma](/plataforma/erros)

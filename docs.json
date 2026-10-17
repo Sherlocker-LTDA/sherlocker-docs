@@ -492,6 +492,25 @@
             ]
           },
           {
+            "group": "Leads",
+            "pages": [
+              "plataforma/leads",
+              "POST /leads/search",
+              "GET /leads/cnaes",
+              "GET /leads/cities",
+              "POST /leads/lists",
+              "GET /leads/lists",
+              "GET /leads/lists/{list_id}",
+              "PATCH /leads/lists/{list_id}",
+              "DELETE /leads/lists/{list_id}",
+              "GET /leads/lists/{list_id}/items",
+              "POST /leads/unlocks",
+              "GET /leads/unlocks",
+              "GET /leads/unlocks/{cnpj}"
+            ],
+            "openapi": "/openapi/plataforma-leads.json"
+          },
+          {
             "group": "Erros",
             "pages": [
               "plataforma/erros",
@@ -505,7 +524,14 @@
               "problems/scoped_key_required",
               "problems/key_entitlement_missing",
               "problems/entitlement_not_enabled",
-              "problems/dossie_custom_not_enabled"
+              "problems/dossie_custom_not_enabled",
+              "problems/max_amount_exceeded",
+              "problems/list_not_ready",
+              "problems/list_build_in_progress",
+              "problems/no_matching_companies",
+              "problems/unlock_state_changed",
+              "problems/source_unavailable",
+              "problems/rate_limit_exceeded"
             ]
           }
         ]

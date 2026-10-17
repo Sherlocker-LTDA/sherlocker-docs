@@ -1,0 +1,27 @@
+---
+title: "source_unavailable"
+description: "Erro 502: a base de empresas não respondeu"
+icon: "plug-circle-xmark"
+---
+
+**Status HTTP:** `502`
+
+A base de empresas não respondeu a tempo. Isso não significa que não há resultados. Repita a chamada em instantes.
+
+```json
+{
+  "type": "https://docs.sherlocker.com.br/problems/source_unavailable",
+  "title": "Source Unavailable",
+  "status": 502,
+  "code": "source_unavailable",
+  "detail": "The company database did not respond in time. Try again shortly.",
+  "instance": "/api/v1/leads/search",
+  "request_id": "req_01JEXEMPLO",
+  "retryable": true
+}
+```
+
+## Relacionado
+
+- [Leads](/plataforma/leads)
+- [Erros da Plataforma](/plataforma/erros)

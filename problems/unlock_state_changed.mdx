@@ -1,0 +1,27 @@
+---
+title: "unlock_state_changed"
+description: "Erro 409: os CNPJs mudaram de estado durante o pedido"
+icon: "arrows-rotate"
+---
+
+**Status HTTP:** `409`
+
+Outro pedido rodou parte dos mesmos CNPJs ao mesmo tempo. Nada foi cobrado por este pedido. Repita com uma nova `Idempotency-Key`: CNPJs já liberados são pulados e não são cobrados de novo.
+
+```json
+{
+  "type": "https://docs.sherlocker.com.br/problems/unlock_state_changed",
+  "title": "Unlock State Changed",
+  "status": 409,
+  "code": "unlock_state_changed",
+  "detail": "Some companies changed state while the request was processed. Nothing was charged; send the request again.",
+  "instance": "/api/v1/leads/unlocks",
+  "request_id": "req_01JEXEMPLO",
+  "retryable": true
+}
+```
+
+## Relacionado
+
+- [Leads](/plataforma/leads)
+- [Erros da Plataforma](/plataforma/erros)
