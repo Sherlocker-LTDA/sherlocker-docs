@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "Leads API",
-    "description": "Prospecção de empresas: prévia gratuita, listas e contatos verificados por CNPJ.",
+    "description": "Prospecção de empresas. Para exportar, use POST /leads/exports e GET /leads/exports/{export_id}; as demais rotas dão controle fino de listas e contatos.",
     "version": "1.0"
   },
   "servers": [
@@ -16,6 +16,300 @@
     }
   ],
   "paths": {
+    "/leads/exports": {
+      "post": {
+        "summary": "Exportar leads",
+        "description": "O caminho mais curto: monta a lista com os filtros, roda os contatos e gera o CSV. Responde 202; consulte GET /leads/exports/{export_id} até status = completed e baixe o arquivo em artifact.download_url. Com contacts = false, sai só o cadastro, sem custo. O teto padrão é max_items × preço por CNPJ, e só são cobradas empresas com canal confirmado.",
+        "operationId": "createLeadExport",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "filters",
+                  "max_items"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "filters": {
+                    "$ref": "#/components/schemas/LeadFilters"
+                  },
+                  "max_items": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 10000
+                  },
+                  "contacts": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Rodar os contatos (pago por CNPJ com canal confirmado)."
+                  },
+                  "max_amount": {
+                    "type": "number",
+                    "minimum": 0,
+                    "description": "Teto em tokens. Padrão: max_items × preço. Se não couber tudo, roda os primeiros da lista até o teto."
+                  },
+                  "format": {
+                    "type": "string",
+                    "enum": [
+                      "csv"
+                    ],
+                    "default": "csv"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120,
+                    "description": "Nome da lista criada pela exportação."
+                  }
+                }
+              },
+              "examples": {
+                "com_contatos": {
+                  "summary": "Academias ativas em SP, com contatos",
+                  "value": {
+                    "filters": {
+                      "states": [
+                        "SP"
+                      ],
+                      "cnae_codes": [
+                        "9313100"
+                      ],
+                      "registration_statuses": [
+                        "active"
+                      ]
+                    },
+                    "max_items": 1000
+                  }
+                },
+                "so_cadastro": {
+                  "summary": "Só cadastro, sem custo",
+                  "value": {
+                    "filters": {
+                      "city_ibge_code": "3509502"
+                    },
+                    "max_items": 500,
+                    "contacts": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Exportação aceita",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadExport"
+                },
+                "example": {
+                  "id": "lex_eyJ2IjoxLCJ3Ijoi…",
+                  "object": "lead_export",
+                  "status": "running",
+                  "stage": "checking_contacts",
+                  "list_id": "9b1c2f7e-3a41-4c8e-9f0a-1d2e3f4a5b6c",
+                  "contacts": true,
+                  "format": "csv",
+                  "max_amount": {
+                    "amount": 500,
+                    "unit": "tokens"
+                  },
+                  "summary": {
+                    "companies": 1000,
+                    "target": 1000,
+                    "with_contacts": 210,
+                    "no_confirmed_contact": 40,
+                    "failed": 0,
+                    "not_requested": 0
+                  },
+                  "billing": {
+                    "charged": {
+                      "amount": 105,
+                      "unit": "tokens"
+                    },
+                    "reserved": {
+                      "amount": 375,
+                      "unit": "tokens"
+                    }
+                  },
+                  "artifact": null,
+                  "failure": null,
+                  "poll_after_seconds": 5,
+                  "created_at": "2026-10-17T18:00:00.000Z"
+                }
+              }
+            },
+            "headers": {
+              "Location": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "502": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/leads/exports/{export_id}": {
+      "get": {
+        "summary": "Consultar exportação",
+        "description": "Andamento, contagens, custo e, quando pronta, o link do arquivo.",
+        "operationId": "getLeadExport",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ExportId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Exportação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadExport"
+                },
+                "examples": {
+                  "andamento": {
+                    "summary": "Checando contatos",
+                    "value": {
+                      "id": "lex_eyJ2IjoxLCJ3Ijoi…",
+                      "object": "lead_export",
+                      "status": "running",
+                      "stage": "checking_contacts",
+                      "list_id": "9b1c2f7e-3a41-4c8e-9f0a-1d2e3f4a5b6c",
+                      "contacts": true,
+                      "format": "csv",
+                      "max_amount": {
+                        "amount": 500,
+                        "unit": "tokens"
+                      },
+                      "summary": {
+                        "companies": 1000,
+                        "target": 1000,
+                        "with_contacts": 210,
+                        "no_confirmed_contact": 40,
+                        "failed": 0,
+                        "not_requested": 0
+                      },
+                      "billing": {
+                        "charged": {
+                          "amount": 105,
+                          "unit": "tokens"
+                        },
+                        "reserved": {
+                          "amount": 375,
+                          "unit": "tokens"
+                        }
+                      },
+                      "artifact": null,
+                      "failure": null,
+                      "poll_after_seconds": 5,
+                      "created_at": "2026-10-17T18:00:00.000Z"
+                    }
+                  },
+                  "pronta": {
+                    "summary": "Pronta para baixar",
+                    "value": {
+                      "id": "lex_eyJ2IjoxLCJ3Ijoi…",
+                      "object": "lead_export",
+                      "status": "completed",
+                      "stage": "ready",
+                      "list_id": "9b1c2f7e-3a41-4c8e-9f0a-1d2e3f4a5b6c",
+                      "contacts": true,
+                      "format": "csv",
+                      "max_amount": {
+                        "amount": 500,
+                        "unit": "tokens"
+                      },
+                      "summary": {
+                        "companies": 1000,
+                        "target": 1000,
+                        "with_contacts": 640,
+                        "no_confirmed_contact": 355,
+                        "failed": 5,
+                        "not_requested": 0
+                      },
+                      "billing": {
+                        "charged": {
+                          "amount": 320,
+                          "unit": "tokens"
+                        },
+                        "reserved": {
+                          "amount": 0,
+                          "unit": "tokens"
+                        }
+                      },
+                      "artifact": {
+                        "format": "csv",
+                        "media_type": "text/csv",
+                        "download_url": "/api/v1/leads/exports/lex_eyJ2IjoxLCJ3Ijoi…/file"
+                      },
+                      "failure": null,
+                      "created_at": "2026-10-17T18:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/leads/exports/{export_id}/file": {
+      "get": {
+        "summary": "Baixar arquivo da exportação",
+        "description": "CSV (UTF-8 com BOM) com uma linha por empresa: cadastro e, para as cobradas, e-mail, WhatsApp e telefone com o resultado da checagem. Antes de status = completed responde 409 export_not_ready.",
+        "operationId": "downloadLeadExport",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ExportId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Arquivo CSV",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "CNPJ,Razão social,Nome fantasia,CNAE,Atividade,Município,UF,Situação,Unidade,Porte,Capital social,Abertura,E-mail,Checagem do e-mail,WhatsApp,Checagem do WhatsApp,Telefone,Contatos\r\n12345678000190,ACADEMIA CORPO EM MOVIMENTO LTDA,Corpo em Movimento,9313100,Atividades de condicionamento físico,SAO PAULO,SP,Ativa,Matriz,ME,120000,10/03/2016,contato@corpoemmovimento.com.br,Domínio recebe e-mail,11987654321,WhatsApp identificado,1130312020,\"Cobrado 0,5 token\""
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
     "/leads/search": {
       "post": {
         "summary": "Buscar empresas (prévia gratuita)",
@@ -441,8 +735,7 @@
                   "failure": null,
                   "poll_after_seconds": 5,
                   "created_at": "2026-10-16T18:00:00.000Z",
-                  "updated_at": "2026-10-16T18:00:01.000Z",
-                  "completed_at": null
+                  "updated_at": "2026-10-16T18:00:01.000Z"
                 }
               }
             },
@@ -569,8 +862,7 @@
                       },
                       "failure": null,
                       "created_at": "2026-10-16T18:00:00.000Z",
-                      "updated_at": "2026-10-16T18:02:10.000Z",
-                      "completed_at": "2026-10-16T18:02:10.000Z"
+                      "updated_at": "2026-10-16T18:02:10.000Z"
                     }
                   ],
                   "page": {
@@ -661,8 +953,7 @@
                   },
                   "failure": null,
                   "created_at": "2026-10-16T18:00:00.000Z",
-                  "updated_at": "2026-10-16T18:02:10.000Z",
-                  "completed_at": "2026-10-16T18:02:10.000Z"
+                  "updated_at": "2026-10-16T18:02:10.000Z"
                 }
               }
             }
@@ -831,7 +1122,7 @@
                             "value": "+5511987654321",
                             "line_type": "mobile",
                             "whatsapp": "confirmed",
-                            "confirmed": true,
+                            "counts_for_billing": true,
                             "checked_at": "2026-10-16T18:05:10.000Z"
                           },
                           {
@@ -839,14 +1130,14 @@
                             "value": "+551130312020",
                             "line_type": "landline",
                             "whatsapp": "not_found",
-                            "confirmed": false,
+                            "counts_for_billing": false,
                             "checked_at": "2026-10-16T18:05:10.000Z"
                           },
                           {
                             "type": "email",
                             "value": "contato@corpoemmovimento.com.br",
                             "email_domain": "accepts_mail",
-                            "confirmed": true,
+                            "counts_for_billing": true,
                             "checked_at": "2026-10-16T18:05:11.000Z"
                           }
                         ],
@@ -1093,7 +1384,7 @@
                           "value": "+5511987654321",
                           "line_type": "mobile",
                           "whatsapp": "confirmed",
-                          "confirmed": true,
+                          "counts_for_billing": true,
                           "checked_at": "2026-10-16T18:05:10.000Z"
                         },
                         {
@@ -1101,14 +1392,14 @@
                           "value": "+551130312020",
                           "line_type": "landline",
                           "whatsapp": "not_found",
-                          "confirmed": false,
+                          "counts_for_billing": false,
                           "checked_at": "2026-10-16T18:05:10.000Z"
                         },
                         {
                           "type": "email",
                           "value": "contato@corpoemmovimento.com.br",
                           "email_domain": "accepts_mail",
-                          "confirmed": true,
+                          "counts_for_billing": true,
                           "checked_at": "2026-10-16T18:05:11.000Z"
                         }
                       ],
@@ -1175,7 +1466,7 @@
                           "value": "+5511987654321",
                           "line_type": "mobile",
                           "whatsapp": "confirmed",
-                          "confirmed": true,
+                          "counts_for_billing": true,
                           "checked_at": "2026-10-16T18:05:10.000Z"
                         },
                         {
@@ -1183,14 +1474,14 @@
                           "value": "+551130312020",
                           "line_type": "landline",
                           "whatsapp": "not_found",
-                          "confirmed": false,
+                          "counts_for_billing": false,
                           "checked_at": "2026-10-16T18:05:10.000Z"
                         },
                         {
                           "type": "email",
                           "value": "contato@corpoemmovimento.com.br",
                           "email_domain": "accepts_mail",
-                          "confirmed": true,
+                          "counts_for_billing": true,
                           "checked_at": "2026-10-16T18:05:11.000Z"
                         }
                       ],
@@ -1287,6 +1578,14 @@
       }
     },
     "parameters": {
+      "ExportId": {
+        "name": "export_id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
       "ListId": {
         "name": "list_id",
         "in": "path",
@@ -1785,8 +2084,7 @@
           "unlock_summary",
           "failure",
           "created_at",
-          "updated_at",
-          "completed_at"
+          "updated_at"
         ],
         "properties": {
           "id": {
@@ -1816,7 +2114,7 @@
           },
           "item_count": {
             "type": "integer",
-            "description": "Empresas já gravadas."
+            "description": "Empresas na lista, sem as que têm pedido de exclusão (LGPD)."
           },
           "target_count": {
             "type": "integer",
@@ -1862,11 +2160,6 @@
           "updated_at": {
             "type": "string",
             "format": "date-time"
-          },
-          "completed_at": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
           }
         }
       },
@@ -1902,9 +2195,9 @@
                   "not_checked"
                 ]
               },
-              "confirmed": {
+              "counts_for_billing": {
                 "type": "boolean",
-                "description": "true quando o WhatsApp foi confirmado (conta para a cobrança)."
+                "description": "true quando o WhatsApp foi confirmado: é o canal que fez o CNPJ ser cobrado."
               },
               "checked_at": {
                 "type": "string",
@@ -1935,8 +2228,9 @@
                 ],
                 "description": "Resultado da checagem do domínio; a caixa em si não é verificável."
               },
-              "confirmed": {
-                "type": "boolean"
+              "counts_for_billing": {
+                "type": "boolean",
+                "description": "true quando o domínio recebe e-mail: conta para a cobrança, mas não garante que a caixa existe."
               },
               "checked_at": {
                 "type": "string",
@@ -2039,6 +2333,163 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
+          }
+        }
+      },
+      "LeadExport": {
+        "type": "object",
+        "required": [
+          "id",
+          "object",
+          "status",
+          "stage",
+          "list_id",
+          "contacts",
+          "format",
+          "max_amount",
+          "summary",
+          "billing",
+          "artifact",
+          "failure",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Identificador opaco da exportação (começa com lex_). Guarde-o como recebido."
+          },
+          "object": {
+            "type": "string",
+            "enum": [
+              "lead_export"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "running",
+              "completed",
+              "failed"
+            ]
+          },
+          "stage": {
+            "type": "string",
+            "enum": [
+              "building_list",
+              "checking_contacts",
+              "ready",
+              "failed"
+            ],
+            "description": "Etapa atual: montando a lista, checando os contatos, pronto para baixar ou falhou."
+          },
+          "list_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Lista criada pela exportação; também aparece em GET /leads/lists."
+          },
+          "contacts": {
+            "type": "boolean"
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "csv"
+            ]
+          },
+          "max_amount": {
+            "$ref": "#/components/schemas/TokenAmount"
+          },
+          "summary": {
+            "type": "object",
+            "properties": {
+              "companies": {
+                "type": "integer",
+                "description": "Empresas na lista."
+              },
+              "target": {
+                "type": "integer",
+                "description": "Tamanho pedido, limitado ao total encontrado."
+              },
+              "with_contacts": {
+                "type": "integer",
+                "description": "Com canal confirmado (cobradas)."
+              },
+              "no_confirmed_contact": {
+                "type": "integer",
+                "description": "Rodadas sem canal confirmado; tokens devolvidos."
+              },
+              "failed": {
+                "type": "integer",
+                "description": "Falha técnica, já estornada."
+              },
+              "not_requested": {
+                "type": "integer",
+                "description": "Ainda sem contatos (sem `contacts`, fora do teto ou à espera de saldo)."
+              }
+            }
+          },
+          "billing": {
+            "type": "object",
+            "properties": {
+              "charged": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/TokenAmount"
+                  }
+                ],
+                "description": "Cobrado por esta exportação."
+              },
+              "reserved": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/TokenAmount"
+                  }
+                ],
+                "description": "Reservado agora para contatos em checagem; volta se não houver canal."
+              }
+            }
+          },
+          "artifact": {
+            "type": "object",
+            "nullable": true,
+            "description": "Presente quando status = completed.",
+            "properties": {
+              "format": {
+                "type": "string",
+                "enum": [
+                  "csv"
+                ]
+              },
+              "media_type": {
+                "type": "string"
+              },
+              "download_url": {
+                "type": "string",
+                "description": "Caminho do arquivo nesta API; baixe com a mesma chave."
+              }
+            }
+          },
+          "failure": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "detail": {
+                "type": "string"
+              },
+              "retryable": {
+                "type": "boolean"
+              }
+            }
+          },
+          "poll_after_seconds": {
+            "type": "integer"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },

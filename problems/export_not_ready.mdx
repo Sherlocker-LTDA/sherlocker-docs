@@ -1,0 +1,29 @@
+---
+title: "export_not_ready"
+description: "Erro 409: o arquivo da exportação ainda não está pronto"
+icon: "hourglass-half"
+---
+
+**Status HTTP:** `409`
+
+A exportação ainda está montando a lista ou checando os contatos. Consulte
+`GET /leads/exports/{export_id}` até `status` ser `completed` e baixe o arquivo em
+seguida. O cabeçalho `Retry-After` indica quando tentar de novo.
+
+```json
+{
+  "type": "https://docs.sherlocker.com.br/problems/export_not_ready",
+  "title": "Export Not Ready",
+  "status": 409,
+  "code": "export_not_ready",
+  "detail": "The export is checking_contacts. Download it when its status is completed.",
+  "instance": "/api/v1/leads/exports/lex_.../file",
+  "request_id": "req_01JEXEMPLO",
+  "retryable": true
+}
+```
+
+## Relacionado
+
+- [Leads](/plataforma/leads)
+- [Erros da Plataforma](/plataforma/erros)
