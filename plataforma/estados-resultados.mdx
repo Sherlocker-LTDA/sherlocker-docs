@@ -65,5 +65,19 @@ erro ou resposta ambígua nunca significam que o dado não existe.
 `no_result`, `no_match` e `no_face` são resultados de negócio: a análise termina
 como `completed`, e a dimensão financeira informa se houve reembolso.
 
+## Leads
+
+| Dimensão | Valores possíveis |
+| --- | --- |
+| estado da lista | `running`, `completed`, `failed` |
+| estado do contato | `not_requested`, `running`, `completed`, `failed` |
+| resultado do contato | `contacts_found`, `no_confirmed_contact` |
+| WhatsApp do telefone | `confirmed`, `not_found`, `unavailable`, `not_checked` |
+| domínio do e-mail | `accepts_mail`, `rejects_mail`, `unavailable` |
+
+`no_confirmed_contact` é um resultado de negócio: o contato termina `completed`, os
+tokens voltam (`billing.status` igual a `refunded`) e nenhum canal é entregue.
+`unavailable` indica que a checagem não pôde rodar, nunca que o canal é inválido.
+
 O estado financeiro não substitui o estado da execução. Consulte
 [Cobrança](/plataforma/cobranca) para interpretar débito, confirmação e reembolso.

@@ -1,0 +1,27 @@
+---
+title: "list_build_in_progress"
+description: "Erro 409: outra lista está sendo montada no workspace"
+icon: "hourglass-half"
+---
+
+**Status HTTP:** `409`
+
+Cada workspace monta uma lista por vez. Espere a montagem em andamento terminar (`GET /leads/lists?status=running`) e crie a nova lista.
+
+```json
+{
+  "type": "https://docs.sherlocker.com.br/problems/list_build_in_progress",
+  "title": "List Build In Progress",
+  "status": 409,
+  "code": "list_build_in_progress",
+  "detail": "Another list is still being built in this workspace. Wait for it to complete and try again.",
+  "instance": "/api/v1/leads/lists",
+  "request_id": "req_01JEXEMPLO",
+  "retryable": true
+}
+```
+
+## Relacionado
+
+- [Leads](/plataforma/leads)
+- [Erros da Plataforma](/plataforma/erros)

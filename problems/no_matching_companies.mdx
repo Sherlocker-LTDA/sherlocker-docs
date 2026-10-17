@@ -1,0 +1,27 @@
+---
+title: "no_matching_companies"
+description: "Erro 422: nenhuma empresa atende aos filtros"
+icon: "filter-circle-xmark"
+---
+
+**Status HTTP:** `422`
+
+Os filtros não encontraram empresas, então a lista não foi criada. Amplie a atividade, a localização ou retire um filtro. Use `POST /leads/search` para conferir o total antes de criar a lista.
+
+```json
+{
+  "type": "https://docs.sherlocker.com.br/problems/no_matching_companies",
+  "title": "No Matching Companies",
+  "status": 422,
+  "code": "no_matching_companies",
+  "detail": "No company matches these filters. Broaden the filters and try again.",
+  "instance": "/api/v1/leads/lists",
+  "request_id": "req_01JEXEMPLO",
+  "retryable": false
+}
+```
+
+## Relacionado
+
+- [Leads](/plataforma/leads)
+- [Erros da Plataforma](/plataforma/erros)

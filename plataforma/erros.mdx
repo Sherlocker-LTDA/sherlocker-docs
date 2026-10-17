@@ -51,11 +51,14 @@ tratamento programático.
 | `409` | `invalid_state_transition`, `result_not_ready`                                                    | consulte o recurso e respeite as ações permitidas           |
 | `409` | `idempotency_in_progress`, `idempotency_conflict`                                                 | aguarde ou corrija o uso da chave de idempotência           |
 | `409` | `refund_pending`, `prior_refund_pending`                                                          | aguarde a conclusão do reembolso                            |
+| `409` | `max_amount_exceeded`, `list_not_ready`, `list_build_in_progress`, `unlock_state_changed` | ajuste o teto de gasto ou aguarde a lista terminar           |
 | `413` | `payload_too_large`                                                                               | reduza o corpo ou arquivo                                   |
 | `415` | `unsupported_media_type`                                                                          | envie um formato aceito                                     |
 | `422` | `unsupported_subject`, `unsupported_mode`                                                         | ajuste o tipo de alvo ou modo                               |
+| `422` | `no_matching_companies`                                                                         | amplie os filtros do Leads                                  |
 | `429` | `rate_limit_exceeded`, `quota_exceeded`                                                           | respeite `Retry-After` e aplique backoff                    |
 | `502` | `bad_gateway`                                                                                     | repita apenas operações seguras, preservando a idempotência |
+| `502` | `source_unavailable`                                                                              | repita em instantes; não significa ausência de resultados    |
 | `503` | `service_unavailable`                                                                             | aguarde o intervalo recomendado                             |
 | `504` | `gateway_timeout`                                                                                 | repita apenas operações seguras, preservando a idempotência |
 

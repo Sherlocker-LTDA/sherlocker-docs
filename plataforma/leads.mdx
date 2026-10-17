@@ -1,0 +1,240 @@
+---
+title: "Leads"
+description: "Prospecção de empresas com filtros da base cadastral e contatos verificados"
+icon: "bullseye-arrow"
+---
+
+Leads monta listas de empresas para prospecção a partir da base cadastral do
+Sherlocker. Você define o recorte por atividade, localização, porte e outros
+critérios, confere a prévia sem custo e só paga pelos contatos das empresas que
+quiser abordar. Telefones e e-mails passam por uma checagem antes de serem
+entregues.
+
+<Frame>
+  <img
+    src="/images/plataforma/leads-refinar.png"
+    alt="Tela de Leads com filtros de atividade e localização ao lado da prévia das empresas encontradas"
+    width="1440"
+    height="808"
+  />
+</Frame>
+
+## O que o Leads faz
+
+- filtra a base de empresas por atividade econômica, localização, situação, porte,
+  capital social, idade e alterações no quadro societário;
+- mostra uma prévia gratuita com os dados cadastrais de cada CNPJ encontrado;
+- monta listas de até 10 mil empresas, que ficam salvas no workspace;
+- libera telefone, WhatsApp e e-mail por CNPJ, com o resultado da checagem de cada canal;
+- devolve os tokens quando nenhum canal é confirmado;
+- exporta a lista inteira em CSV.
+
+Cada lead é um CNPJ completo. Matriz e filiais aparecem como empresas separadas,
+identificadas pela coluna **Unidade**.
+
+## Quando usar
+
+Use Leads em situações como:
+
+- prospecção ativa de um segmento, região ou porte de empresa;
+- montagem de base para campanhas por WhatsApp, e-mail ou telefone;
+- busca de empresas recém-abertas ou com mudança recente de sócios;
+- mapeamento de concorrentes, parceiros ou fornecedores de uma atividade.
+
+## Quando escolher outra área
+
+Leads responde "quais empresas atendem a este perfil e como falar com elas".
+Para aprofundar uma empresa específica antes de uma decisão, use
+[Dossiê](/plataforma/dossie). Para enriquecer uma lista de CPFs ou telefones que
+você já tem, veja [Enriquecimento de Leads](/casos-de-uso/enriquecimento-leads),
+que usa a API de Cadastro.
+
+## Como funciona
+
+<Steps>
+  <Step title="Refine o recorte">
+    Escolha os filtros e aplique. A prévia mostra quantas empresas foram encontradas
+    e os dados cadastrais de cada uma. Refinar e ver a prévia não consome tokens.
+  </Step>
+  <Step title="Crie a lista">
+    Escolha o tamanho (50, 100, 1.000, 5.000 ou 10.000 empresas) e crie a lista.
+    Criar a lista também não consome tokens. Listas grandes são montadas em segundo
+    plano; a tela mostra o progresso.
+  </Step>
+  <Step title="Rode os contatos">
+    Rode os contatos de uma empresa, das empresas selecionadas ou da lista inteira.
+    Antes de confirmar, a tela mostra o custo máximo, o saldo atual e o saldo depois.
+  </Step>
+  <Step title="Exporte">
+    Baixe a lista em CSV com todas as páginas, incluindo os contatos liberados e o
+    resultado da checagem.
+  </Step>
+</Steps>
+
+## Filtros disponíveis
+
+| Grupo | Filtros |
+| --- | --- |
+| Atividade econômica | CNAE principal do estabelecimento, por nome ou código |
+| Localização | Estado e município |
+| Dados cadastrais | Situação cadastral, porte (MEI, ME, EPP, demais) e unidade (matriz ou filial) |
+| Capital e idade | Faixa de capital social e ano de abertura |
+| Contatos na base | Tem e-mail, tem telefone |
+| Quadro societário | Última entrada ou saída de sócio nos últimos 3 meses, 6 meses, 1, 3 ou 5 anos |
+
+Situação e porte vêm da Receita Federal. Para a alteração societária, a entrada
+de sócio usa a data da Receita e a saída usa o mês em que foi detectada, com
+histórico desde junho de 2023.
+
+"Tem e-mail" e "tem telefone" indicam apenas que existe um contato na base, sem
+verificação. A checagem acontece quando você roda os contatos na lista.
+
+<Note>
+  A busca precisa de pelo menos um filtro de recorte, como atividade, localização,
+  situação, porte, capital, ano de abertura ou um nome com 3 letras ou mais.
+  Unidade e contatos na base, sozinhos, não bastam. Uma lista nova começa com
+  empresas ativas em SP que têm e-mail e telefone na base.
+</Note>
+
+## Contatos verificados
+
+<Frame>
+  <img
+    src="/images/plataforma/leads-lista.png"
+    alt="Lista de leads com contatos liberados, checagens em andamento e empresas ainda bloqueadas"
+    width="1440"
+    height="768"
+  />
+</Frame>
+
+Ao rodar os contatos de uma empresa, o Sherlocker busca os telefones e e-mails
+do CNPJ e checa cada canal:
+
+- **telefones**, celulares e fixos, passam por uma checagem de WhatsApp;
+- **e-mails** passam por uma checagem do domínio, que indica se ele recebe
+  correspondência. A caixa de e-mail em si não pode ser verificada.
+
+<Frame>
+  <img
+    src="/images/plataforma/leads-contatos.png"
+    alt="Detalhe de uma empresa com WhatsApp identificado, domínio que recebe e-mail e telefone não verificado"
+    width="740"
+    height="900"
+  />
+</Frame>
+
+Cada canal mostra o resultado e a data da checagem:
+
+| Resultado | Significado |
+| --- | --- |
+| WhatsApp identificado | O número tem WhatsApp. |
+| Sem WhatsApp / Fixo, sem WhatsApp | O número não tem WhatsApp. Um fixo ainda pode servir para ligação. |
+| Domínio recebe e-mail | O domínio aceita correspondência. É o máximo que se pode afirmar sobre um e-mail. |
+| Domínio não recebe e-mail | O domínio recusa correspondência. |
+| Checagem indisponível | Não foi possível checar agora. Isso não significa que o canal é inválido; o Sherlocker tenta de novo em segundo plano. |
+
+Contatos com pedido de exclusão (opt-out, LGPD) não são entregues.
+
+## Cobrança
+
+A cobrança é em tokens, por CNPJ, e só acontece quando a empresa tem pelo menos
+um **canal confirmado**: um WhatsApp identificado ou um e-mail cujo domínio
+recebe correspondência.
+
+- Os tokens são reservados quando você confirma e devolvidos se nenhum canal for
+  confirmado. Nesse caso os contatos não são entregues e a empresa aparece como
+  **estornada**.
+- Uma falha técnica também devolve os tokens, e a empresa pode ser rodada de novo.
+- Um CNPJ já liberado no workspace não é cobrado outra vez, mesmo que apareça em
+  outra lista.
+- Se o preço mudar entre a exibição do custo e a confirmação, a confirmação é
+  recusada e o novo custo aparece antes de você tentar de novo.
+
+Hoje o preço é **0,5 token por CNPJ**. O valor vigente sempre aparece na tela
+antes de cada confirmação.
+
+## Como interpretar a lista
+
+O rodapé da lista resume a cobertura da lista inteira, não só da página aberta:
+
+- **com contato confirmado**: empresas cobradas, com pelo menos um canal confirmado;
+- **com WhatsApp** e **com e-mail**: quantas têm cada tipo de canal confirmado;
+- **estornadas**: rodadas sem canal confirmado ou com falha, com tokens devolvidos;
+- **estorno em andamento**: devolução ainda sendo processada;
+- **ainda sem contato**: empresas que ainda não foram rodadas.
+
+No CSV, as colunas de contato só vêm preenchidas para empresas cobradas. Empresas
+estornadas aparecem sem contato e com o motivo.
+
+## Usar pela API
+
+Tudo o que a tela faz também está na API, com a mesma chave de API da
+Plataforma. As rotas ficam em `https://221b-api.sherlocker.com.br/api/v1/leads`
+e seguem o padrão das outras APIs: cursor nas listagens, `202` com
+`poll_after_seconds` no que roda em segundo plano, `Idempotency-Key` nos POSTs
+que criam ou cobram e erros em `application/problem+json`.
+
+<Steps>
+  <Step title="Confira a prévia">
+    `POST /leads/search` devolve 50 empresas por página e o total, sem custo.
+    Use `GET /leads/cnaes` e `GET /leads/cities` para achar os códigos dos filtros.
+  </Step>
+  <Step title="Crie a lista">
+    `POST /leads/lists` responde `202`. Consulte `GET /leads/lists/{list_id}` até
+    `status` ser `completed`.
+  </Step>
+  <Step title="Rode os contatos">
+    `POST /leads/unlocks` com `list_id` (ou `cnpjs`) e `max_amount`. Para a lista
+    inteira, use como teto o `remaining_unlock_amount` da lista.
+  </Step>
+  <Step title="Leia o resultado">
+    `GET /leads/lists/{list_id}/items?unlock_status=completed` traz as empresas com os
+    contatos. Para manter um CRM em dia, use `GET /leads/unlocks?updated_since=...`.
+  </Step>
+</Steps>
+
+```bash
+# 1. Prévia gratuita
+curl -X POST https://221b-api.sherlocker.com.br/api/v1/leads/search \
+  -H "Authorization: Bearer slhk_sua_chave_aqui" \
+  -H "Content-Type: application/json" \
+  -d '{"filters": {"states": ["SP"], "cnae_codes": ["9313100"], "registration_statuses": ["active"]}}'
+
+# 2. Lista com até 1.000 empresas (sem custo)
+curl -X POST https://221b-api.sherlocker.com.br/api/v1/leads/lists \
+  -H "Authorization: Bearer slhk_sua_chave_aqui" \
+  -H "Idempotency-Key: 6f1c0a52-1d2e-4c8b-9a77-0f4e2b1c3d5e" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Academias SP", "filters": {"states": ["SP"], "cnae_codes": ["9313100"]}, "max_items": 1000}'
+
+# 3. Contatos da lista inteira, com teto de gasto
+curl -X POST https://221b-api.sherlocker.com.br/api/v1/leads/unlocks \
+  -H "Authorization: Bearer slhk_sua_chave_aqui" \
+  -H "Idempotency-Key: 0b9e7c11-5a4f-4d3e-8c2b-1a2b3c4d5e6f" \
+  -H "Content-Type: application/json" \
+  -d '{"list_id": "9b1c2f7e-3a41-4c8e-9f0a-1d2e3f4a5b6c", "max_amount": 149}'
+```
+
+Na API, os nomes seguem o padrão em inglês das outras rotas:
+
+| Na tela | Na API |
+| --- | --- |
+| Situação ativa, suspensa, inapta, baixada, nula | `active`, `suspended`, `unfit`, `closed`, `void` |
+| Porte ME (inclui MEI), EPP, demais | `me`, `epp`, `other` |
+| Matriz, filial | `head_office`, `branch` |
+| WhatsApp identificado | `"whatsapp": "confirmed"` |
+| Domínio recebe e-mail | `"email_domain": "accepts_mail"` |
+| Estornada | `"billing": {"status": "refunded"}` |
+
+<Note>
+  O município é filtrado pelo código IBGE (`city_ibge_code`) e os telefones saem no
+  formato E.164 (`+5511987654321`). Um campo desconhecido no corpo é recusado com
+  `400`, para que um filtro escrito errado nunca amplie a busca ou o gasto.
+</Note>
+
+## Disponibilidade
+
+Leads está em liberação gradual e é habilitado por workspace, na tela e na API ao
+mesmo tempo. Fale com o [suporte](/support) para ativar. Sem a liberação, as rotas
+respondem `403` com o código
+[`entitlement_not_enabled`](/problems/entitlement_not_enabled).

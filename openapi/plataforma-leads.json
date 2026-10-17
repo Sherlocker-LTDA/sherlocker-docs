@@ -1,0 +1,2079 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Leads API",
+    "description": "Prospecção de empresas: prévia gratuita, listas e contatos verificados por CNPJ.",
+    "version": "1.0"
+  },
+  "servers": [
+    {
+      "url": "https://221b-api.sherlocker.com.br/api/v1"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/leads/search": {
+      "post": {
+        "summary": "Buscar empresas (prévia gratuita)",
+        "description": "Prévia sem custo: dados cadastrais de 50 empresas por página, sem telefone nem e-mail. O cursor alcança até 10 mil resultados; `total` pode ser maior. Conta no limite de 60 buscas por minuto do workspace.",
+        "operationId": "searchLeads",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "filters"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "filters": {
+                    "$ref": "#/components/schemas/LeadFilters"
+                  },
+                  "cursor": {
+                    "type": "string",
+                    "description": "page.next_cursor da resposta anterior, com os mesmos filtros."
+                  }
+                }
+              },
+              "examples": {
+                "simples": {
+                  "summary": "Academias ativas em SP com contato na base",
+                  "value": {
+                    "filters": {
+                      "states": [
+                        "SP"
+                      ],
+                      "cnae_codes": [
+                        "9313100"
+                      ],
+                      "registration_statuses": [
+                        "active"
+                      ],
+                      "contacts_on_file": {
+                        "email": true,
+                        "phone": true
+                      }
+                    }
+                  }
+                },
+                "completo": {
+                  "summary": "Todos os filtros",
+                  "value": {
+                    "filters": {
+                      "legal_name": "academia",
+                      "cnae_codes": [
+                        "9313100"
+                      ],
+                      "states": [
+                        "SP"
+                      ],
+                      "city_ibge_code": "3509502",
+                      "registration_statuses": [
+                        "active"
+                      ],
+                      "company_sizes": [
+                        "me",
+                        "epp"
+                      ],
+                      "establishment": "head_office",
+                      "share_capital": {
+                        "min": 50000,
+                        "max": 1000000
+                      },
+                      "opened_year": {
+                        "from": 2015,
+                        "to": 2024
+                      },
+                      "contacts_on_file": {
+                        "email": true,
+                        "phone": true
+                      },
+                      "partner_change_within": "1y"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Uma página da prévia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Lead"
+                      }
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/Page"
+                    },
+                    "total": {
+                      "type": "integer"
+                    },
+                    "unlock_price": {
+                      "$ref": "#/components/schemas/TokenAmount"
+                    }
+                  }
+                },
+                "example": {
+                  "data": [
+                    {
+                      "object": "lead",
+                      "cnpj": "12345678000190",
+                      "legal_name": "ACADEMIA CORPO EM MOVIMENTO LTDA",
+                      "trade_name": "Corpo em Movimento",
+                      "establishment": "head_office",
+                      "registration_status": "active",
+                      "company_size": "me",
+                      "cnae": {
+                        "code": "9313100",
+                        "description": "Atividades de condicionamento físico"
+                      },
+                      "city": {
+                        "name": "SAO PAULO",
+                        "ibge_code": "3550308"
+                      },
+                      "state": "SP",
+                      "share_capital": 120000,
+                      "opened_on": "2016-03-10"
+                    }
+                  ],
+                  "page": {
+                    "next_cursor": "eyJ2IjoxLCJ3b3Jrc3BhY2VfaWQiOi4uLn0.sig",
+                    "has_more": true
+                  },
+                  "total": 448,
+                  "unlock_price": {
+                    "amount": 0.5,
+                    "unit": "tokens"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "502": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/leads/cnaes": {
+      "get": {
+        "summary": "Catálogo de CNAE",
+        "description": "Atividades para o filtro `cnae_codes`, por texto ou prefixo do código.",
+        "operationId": "listLeadCnaes",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "example": "condicionamento"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Até 50 atividades",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "code": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/Page"
+                    }
+                  }
+                },
+                "example": {
+                  "data": [
+                    {
+                      "code": "9313100",
+                      "description": "Atividades de condicionamento físico"
+                    }
+                  ],
+                  "page": {
+                    "next_cursor": null,
+                    "has_more": false
+                  }
+                }
+              }
+            }
+          },
+          "502": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/leads/cities": {
+      "get": {
+        "summary": "Catálogo de municípios",
+        "description": "Municípios com o código IBGE usado em `city_ibge_code`. `q` aceita nome (sem acento) ou o próprio código IBGE.",
+        "operationId": "listLeadCities",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "example": "campinas"
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z]{2}$"
+            },
+            "example": "SP"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Até 50 municípios",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "ibge_code": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "state": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/Page"
+                    }
+                  }
+                },
+                "example": {
+                  "data": [
+                    {
+                      "ibge_code": "3509502",
+                      "name": "Campinas",
+                      "state": "SP"
+                    }
+                  ],
+                  "page": {
+                    "next_cursor": null,
+                    "has_more": false
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/leads/lists": {
+      "post": {
+        "summary": "Criar lista",
+        "description": "Cria uma lista de até 10 mil empresas sem custo. A primeira página é gravada na hora e o resto é montado em segundo plano: consulte `GET /leads/lists/{list_id}` até `status` sair de `running`. Só uma lista monta por vez em cada workspace.",
+        "operationId": "createLeadList",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "filters",
+                  "max_items"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120,
+                    "description": "Opcional; sem ele, o nome é gerado a partir dos filtros."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/LeadFilters"
+                  },
+                  "max_items": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 10000
+                  }
+                }
+              },
+              "example": {
+                "name": "Academias SP",
+                "filters": {
+                  "states": [
+                    "SP"
+                  ],
+                  "cnae_codes": [
+                    "9313100"
+                  ],
+                  "registration_statuses": [
+                    "active"
+                  ],
+                  "contacts_on_file": {
+                    "email": true,
+                    "phone": true
+                  }
+                },
+                "max_items": 1000
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Lista aceita; montagem em andamento",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadList"
+                },
+                "example": {
+                  "id": "9b1c2f7e-3a41-4c8e-9f0a-1d2e3f4a5b6c",
+                  "object": "lead_list",
+                  "name": "Academias SP",
+                  "status": "running",
+                  "filters": {
+                    "legal_name": null,
+                    "cnae_codes": [
+                      "9313100"
+                    ],
+                    "states": [
+                      "SP"
+                    ],
+                    "city_ibge_code": null,
+                    "registration_statuses": [
+                      "active"
+                    ],
+                    "company_sizes": [],
+                    "establishment": "any",
+                    "share_capital": {
+                      "min": null,
+                      "max": null
+                    },
+                    "opened_year": {
+                      "from": null,
+                      "to": null
+                    },
+                    "contacts_on_file": {
+                      "email": true,
+                      "phone": true
+                    },
+                    "partner_change_within": null
+                  },
+                  "item_count": 50,
+                  "target_count": 448,
+                  "unlock_price": {
+                    "amount": 0.5,
+                    "unit": "tokens"
+                  },
+                  "remaining_unlock_amount": {
+                    "amount": 25,
+                    "unit": "tokens"
+                  },
+                  "unlock_summary": {
+                    "total_items": 50,
+                    "not_requested": 50,
+                    "running": 0,
+                    "with_contacts": 0,
+                    "with_whatsapp": 0,
+                    "with_email": 0,
+                    "no_confirmed_contact": 0,
+                    "failed": 0,
+                    "refund_pending": 0
+                  },
+                  "failure": null,
+                  "poll_after_seconds": 5,
+                  "created_at": "2026-10-16T18:00:00.000Z",
+                  "updated_at": "2026-10-16T18:00:01.000Z",
+                  "completed_at": null
+                }
+              }
+            },
+            "headers": {
+              "Location": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "502": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "get": {
+        "summary": "Listar listas",
+        "description": "Listas do workspace, das mais novas para as mais antigas.",
+        "operationId": "listLeadLists",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Cursor"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "running",
+                "completed",
+                "failed"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Página de listas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/LeadList"
+                      }
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/Page"
+                    }
+                  }
+                },
+                "example": {
+                  "data": [
+                    {
+                      "id": "9b1c2f7e-3a41-4c8e-9f0a-1d2e3f4a5b6c",
+                      "object": "lead_list",
+                      "name": "Academias SP",
+                      "status": "completed",
+                      "filters": {
+                        "legal_name": null,
+                        "cnae_codes": [
+                          "9313100"
+                        ],
+                        "states": [
+                          "SP"
+                        ],
+                        "city_ibge_code": null,
+                        "registration_statuses": [
+                          "active"
+                        ],
+                        "company_sizes": [],
+                        "establishment": "any",
+                        "share_capital": {
+                          "min": null,
+                          "max": null
+                        },
+                        "opened_year": {
+                          "from": null,
+                          "to": null
+                        },
+                        "contacts_on_file": {
+                          "email": true,
+                          "phone": true
+                        },
+                        "partner_change_within": null
+                      },
+                      "item_count": 448,
+                      "target_count": 448,
+                      "unlock_price": {
+                        "amount": 0.5,
+                        "unit": "tokens"
+                      },
+                      "remaining_unlock_amount": {
+                        "amount": 149,
+                        "unit": "tokens"
+                      },
+                      "unlock_summary": {
+                        "total_items": 448,
+                        "not_requested": 298,
+                        "running": 0,
+                        "with_contacts": 120,
+                        "with_whatsapp": 75,
+                        "with_email": 98,
+                        "no_confirmed_contact": 28,
+                        "failed": 2,
+                        "refund_pending": 0
+                      },
+                      "failure": null,
+                      "created_at": "2026-10-16T18:00:00.000Z",
+                      "updated_at": "2026-10-16T18:02:10.000Z",
+                      "completed_at": "2026-10-16T18:02:10.000Z"
+                    }
+                  ],
+                  "page": {
+                    "next_cursor": null,
+                    "has_more": false
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/leads/lists/{list_id}": {
+      "get": {
+        "summary": "Consultar lista",
+        "description": "Montagem e situação dos contatos da lista inteira, sem os itens.",
+        "operationId": "getLeadList",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ListId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadList"
+                },
+                "example": {
+                  "id": "9b1c2f7e-3a41-4c8e-9f0a-1d2e3f4a5b6c",
+                  "object": "lead_list",
+                  "name": "Academias SP",
+                  "status": "completed",
+                  "filters": {
+                    "legal_name": null,
+                    "cnae_codes": [
+                      "9313100"
+                    ],
+                    "states": [
+                      "SP"
+                    ],
+                    "city_ibge_code": null,
+                    "registration_statuses": [
+                      "active"
+                    ],
+                    "company_sizes": [],
+                    "establishment": "any",
+                    "share_capital": {
+                      "min": null,
+                      "max": null
+                    },
+                    "opened_year": {
+                      "from": null,
+                      "to": null
+                    },
+                    "contacts_on_file": {
+                      "email": true,
+                      "phone": true
+                    },
+                    "partner_change_within": null
+                  },
+                  "item_count": 448,
+                  "target_count": 448,
+                  "unlock_price": {
+                    "amount": 0.5,
+                    "unit": "tokens"
+                  },
+                  "remaining_unlock_amount": {
+                    "amount": 149,
+                    "unit": "tokens"
+                  },
+                  "unlock_summary": {
+                    "total_items": 448,
+                    "not_requested": 298,
+                    "running": 0,
+                    "with_contacts": 120,
+                    "with_whatsapp": 75,
+                    "with_email": 98,
+                    "no_confirmed_contact": 28,
+                    "failed": 2,
+                    "refund_pending": 0
+                  },
+                  "failure": null,
+                  "created_at": "2026-10-16T18:00:00.000Z",
+                  "updated_at": "2026-10-16T18:02:10.000Z",
+                  "completed_at": "2026-10-16T18:02:10.000Z"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Renomear lista",
+        "operationId": "renameLeadList",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ListId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  }
+                }
+              },
+              "example": {
+                "name": "Academias SP — outubro"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Lista renomeada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadList"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Apagar lista",
+        "description": "Os contatos já liberados continuam valendo no workspace e aparecem em `GET /leads/unlocks`.",
+        "operationId": "deleteLeadList",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ListId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Lista apagada"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/leads/lists/{list_id}/items": {
+      "get": {
+        "summary": "Itens da lista",
+        "description": "Empresas na ordem da lista, cada uma com a situação do contato. CNPJs com pedido de exclusão (LGPD) não aparecem.",
+        "operationId": "listLeadListItems",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ListId"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Cursor"
+          },
+          {
+            "name": "unlock_status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "not_requested",
+                "running",
+                "completed",
+                "failed"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Página de itens",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/LeadListItem"
+                      }
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/Page"
+                    }
+                  }
+                },
+                "example": {
+                  "data": [
+                    {
+                      "object": "lead_list_item",
+                      "position": 0,
+                      "lead": {
+                        "object": "lead",
+                        "cnpj": "12345678000190",
+                        "legal_name": "ACADEMIA CORPO EM MOVIMENTO LTDA",
+                        "trade_name": "Corpo em Movimento",
+                        "establishment": "head_office",
+                        "registration_status": "active",
+                        "company_size": "me",
+                        "cnae": {
+                          "code": "9313100",
+                          "description": "Atividades de condicionamento físico"
+                        },
+                        "city": {
+                          "name": "SAO PAULO",
+                          "ibge_code": "3550308"
+                        },
+                        "state": "SP",
+                        "share_capital": 120000,
+                        "opened_on": "2016-03-10"
+                      },
+                      "unlock": {
+                        "object": "lead_unlock",
+                        "cnpj": "12345678000190",
+                        "status": "completed",
+                        "result": "contacts_found",
+                        "billing": {
+                          "status": "charged",
+                          "amount": 0.5,
+                          "unit": "tokens"
+                        },
+                        "channels": [
+                          {
+                            "type": "phone",
+                            "value": "+5511987654321",
+                            "line_type": "mobile",
+                            "whatsapp": "confirmed",
+                            "confirmed": true,
+                            "checked_at": "2026-10-16T18:05:10.000Z"
+                          },
+                          {
+                            "type": "phone",
+                            "value": "+551130312020",
+                            "line_type": "landline",
+                            "whatsapp": "not_found",
+                            "confirmed": false,
+                            "checked_at": "2026-10-16T18:05:10.000Z"
+                          },
+                          {
+                            "type": "email",
+                            "value": "contato@corpoemmovimento.com.br",
+                            "email_domain": "accepts_mail",
+                            "confirmed": true,
+                            "checked_at": "2026-10-16T18:05:11.000Z"
+                          }
+                        ],
+                        "failure": null,
+                        "created_at": "2026-10-16T18:05:02.000Z",
+                        "updated_at": "2026-10-16T18:05:12.000Z",
+                        "completed_at": "2026-10-16T18:05:12.000Z"
+                      }
+                    }
+                  ],
+                  "page": {
+                    "next_cursor": "eyJ...",
+                    "has_more": true
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/leads/unlocks": {
+      "post": {
+        "summary": "Rodar contatos",
+        "description": "Busca e checa os contatos dos CNPJs escolhidos (`cnpjs`, até 1.000) ou de tudo que ainda pode rodar numa lista (`list_id`). Os tokens são reservados na hora; quem termina sem canal confirmado é estornado. CNPJ já liberado no workspace nunca é cobrado de novo. Consulte o resultado em `GET /leads/unlocks/{cnpj}`, nos itens da lista ou em `GET /leads/unlocks`.",
+        "operationId": "createLeadUnlocks",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "max_amount"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "cnpjs": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 1000,
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{14}$"
+                    }
+                  },
+                  "list_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "max_amount": {
+                    "type": "number",
+                    "minimum": 0,
+                    "description": "Teto de gasto em tokens. Se o custo passar disso, nada é cobrado e a resposta é 409 max_amount_exceeded."
+                  }
+                },
+                "description": "Envie cnpjs ou list_id, nunca os dois."
+              },
+              "examples": {
+                "cnpjs": {
+                  "summary": "CNPJs escolhidos",
+                  "value": {
+                    "cnpjs": [
+                      "12345678000190",
+                      "23456789000101"
+                    ],
+                    "max_amount": 1
+                  }
+                },
+                "lista": {
+                  "summary": "Lista inteira",
+                  "value": {
+                    "list_id": "9b1c2f7e-3a41-4c8e-9f0a-1d2e3f4a5b6c",
+                    "max_amount": 149
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Pedido aceito",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "object": {
+                      "type": "string",
+                      "enum": [
+                        "lead_unlock_request"
+                      ]
+                    },
+                    "accepted_count": {
+                      "type": "integer"
+                    },
+                    "skipped_count": {
+                      "type": "integer"
+                    },
+                    "skipped": {
+                      "type": "array",
+                      "description": "Só no modo cnpjs.",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "cnpj": {
+                            "type": "string"
+                          },
+                          "reason": {
+                            "type": "string",
+                            "enum": [
+                              "already_unlocked",
+                              "in_progress",
+                              "refund_pending",
+                              "not_available"
+                            ]
+                          }
+                        }
+                      }
+                    },
+                    "reserved": {
+                      "$ref": "#/components/schemas/TokenAmount"
+                    },
+                    "poll_after_seconds": {
+                      "type": "integer"
+                    }
+                  }
+                },
+                "example": {
+                  "object": "lead_unlock_request",
+                  "accepted_count": 1,
+                  "skipped_count": 1,
+                  "skipped": [
+                    {
+                      "cnpj": "23456789000101",
+                      "reason": "already_unlocked"
+                    }
+                  ],
+                  "reserved": {
+                    "amount": 0.5,
+                    "unit": "tokens"
+                  },
+                  "poll_after_seconds": 5
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "402": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "get": {
+        "summary": "Sincronizar contatos",
+        "description": "Todos os desbloqueios do workspace, do `updated_at` mais antigo para o mais novo. Guarde o maior `updated_at` recebido e use-o como `updated_since` na próxima sincronização.",
+        "operationId": "listLeadUnlocks",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Cursor"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "running",
+                "completed",
+                "failed"
+              ]
+            }
+          },
+          {
+            "name": "updated_since",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "example": "2026-10-16T00:00:00Z"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Página de desbloqueios",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/LeadUnlock"
+                      }
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/Page"
+                    }
+                  }
+                },
+                "example": {
+                  "data": [
+                    {
+                      "object": "lead_unlock",
+                      "cnpj": "12345678000190",
+                      "status": "completed",
+                      "result": "contacts_found",
+                      "billing": {
+                        "status": "charged",
+                        "amount": 0.5,
+                        "unit": "tokens"
+                      },
+                      "channels": [
+                        {
+                          "type": "phone",
+                          "value": "+5511987654321",
+                          "line_type": "mobile",
+                          "whatsapp": "confirmed",
+                          "confirmed": true,
+                          "checked_at": "2026-10-16T18:05:10.000Z"
+                        },
+                        {
+                          "type": "phone",
+                          "value": "+551130312020",
+                          "line_type": "landline",
+                          "whatsapp": "not_found",
+                          "confirmed": false,
+                          "checked_at": "2026-10-16T18:05:10.000Z"
+                        },
+                        {
+                          "type": "email",
+                          "value": "contato@corpoemmovimento.com.br",
+                          "email_domain": "accepts_mail",
+                          "confirmed": true,
+                          "checked_at": "2026-10-16T18:05:11.000Z"
+                        }
+                      ],
+                      "failure": null,
+                      "created_at": "2026-10-16T18:05:02.000Z",
+                      "updated_at": "2026-10-16T18:05:12.000Z",
+                      "completed_at": "2026-10-16T18:05:12.000Z"
+                    }
+                  ],
+                  "page": {
+                    "next_cursor": null,
+                    "has_more": false
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/leads/unlocks/{cnpj}": {
+      "get": {
+        "summary": "Consultar contato de um CNPJ",
+        "description": "Situação do desbloqueio de um CNPJ no workspace. CNPJ nunca rodado volta como `not_requested`.",
+        "operationId": "getLeadUnlock",
+        "parameters": [
+          {
+            "name": "cnpj",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{14}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Desbloqueio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadUnlock"
+                },
+                "examples": {
+                  "contacts_found": {
+                    "summary": "Contatos liberados e cobrados",
+                    "value": {
+                      "object": "lead_unlock",
+                      "cnpj": "12345678000190",
+                      "status": "completed",
+                      "result": "contacts_found",
+                      "billing": {
+                        "status": "charged",
+                        "amount": 0.5,
+                        "unit": "tokens"
+                      },
+                      "channels": [
+                        {
+                          "type": "phone",
+                          "value": "+5511987654321",
+                          "line_type": "mobile",
+                          "whatsapp": "confirmed",
+                          "confirmed": true,
+                          "checked_at": "2026-10-16T18:05:10.000Z"
+                        },
+                        {
+                          "type": "phone",
+                          "value": "+551130312020",
+                          "line_type": "landline",
+                          "whatsapp": "not_found",
+                          "confirmed": false,
+                          "checked_at": "2026-10-16T18:05:10.000Z"
+                        },
+                        {
+                          "type": "email",
+                          "value": "contato@corpoemmovimento.com.br",
+                          "email_domain": "accepts_mail",
+                          "confirmed": true,
+                          "checked_at": "2026-10-16T18:05:11.000Z"
+                        }
+                      ],
+                      "failure": null,
+                      "created_at": "2026-10-16T18:05:02.000Z",
+                      "updated_at": "2026-10-16T18:05:12.000Z",
+                      "completed_at": "2026-10-16T18:05:12.000Z"
+                    }
+                  },
+                  "not_requested": {
+                    "summary": "Nunca rodado",
+                    "value": {
+                      "object": "lead_unlock",
+                      "cnpj": "12345678000190",
+                      "status": "not_requested"
+                    }
+                  },
+                  "running": {
+                    "summary": "Checando canais (tokens reservados)",
+                    "value": {
+                      "object": "lead_unlock",
+                      "cnpj": "12345678000190",
+                      "status": "running",
+                      "billing": {
+                        "status": "charge_pending",
+                        "amount": 0.5,
+                        "unit": "tokens"
+                      },
+                      "failure": null,
+                      "created_at": "2026-10-16T18:05:02.000Z",
+                      "updated_at": "2026-10-16T18:05:02.000Z",
+                      "completed_at": null
+                    }
+                  },
+                  "no_confirmed_contact": {
+                    "summary": "Sem canal confirmado (tokens devolvidos)",
+                    "value": {
+                      "object": "lead_unlock",
+                      "cnpj": "12345678000190",
+                      "status": "completed",
+                      "result": "no_confirmed_contact",
+                      "billing": {
+                        "status": "refunded",
+                        "amount": 0.5,
+                        "unit": "tokens"
+                      },
+                      "channels": [],
+                      "failure": null,
+                      "created_at": "2026-10-16T18:05:02.000Z",
+                      "updated_at": "2026-10-16T18:05:09.000Z",
+                      "completed_at": "2026-10-16T18:05:09.000Z"
+                    }
+                  },
+                  "failed": {
+                    "summary": "Falha técnica (pode rodar de novo)",
+                    "value": {
+                      "object": "lead_unlock",
+                      "cnpj": "12345678000190",
+                      "status": "failed",
+                      "billing": {
+                        "status": "refunded",
+                        "amount": 0.5,
+                        "unit": "tokens"
+                      },
+                      "failure": {
+                        "code": "unlock_failed",
+                        "detail": "A base de contatos não respondeu.",
+                        "retryable": true
+                      },
+                      "created_at": "2026-10-16T18:05:02.000Z",
+                      "updated_at": "2026-10-16T18:05:30.000Z",
+                      "completed_at": "2026-10-16T18:05:30.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "parameters": {
+      "ListId": {
+        "name": "list_id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "IdempotencyKey": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "maxLength": 255
+        }
+      },
+      "Cursor": {
+        "name": "cursor",
+        "in": "query",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "Limit": {
+        "name": "limit",
+        "in": "query",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 20
+        }
+      }
+    },
+    "schemas": {
+      "TokenAmount": {
+        "type": "object",
+        "required": [
+          "amount",
+          "unit"
+        ],
+        "properties": {
+          "amount": {
+            "type": "number",
+            "description": "Valor em tokens, com até 6 casas decimais."
+          },
+          "unit": {
+            "type": "string",
+            "enum": [
+              "tokens"
+            ]
+          }
+        }
+      },
+      "Page": {
+        "type": "object",
+        "required": [
+          "next_cursor",
+          "has_more"
+        ],
+        "properties": {
+          "next_cursor": {
+            "type": "string",
+            "nullable": true
+          },
+          "has_more": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": [
+          "status",
+          "code",
+          "detail",
+          "request_id",
+          "retryable"
+        ],
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer"
+          },
+          "code": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "string"
+          },
+          "instance": {
+            "type": "string"
+          },
+          "request_id": {
+            "type": "string"
+          },
+          "retryable": {
+            "type": "boolean"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "context": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "LeadFilters": {
+        "type": "object",
+        "description": "Todos os campos são opcionais, mas é obrigatório pelo menos um filtro de recorte: cnae_codes, states, city_ibge_code, registration_statuses, company_sizes, share_capital, opened_year ou legal_name com 3 letras ou mais. Campo desconhecido é recusado com 400.",
+        "additionalProperties": false,
+        "properties": {
+          "legal_name": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Trecho da razão social (3 letras ou mais)."
+          },
+          "cnae_codes": {
+            "type": "array",
+            "maxItems": 50,
+            "items": {
+              "type": "string",
+              "pattern": "^\\d{2,7}$"
+            },
+            "description": "CNAE principal, só dígitos. Códigos com menos de 7 dígitos valem como prefixo."
+          },
+          "states": {
+            "type": "array",
+            "maxItems": 27,
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Z]{2}$"
+            },
+            "description": "UFs com duas letras."
+          },
+          "city_ibge_code": {
+            "type": "string",
+            "pattern": "^\\d{7}$",
+            "description": "Código IBGE do município (veja GET /leads/cities)."
+          },
+          "registration_statuses": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "active",
+                "suspended",
+                "unfit",
+                "closed",
+                "void"
+              ]
+            },
+            "description": "Situação na Receita: active (ativa), suspended (suspensa), unfit (inapta), closed (baixada), void (nula)."
+          },
+          "company_sizes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "me",
+                "epp",
+                "other"
+              ]
+            },
+            "description": "Porte na Receita. A Receita registra MEI como microempresa (me)."
+          },
+          "establishment": {
+            "type": "string",
+            "enum": [
+              "any",
+              "head_office",
+              "branch"
+            ],
+            "default": "any"
+          },
+          "share_capital": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "min": {
+                "type": "number",
+                "minimum": 0
+              },
+              "max": {
+                "type": "number",
+                "minimum": 0
+              }
+            },
+            "description": "Faixa de capital social em reais."
+          },
+          "opened_year": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "from": {
+                "type": "integer",
+                "minimum": 1900,
+                "maximum": 2100
+              },
+              "to": {
+                "type": "integer",
+                "minimum": 1900,
+                "maximum": 2100
+              }
+            }
+          },
+          "contacts_on_file": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "email": {
+                "type": "boolean"
+              },
+              "phone": {
+                "type": "boolean"
+              }
+            },
+            "description": "Exige e-mail e/ou telefone na base, sem verificação. A checagem só acontece no desbloqueio."
+          },
+          "partner_change_within": {
+            "type": "string",
+            "enum": [
+              "3m",
+              "6m",
+              "1y",
+              "3y",
+              "5y"
+            ],
+            "description": "Entrada ou saída de sócio no período. Saídas detectadas desde junho de 2023."
+          }
+        }
+      },
+      "LeadFiltersResponse": {
+        "type": "object",
+        "description": "Filtros da lista, com todos os campos preenchidos (null quando não usados).",
+        "properties": {
+          "legal_name": {
+            "type": "string",
+            "nullable": true
+          },
+          "cnae_codes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "states": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "city_ibge_code": {
+            "type": "string",
+            "nullable": true
+          },
+          "registration_statuses": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "company_sizes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "establishment": {
+            "type": "string",
+            "enum": [
+              "any",
+              "head_office",
+              "branch"
+            ]
+          },
+          "share_capital": {
+            "type": "object",
+            "properties": {
+              "min": {
+                "type": "number",
+                "nullable": true
+              },
+              "max": {
+                "type": "number",
+                "nullable": true
+              }
+            }
+          },
+          "opened_year": {
+            "type": "object",
+            "properties": {
+              "from": {
+                "type": "integer",
+                "nullable": true
+              },
+              "to": {
+                "type": "integer",
+                "nullable": true
+              }
+            }
+          },
+          "contacts_on_file": {
+            "type": "object",
+            "properties": {
+              "email": {
+                "type": "boolean"
+              },
+              "phone": {
+                "type": "boolean"
+              }
+            }
+          },
+          "partner_change_within": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "Lead": {
+        "type": "object",
+        "description": "Prévia gratuita de um CNPJ. Nunca traz telefone nem e-mail.",
+        "required": [
+          "object",
+          "cnpj",
+          "legal_name",
+          "trade_name",
+          "establishment",
+          "registration_status",
+          "company_size",
+          "cnae",
+          "city",
+          "state",
+          "share_capital",
+          "opened_on"
+        ],
+        "properties": {
+          "object": {
+            "type": "string",
+            "enum": [
+              "lead"
+            ]
+          },
+          "cnpj": {
+            "type": "string",
+            "pattern": "^\\d{14}$"
+          },
+          "legal_name": {
+            "type": "string"
+          },
+          "trade_name": {
+            "type": "string",
+            "nullable": true
+          },
+          "establishment": {
+            "type": "string",
+            "enum": [
+              "head_office",
+              "branch"
+            ]
+          },
+          "registration_status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "suspended",
+              "unfit",
+              "closed",
+              "void"
+            ]
+          },
+          "company_size": {
+            "type": "string",
+            "enum": [
+              "me",
+              "epp",
+              "other"
+            ],
+            "nullable": true
+          },
+          "cnae": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              }
+            }
+          },
+          "city": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Nome como vem da base de CNPJ."
+              },
+              "ibge_code": {
+                "type": "string",
+                "nullable": true,
+                "description": "Null quando o nome da base não casa com o catálogo do IBGE."
+              }
+            }
+          },
+          "state": {
+            "type": "string"
+          },
+          "share_capital": {
+            "type": "number",
+            "nullable": true,
+            "description": "Capital social em reais. Null quando a fonte não informa."
+          },
+          "opened_on": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          }
+        }
+      },
+      "UnlockSummary": {
+        "type": "object",
+        "description": "Situação dos contatos na lista inteira, não só na página.",
+        "properties": {
+          "total_items": {
+            "type": "integer"
+          },
+          "not_requested": {
+            "type": "integer",
+            "description": "Ainda não rodadas."
+          },
+          "running": {
+            "type": "integer",
+            "description": "Checando canais agora."
+          },
+          "with_contacts": {
+            "type": "integer",
+            "description": "Cobradas, com pelo menos um canal confirmado."
+          },
+          "with_whatsapp": {
+            "type": "integer",
+            "description": "Parte de with_contacts com WhatsApp confirmado."
+          },
+          "with_email": {
+            "type": "integer",
+            "description": "Parte de with_contacts com e-mail de domínio que recebe correspondência."
+          },
+          "no_confirmed_contact": {
+            "type": "integer",
+            "description": "Rodadas sem canal confirmado; tokens devolvidos."
+          },
+          "failed": {
+            "type": "integer",
+            "description": "Falha técnica; podem rodar de novo."
+          },
+          "refund_pending": {
+            "type": "integer",
+            "description": "Devoluções ainda em processamento."
+          }
+        }
+      },
+      "LeadList": {
+        "type": "object",
+        "required": [
+          "id",
+          "object",
+          "name",
+          "status",
+          "filters",
+          "item_count",
+          "target_count",
+          "unlock_price",
+          "remaining_unlock_amount",
+          "unlock_summary",
+          "failure",
+          "created_at",
+          "updated_at",
+          "completed_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "object": {
+            "type": "string",
+            "enum": [
+              "lead_list"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "running",
+              "completed",
+              "failed"
+            ],
+            "description": "Montagem da lista."
+          },
+          "filters": {
+            "$ref": "#/components/schemas/LeadFiltersResponse"
+          },
+          "item_count": {
+            "type": "integer",
+            "description": "Empresas já gravadas."
+          },
+          "target_count": {
+            "type": "integer",
+            "description": "Tamanho pedido, limitado ao total encontrado."
+          },
+          "unlock_price": {
+            "$ref": "#/components/schemas/TokenAmount"
+          },
+          "remaining_unlock_amount": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TokenAmount"
+              }
+            ],
+            "description": "Custo de rodar tudo o que ainda pode ser cobrado na lista. Use como max_amount."
+          },
+          "unlock_summary": {
+            "$ref": "#/components/schemas/UnlockSummary"
+          },
+          "failure": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "detail": {
+                "type": "string"
+              },
+              "retryable": {
+                "type": "boolean"
+              }
+            }
+          },
+          "poll_after_seconds": {
+            "type": "integer",
+            "description": "Presente enquanto a lista monta ou há contatos em checagem."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completed_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "Channel": {
+        "oneOf": [
+          {
+            "type": "object",
+            "title": "Telefone",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "phone"
+                ]
+              },
+              "value": {
+                "type": "string",
+                "description": "E.164, por exemplo +5511987654321."
+              },
+              "line_type": {
+                "type": "string",
+                "enum": [
+                  "mobile",
+                  "landline"
+                ]
+              },
+              "whatsapp": {
+                "type": "string",
+                "enum": [
+                  "confirmed",
+                  "not_found",
+                  "unavailable",
+                  "not_checked"
+                ]
+              },
+              "confirmed": {
+                "type": "boolean",
+                "description": "true quando o WhatsApp foi confirmado (conta para a cobrança)."
+              },
+              "checked_at": {
+                "type": "string",
+                "format": "date-time",
+                "nullable": true
+              }
+            }
+          },
+          {
+            "type": "object",
+            "title": "E-mail",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "email"
+                ]
+              },
+              "value": {
+                "type": "string"
+              },
+              "email_domain": {
+                "type": "string",
+                "enum": [
+                  "accepts_mail",
+                  "rejects_mail",
+                  "unavailable"
+                ],
+                "description": "Resultado da checagem do domínio; a caixa em si não é verificável."
+              },
+              "confirmed": {
+                "type": "boolean"
+              },
+              "checked_at": {
+                "type": "string",
+                "format": "date-time",
+                "nullable": true
+              }
+            }
+          }
+        ]
+      },
+      "LeadUnlock": {
+        "type": "object",
+        "required": [
+          "object",
+          "cnpj",
+          "status"
+        ],
+        "properties": {
+          "object": {
+            "type": "string",
+            "enum": [
+              "lead_unlock"
+            ]
+          },
+          "cnpj": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "not_requested",
+              "running",
+              "completed",
+              "failed"
+            ]
+          },
+          "result": {
+            "type": "string",
+            "enum": [
+              "contacts_found",
+              "no_confirmed_contact"
+            ],
+            "description": "Só quando status = completed."
+          },
+          "billing": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "not_charged",
+                  "charge_pending",
+                  "charged",
+                  "refund_pending",
+                  "refunded"
+                ]
+              },
+              "amount": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string",
+                "enum": [
+                  "tokens"
+                ]
+              }
+            }
+          },
+          "channels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Channel"
+            },
+            "description": "Só vem preenchido quando billing.status = charged."
+          },
+          "failure": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "detail": {
+                "type": "string"
+              },
+              "retryable": {
+                "type": "boolean"
+              }
+            }
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completed_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "LeadListItem": {
+        "type": "object",
+        "properties": {
+          "object": {
+            "type": "string",
+            "enum": [
+              "lead_list_item"
+            ]
+          },
+          "position": {
+            "type": "integer"
+          },
+          "lead": {
+            "$ref": "#/components/schemas/Lead"
+          },
+          "unlock": {
+            "$ref": "#/components/schemas/LeadUnlock"
+          }
+        }
+      }
+    },
+    "responses": {
+      "Error": {
+        "description": "Erro no formato application/problem+json",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  }
+}
