@@ -70,7 +70,44 @@ GET /processos/nome?nome={nome}&documento={cpf_ou_cnpj}&fonte=ambas
 ```
 
 O documento opcional serve para desambiguação; ele não converte resultados sem
-documento em vínculos documentais.
+documento em vínculos documentais. `cpf` e `cnpj` são aceitos como apelidos de
+`documento`; informe um só valor.
+
+### Partes que já têm CPF ou CNPJ
+
+A busca por nome também traz o processo em que a parte encontrada já tem CPF ou
+CNPJ cadastrado na base. O documento aparece em `partes[].documento`, e a parte
+cujo nome, sem acento e sem pontuação, é igual ao buscado vem marcada com
+`bate_nome: true`:
+
+```json
+{
+  "origem": "base",
+  "nome_buscado": "Comércio Exemplo Ltda",
+  "similaridade_max": 1,
+  "partes": [
+    {
+      "nome": "Comercio Exemplo Ltda",
+      "polo": "passivo",
+      "documento": "11.222.333/0001-81",
+      "tipo": "Pessoa Jurídica",
+      "bate_nome": true
+    },
+    { "nome": "Outra Parte", "polo": "ativo", "documento": "", "tipo": "" }
+  ]
+}
+```
+
+- `bate_nome` só aparece na origem `base` e só quando o nome é igual ao buscado.
+  Uma parte apenas parecida (a busca aceita similaridade a partir de 0,7) traz o
+  processo, mas não recebe a marca.
+- O documento da parte marcada pode ser o da pessoa ou empresa procurada ou o
+  de um homônimo. Compare-o com o documento que você procura.
+- Sem `documento` na consulta, essas partes entram no resultado. Com
+  `documento`, a parte que tem **outro** CPF ou CNPJ é tratada como homônimo e
+  sai; a que tem o mesmo documento continua.
+- Na origem `comunica`, `documento` vem vazio: o DJEN publica nome e polo, sem
+  CPF ou CNPJ.
 
 ## Regra prática
 
