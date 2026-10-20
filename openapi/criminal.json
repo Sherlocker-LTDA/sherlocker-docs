@@ -20,7 +20,7 @@
       "get": {
         "operationId": "getCriminalByCpf",
         "summary": "Consulta criminal por CPF",
-        "description": "Devolve numa resposta só os processos criminais, mandados de prisão (BNMP), execuções penais (SEEU), documentos policiais e, sob pedido, a certidão da PF, já ligados entre si (`vinculos`) e agrupados por fato (`casos`). Cada item diz como foi ligado à pessoa (`vinculo_pessoa`); item ligado só pelo nome fica fora do resumo. Veja [como os vínculos funcionam](/entidades/criminal).",
+        "description": "Devolve numa resposta só os processos criminais, mandados de prisão (BNMP), execuções penais (SEEU), documentos policiais e, sob pedido, a certidão da PF, já ligados entre si (`vinculos`) e agrupados por fato (`casos`).\n\nCada item traz `vinculo_pessoa` indicando como foi ligado à pessoa consultada.\n\nVeja [como os vínculos funcionam](/entidades/criminal).",
         "tags": [
           "Criminal"
         ],
@@ -43,7 +43,7 @@
               "type": "boolean",
               "default": true
             },
-            "description": "Confirma as execuções ao vivo no SEEU por CPF e por nome + nome da mãe. Com false a resposta sai mais rápido e as execuções ficam ligadas só pelo nome (fora do resumo)."
+            "description": "Confirma as execuções ao vivo no SEEU por CPF e por nome + nome da mãe.\n\nCom `false`, a resposta sai mais rápido, mas execuções sem outra evidência de vínculo são descartadas."
           },
           {
             "name": "certidao",
@@ -66,7 +66,7 @@
                 },
                 "examples": {
                   "completo": {
-                    "summary": "Processo, mandado vigente e execução ligados (e uma execução só pelo nome)",
+                    "summary": "Processo, mandado vigente e execução ligados",
                     "value": {
                       "documento": {
                         "tipo": "cpf",
@@ -91,7 +91,6 @@
                           "Art. 157, §2º, II do CP"
                         ],
                         "certidao_pf": null,
-                        "itens_so_por_nome": 1,
                         "processos_como_outra_parte": 0
                       },
                       "casos": [
@@ -206,33 +205,6 @@
                             "confianca": "alta",
                             "detalhe": "mesmo número de um processo com o documento da pessoa"
                           }
-                        },
-                        {
-                          "id": "exec-2",
-                          "numero": "0004999-09.2026.8.26.0576",
-                          "tribunal": "tjsp",
-                          "classe": "Execução da Pena",
-                          "assunto": "Pena Restritiva de Direitos",
-                          "data_recebimento": "2026-03-23",
-                          "reu_preso": false,
-                          "flags": [],
-                          "partes": [
-                            {
-                              "papel": "Autoridade",
-                              "nome": "ESTADO DE SAO PAULO"
-                            },
-                            {
-                              "papel": "Executado",
-                              "nome": "João Silva"
-                            }
-                          ],
-                          "fonte": "SEEU/CNJ",
-                          "coletado_em": "2026-10-15T18:23:27Z",
-                          "vinculo_pessoa": {
-                            "tipo": "nome",
-                            "confianca": "baixa",
-                            "detalhe": "mesmo nome do executado; não confirmado no SEEU"
-                          }
                         }
                       ],
                       "vinculos": [
@@ -315,7 +287,6 @@
                         }
                       ],
                       "avisos": [
-                        "exec-2 está ligado à pessoa só pelo nome (possível homônimo) e não entra em casos nem no resumo"
                       ]
                     }
                   },
@@ -342,7 +313,6 @@
                         "documentos_policiais": 0,
                         "crimes": [],
                         "certidao_pf": null,
-                        "itens_so_por_nome": 0,
                         "processos_como_outra_parte": 0
                       },
                       "casos": [],
@@ -432,7 +402,6 @@
                         "documentos_policiais": 0,
                         "crimes": [],
                         "certidao_pf": "pendente",
-                        "itens_so_por_nome": 0,
                         "processos_como_outra_parte": 0
                       },
                       "casos": [],
@@ -563,7 +532,6 @@
                         "documentos_policiais": 0,
                         "crimes": [],
                         "certidao_pf": null,
-                        "itens_so_por_nome": 0,
                         "processos_como_outra_parte": 0
                       },
                       "casos": [],
@@ -636,19 +604,17 @@
             "enum": [
               "documento",
               "cpf",
-              "mae",
-              "nome"
+              "mae"
             ],
-            "description": "Como o item foi ligado à pessoa: documento (CPF/CNPJ publicado pelo tribunal na parte do processo, ou execução com o mesmo número de um desses processos e executado de mesmo nome), cpf (mandado do BNMP pelo CPF; execução no processo de um mandado do CPF com executado de mesmo nome; ou achada pela busca por CPF no SEEU), mae (execução confirmada no SEEU por nome + nome completo da mãe, executado de mesmo nome), nome (só o nome; também quando o número bate mas o executado tem outro nome, ou quando o CPF foi ligado ao processo só pelo nome)."
+            "description": "Como o item foi ligado à pessoa consultada.\n\n- `documento`: CPF/CNPJ publicado pelo tribunal na parte do processo, ou execução com o mesmo número de um desses processos e executado de mesmo nome.\n- `cpf`: mandado do BNMP pelo CPF; execução no processo de um mandado do CPF com executado de mesmo nome; ou achada pela busca por CPF no SEEU.\n- `mae`: execução confirmada no SEEU por nome + nome completo da mãe, executado de mesmo nome."
           },
           "confianca": {
             "type": "string",
             "enum": [
               "alta",
-              "media",
-              "baixa"
+              "media"
             ],
-            "description": "alta: documento publicado pelo tribunal, CPF do mandado, ou CPF / nome + mãe completa conferidos no SEEU. media: documento censurado no processo, completado pelos dígitos visíveis + nome. baixa: só o nome (possível homônimo), fora de casos e do resumo."
+            "description": "Grau de confiança da vinculação.\n\n- `alta`: documento publicado pelo tribunal, CPF do mandado, CPF ou nome + mãe completa conferidos no SEEU.\n- `media`: documento censurado no processo, completado pelos dígitos visíveis + nome (candidato único)."
           },
           "detalhe": {
             "type": "string"
@@ -1018,10 +984,6 @@
               "pendente",
               null
             ]
-          },
-          "itens_so_por_nome": {
-            "type": "integer",
-            "description": "Itens fora do resumo por estarem ligados só pelo nome"
           },
           "processos_como_outra_parte": {
             "type": "integer",
