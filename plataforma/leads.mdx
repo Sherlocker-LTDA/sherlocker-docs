@@ -169,51 +169,63 @@ estornadas aparecem sem contato e com o motivo.
 ## Usar pela API
 
 Tudo o que a tela faz também está na API, com a mesma chave de API da
-Plataforma. As rotas ficam em `https://221b-api.sherlocker.com.br/api/v1/leads`
-e seguem o padrão das outras APIs: cursor nas listagens, `202` com
-`poll_after_seconds` no que roda em segundo plano, `Idempotency-Key` nos POSTs
-que criam ou cobram e erros em `application/problem+json`.
+Plataforma, em `https://221b-api.sherlocker.com.br/api/v1/leads`.
+
+### Exportar em duas requisições
+
+Para receber a planilha de leads, basta pedir a exportação e buscar o resultado.
+A API monta a lista, roda os contatos e gera o CSV.
 
 <Steps>
-  <Step title="Confira a prévia">
-    `POST /leads/search` devolve 50 empresas por página e o total, sem custo.
-    Use `GET /leads/cnaes` e `GET /leads/cities` para achar os códigos dos filtros.
+  <Step title="Peça a exportação">
+    `POST /leads/exports` com os filtros e o tamanho. A resposta traz o `id` da
+    exportação.
   </Step>
-  <Step title="Crie a lista">
-    `POST /leads/lists` responde `202`. Consulte `GET /leads/lists/{list_id}` até
-    `status` ser `completed`.
-  </Step>
-  <Step title="Rode os contatos">
-    `POST /leads/unlocks` com `list_id` (ou `cnpjs`) e `max_amount`. Para a lista
-    inteira, use como teto o `remaining_unlock_amount` da lista.
-  </Step>
-  <Step title="Leia o resultado">
-    `GET /leads/lists/{list_id}/items?unlock_status=completed` traz as empresas com os
-    contatos. Para manter um CRM em dia, use `GET /leads/unlocks?updated_since=...`.
+  <Step title="Busque o resultado">
+    `GET /leads/exports/{export_id}` a cada `poll_after_seconds`, até `status` ser
+    `completed`. Então baixe o arquivo em `artifact.download_url`, com a mesma chave.
   </Step>
 </Steps>
 
 ```bash
-# 1. Prévia gratuita
-curl -X POST https://221b-api.sherlocker.com.br/api/v1/leads/search \
-  -H "Authorization: Bearer slhk_sua_chave_aqui" \
-  -H "Content-Type: application/json" \
-  -d '{"filters": {"states": ["SP"], "cnae_codes": ["9313100"], "registration_statuses": ["active"]}}'
-
-# 2. Lista com até 1.000 empresas (sem custo)
-curl -X POST https://221b-api.sherlocker.com.br/api/v1/leads/lists \
+# 1. Pedir a exportação (até 1.000 empresas, com contatos)
+curl -X POST https://221b-api.sherlocker.com.br/api/v1/leads/exports \
   -H "Authorization: Bearer slhk_sua_chave_aqui" \
   -H "Idempotency-Key: 6f1c0a52-1d2e-4c8b-9a77-0f4e2b1c3d5e" \
   -H "Content-Type: application/json" \
-  -d '{"name": "Academias SP", "filters": {"states": ["SP"], "cnae_codes": ["9313100"]}, "max_items": 1000}'
+  -d '{"filters": {"states": ["SP"], "cnae_codes": ["9313100"], "registration_statuses": ["active"]}, "max_items": 1000}'
 
-# 3. Contatos da lista inteira, com teto de gasto
-curl -X POST https://221b-api.sherlocker.com.br/api/v1/leads/unlocks \
-  -H "Authorization: Bearer slhk_sua_chave_aqui" \
-  -H "Idempotency-Key: 0b9e7c11-5a4f-4d3e-8c2b-1a2b3c4d5e6f" \
-  -H "Content-Type: application/json" \
-  -d '{"list_id": "9b1c2f7e-3a41-4c8e-9f0a-1d2e3f4a5b6c", "max_amount": 149}'
+# 2. Consultar até status = completed
+curl https://221b-api.sherlocker.com.br/api/v1/leads/exports/lex_... \
+  -H "Authorization: Bearer slhk_sua_chave_aqui"
+
+# 3. Baixar o CSV
+curl -o leads.csv https://221b-api.sherlocker.com.br/api/v1/leads/exports/lex_.../file \
+  -H "Authorization: Bearer slhk_sua_chave_aqui"
 ```
+
+- **Custo:** só são cobradas empresas com canal confirmado. O teto padrão é
+  `max_items` × preço por CNPJ; envie `max_amount` para um teto menor (nesse caso,
+  rodam os primeiros da lista até o teto).
+- **Sem contatos:** com `"contacts": false`, a exportação traz só o cadastro e não
+  custa nada.
+- **Arquivo:** CSV em UTF-8 com uma linha por empresa. As colunas de contato vêm
+  preenchidas só para as empresas cobradas, com o resultado da checagem de cada canal.
+- **Saldo:** se o saldo acabar no meio, a exportação fica `failed` com o código
+  `insufficient_tokens` e `retryable: true`. Depois de recarregar, consulte de novo
+  e ela continua de onde parou, sem cobrar duas vezes.
+
+### Controle fino
+
+As demais rotas ficam para quem precisa escolher CNPJ a CNPJ ou manter um CRM
+sincronizado:
+
+| Necessidade | Rotas |
+| --- | --- |
+| Conferir o total antes, sem custo | `POST /leads/search`, `GET /leads/cnaes`, `GET /leads/cities` |
+| Montar e consultar listas | `POST /leads/lists`, `GET /leads/lists/{list_id}`, `GET /leads/lists/{list_id}/items` |
+| Rodar contatos de CNPJs escolhidos | `POST /leads/unlocks` com `cnpjs` e `max_amount` |
+| Sincronizar contatos com um CRM | `GET /leads/unlocks?updated_since=...` |
 
 Na API, os nomes seguem o padrão em inglês das outras rotas:
 
@@ -234,7 +246,6 @@ Na API, os nomes seguem o padrão em inglês das outras rotas:
 
 ## Disponibilidade
 
-Leads está em liberação gradual e é habilitado por workspace, na tela e na API ao
-mesmo tempo. Fale com o [suporte](/support) para ativar. Sem a liberação, as rotas
-respondem `403` com o código
-[`entitlement_not_enabled`](/problems/entitlement_not_enabled).
+Na API, Leads está disponível para todos os clientes com chave de API. Na tela da
+plataforma, o recurso segue em liberação gradual por workspace; fale com o
+[suporte](/support) para ativar.
