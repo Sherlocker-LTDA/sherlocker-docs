@@ -1079,26 +1079,6 @@
             }
           }
         }
-      },
-      "CustomDossieNotEnabled": {
-        "description": "dossie_custom_not_enabled: conta sem liberação de public_api_dossies_custom para modos personalizados ou matriz. Sem aceitação/cobrança.",
-        "content": {
-          "application/problem+json": {
-            "schema": {
-              "$ref": "#/components/schemas/Error"
-            },
-            "example": {
-              "type": "https://docs.sherlocker.com.br/problems/dossie_custom_not_enabled",
-              "title": "Custom Dossier Not Enabled",
-              "status": 403,
-              "code": "dossie_custom_not_enabled",
-              "detail": "Modular and provided_data dossiers are not enabled for this workspace.",
-              "instance": "/api/v1/dossies",
-              "request_id": "req_01JEXEMPLO",
-              "retryable": false
-            }
-          }
-        }
       }
     }
   },
@@ -1106,7 +1086,7 @@
     "/dossies": {
       "post": {
         "summary": "Criar Dossiê",
-        "description": "Pede a geração de um Dossiê. A resposta chega na hora, com status `202` e o `id`. O Dossiê fica pronto em alguns minutos: acompanhe por `GET /dossies/{dossie_id}/status`.\n\nHá três formas de gerar:\n\n- **Padrão** (`standard`, usado quando `mode` não é enviado): investigação completa do CPF ou CNPJ.\n- **Modular** (`modular`): consulta só os módulos que você escolher.\n- **Com seus dados** (`provided_data`): monta o relatório e o PDF só com o JSON enviado, sem consultar fontes.\n\nSe quiser, envie também uma matriz de risco em `risk_matrix`. Ao final, `risk_classification` traz a pontuação (0 a 100), o nível (`low`, `medium` ou `high`) e as regras que pesaram. Se faltar um dado obrigatório ou a coleta for parcial, a classificação vem como `insufficient_data`.\n\n**Acesso:** a chave precisa do acesso a Dossiês (escopo `dossies:write`). Os modos modular e com seus dados, e a matriz de risco, dependem de uma liberação extra na conta; sem ela a API responde `403 dossie_custom_not_enabled`.\n\nUma requisição inválida ou sem liberação é recusada antes de qualquer cobrança.",
+        "description": "Pede a geração de um Dossiê. A resposta chega na hora, com status `202` e o `id`. O Dossiê fica pronto em alguns minutos: acompanhe por `GET /dossies/{dossie_id}/status`.\n\nHá três formas de gerar:\n\n- **Padrão** (`standard`, usado quando `mode` não é enviado): investigação completa do CPF ou CNPJ.\n- **Modular** (`modular`): consulta só os módulos que você escolher.\n- **Com seus dados** (`provided_data`): monta o relatório e o PDF só com o JSON enviado, sem consultar fontes.\n\nSe quiser, envie também uma matriz de risco em `risk_matrix`. Ao final, `risk_classification` traz a pontuação (0 a 100), o nível (`low`, `medium` ou `high`) e as regras que pesaram. Se faltar um dado obrigatório ou a coleta for parcial, a classificação vem como `insufficient_data`.\n\n**Acesso:** toda chave de API usa os três modos e a matriz de risco, sem liberação por workspace.\n\nUma requisição inválida é recusada antes de qualquer cobrança.",
         "operationId": "createDossie",
         "parameters": [
           {
@@ -1232,9 +1212,6 @@
           },
           "402": {
             "$ref": "#/components/responses/Error"
-          },
-          "403": {
-            "$ref": "#/components/responses/CustomDossieNotEnabled"
           },
           "409": {
             "$ref": "#/components/responses/Error"
@@ -1751,9 +1728,6 @@
           },
           "402": {
             "$ref": "#/components/responses/Error"
-          },
-          "403": {
-            "$ref": "#/components/responses/CustomDossieNotEnabled"
           },
           "404": {
             "$ref": "#/components/responses/Error"

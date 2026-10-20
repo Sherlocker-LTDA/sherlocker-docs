@@ -128,8 +128,8 @@ execuções.
 Esta jornada é indicada quando o Dossiê deve ser iniciado pelo seu sistema, portal,
 esteira ou operação interna. A API oferece investigação padrão (`standard`),
 consulta dos módulos escolhidos (`modular`) e estruturação de dados enviados
-(`provided_data`), sem investigação. Os dois modos personalizados e qualquer
-`risk_matrix` exigem a flag `public_api_dossies_custom` na conta.
+(`provided_data`), sem investigação. Os três modos e a `risk_matrix` valem para
+toda chave de API, sem liberação por workspace.
 
 Veja [modos e matriz de risco](/plataforma/dossie-api) para os exemplos JSON completos
 antes de escolher a entrada da sua integração.
@@ -140,7 +140,7 @@ No modo padrão, envie o CPF ou CNPJ para `POST /dossies`, escolha `basic` ou `a
 e, se necessário, adicione um contexto curto sobre o caso. Omitir `mode` preserva
 esse comportamento. A criação é assíncrona e exige:
 
-- um token com o escopo `dossies:write`;
+- uma chave de API do workspace;
 - uma `Idempotency-Key` estável para aquela tentativa de criação;
 - tratamento da resposta `202`, que confirma a aceitação, não a conclusão.
 
@@ -217,7 +217,7 @@ resposta atualizada quando precisar entregar o artefato depois desse prazo.
 Seu sistema deve encaminhar `needs_review` para uma fila humana em vez de convertê-lo
 em aprovação ou reprovação. Para trabalhos elegíveis, `POST /dossies/{dossie_id}/retry`
 cria uma nova tentativa e preserva o identificador, modo, módulos, dados e matriz
-originais. O retry verifica novamente a liberação da conta. O cancelamento só é
+originais. O cancelamento só é
 aceito enquanto o estado permitir a transição.
 
 Consulte a [visão geral e a referência do Dossiê](/plataforma/dossie) para ver os

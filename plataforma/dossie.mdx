@@ -68,9 +68,8 @@ A API permite escolher como o documento será produzido:
 | `modular` | CPF/CNPJ e módulos, filtros e graus de conexão | Investigação limitada ao escopo escolhido |
 | `provided_data` | Conteúdo em JSON, com documento opcional | Relatório/PDF dos dados enviados, sem investigação |
 
-`modular`, `provided_data` e a matriz opcional de risco exigem a liberação
-`public_api_dossies_custom` na conta, além do acesso à API de Dossiê. A flag começa
-desligada. Uma matriz enviada em `risk_matrix` retorna `risk_classification`, com
+Os três modos e a matriz opcional de risco valem para toda chave de API, sem
+liberação por workspace. Uma matriz enviada em `risk_matrix` retorna `risk_classification`, com
 pontuação de 0 a 100, nível baixo/médio/alto e as regras correspondentes. Dados
 obrigatórios ausentes ou coleta parcial impedem a classificação.
 

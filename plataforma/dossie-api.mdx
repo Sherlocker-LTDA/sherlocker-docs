@@ -8,27 +8,15 @@ A API de Dossiê aceita três modos de geração no mesmo `POST /dossies`.
 A geração é assíncrona: a resposta `202` retorna o ID; consulte
 `GET /dossies/{dossie_id}` para acompanhar o trabalho e obter PDF/DOCX.
 
-<Note>
-  Os modos personalizados e a matriz de risco têm liberação controlada por conta.
-  Use um ambiente em que a versão esteja disponível e o workspace tenha sido
-  habilitado. Uma chave com escopos de Dossiê não ativa esses recursos por si só.
-</Note>
-
 | `mode` | Entrada | Comportamento |
 |---|---|---|
 | `standard` (padrão quando omitido) | CPF/CNPJ em `document` e `kind` opcional | Investigação padrão existente |
 | `modular` | CPF/CNPJ e `modules` | Consulta somente os módulos selecionados |
 | `provided_data` | `data` com conteúdo do relatório | Estrutura o JSON em documento, sem investigação ou enriquecimento |
 
-## Acesso por conta
+## Acesso
 
-Envie `Authorization: Bearer <chave slhk_…>` e `Content-Type: application/json`. A API exige uma chave com entitlement `dossies`, escopo `dossies:write` para criar/repetir e `dossies:read` para consultar, além da liberação `public_api_dossies` já existente. `modular`, `provided_data` e qualquer `risk_matrix` exigem também **`public_api_dossies_custom`**, desligada por padrão.
-
-A liberação é configurada por um administrador para a conta/workspace.
-Solicite a habilitação ao time responsável pelo acesso à API. Não envie a flag
-no JSON de criação: ela é verificada a partir da conta autenticada.
-
-O workspace vem da chave autenticada; a requisição de geração não escolhe outra conta. A ausência da liberação retorna `403`, código `dossie_custom_not_enabled`, antes de aceitar, cobrar ou enfileirar o job. O retry também verifica a liberação vigente. Não é necessário habilitar a flag para continuar usando a investigação padrão sem matriz.
+Envie `Authorization: Bearer <chave slhk_…>` e `Content-Type: application/json`. Toda chave de API acessa os três modos e a matriz de risco, sem liberação por workspace. O workspace vem da chave autenticada; a requisição de geração não escolhe outra conta.
 
 ## 1. Investigação padrão
 
@@ -106,7 +94,7 @@ Cada seção precisa de `text`, `items` ou ambos. `items` é uma lista de objeto
 
 ## Matriz de risco opcional
 
-Adicione `risk_matrix` em qualquer um dos três modos, com a flag personalizada habilitada. A classificação é determinística, baseada nas regras enviadas. A versão identifica a política usada; a API não inventa uma matriz nem calcula risco quando ela não é enviada.
+Adicione `risk_matrix` em qualquer um dos três modos. A classificação é determinística, baseada nas regras enviadas. A versão identifica a política usada; a API não inventa uma matriz nem calcula risco quando ela não é enviada.
 
 Exemplo para os dados fornecidos acima:
 

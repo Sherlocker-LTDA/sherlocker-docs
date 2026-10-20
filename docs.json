@@ -427,10 +427,7 @@
               "problems/method_not_allowed",
               "problems/payload_too_large",
               "problems/bad_gateway",
-              "problems/gateway_timeout",
-              "problems/scoped_key_required",
-              "problems/key_entitlement_missing",
-              "problems/entitlement_not_enabled"
+              "problems/gateway_timeout"
             ]
           }
         ]
@@ -524,10 +521,6 @@
               "problems/payload_too_large",
               "problems/bad_gateway",
               "problems/gateway_timeout",
-              "problems/scoped_key_required",
-              "problems/key_entitlement_missing",
-              "problems/entitlement_not_enabled",
-              "problems/dossie_custom_not_enabled",
               "problems/max_amount_exceeded",
               "problems/list_not_ready",
               "problems/list_build_in_progress",
@@ -541,5 +534,23 @@
         ]
       }
     ]
-  }
+  },
+  "redirects": [
+    {
+      "source": "/problems/dossie_custom_not_enabled",
+      "destination": "/plataforma/autenticacao"
+    },
+    {
+      "source": "/problems/entitlement_not_enabled",
+      "destination": "/plataforma/autenticacao"
+    },
+    {
+      "source": "/problems/key_entitlement_missing",
+      "destination": "/plataforma/autenticacao"
+    },
+    {
+      "source": "/problems/scoped_key_required",
+      "destination": "/plataforma/autenticacao"
+    }
+  ]
 }

@@ -1,11 +1,11 @@
 ---
 title: "Autenticação"
-description: "Como autenticar chamadas da Plataforma e limitar o acesso por escopo"
+description: "Como autenticar chamadas da Plataforma com a chave de API do workspace"
 icon: "key"
 ---
 
-As APIs usam uma chave com escopos. A chave identifica o workspace, limita as ações
-permitidas e registra a origem de cada recurso.
+As APIs usam uma chave de API do workspace. A chave identifica o workspace e
+registra a origem de cada recurso.
 
 ## Base da API
 
@@ -24,16 +24,12 @@ curl https://221b-api.sherlocker.com.br/api/v1/dossies \
 
 Não envie a chave em query string, corpo, logs ou código executado no navegador.
 
-## Escopos por área
+## Áreas liberadas
 
-| Área          | Leitura         | Escrita ou execução         |
-| ------------- | --------------- | --------------------------- |
-| Dossiê        | `dossies:read`  | `dossies:write`             |
-| Rastro        | `rastro:read`   | `rastro:search`             |
-| Lente         | `lente:read`    | `lente:geo` ou `lente:face` |
-
-Um escopo de escrita não concede leitura automaticamente. Uma chave com apenas
-`dossies:write`, por exemplo, pode criar um Dossiê, mas não consultar seu resultado.
+Toda chave de API acessa todas as áreas da Plataforma: Dossiê, Monitoramento,
+Rastro, Boards, Lente, Leads e Webhooks. Não há liberação por workspace nem
+permissão por área na chave. Crie a chave no app Sherlocker, em Configurações →
+Chaves de API.
 
 ## Workspace e acesso
 
@@ -41,7 +37,7 @@ Todo recurso pertence ao workspace da chave:
 
 - leituras e alterações são filtradas pelo workspace derivado da credencial;
 - um ID inexistente ou pertencente a outro workspace recebe o mesmo erro de recurso não encontrado;
-- outra chave do mesmo workspace pode acessar o recurso se possuir o escopo necessário;
+- outra chave do mesmo workspace acessa os mesmos recursos;
 - revogar uma chave bloqueia novas chamadas, mas não cancela trabalhos já aceitos.
 
 Headers enviados pelo cliente não podem substituir a identidade ou o workspace da chave.
