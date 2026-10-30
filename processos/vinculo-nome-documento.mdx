@@ -62,15 +62,59 @@ alto impacto.
 GET /processos/nome?nome={nome}&fonte=ambas
 ```
 
-Quando houver um CPF ou CNPJ candidato, envie-o para descartar partes que já
-possuem outro documento conhecido:
+Quando houver um CPF ou CNPJ candidato, envie-o para descartar os processos em
+que a parte de nome parecido já possui outro documento conhecido:
 
 ```http
 GET /processos/nome?nome={nome}&documento={cpf_ou_cnpj}&fonte=ambas
 ```
 
 O documento opcional serve para desambiguação; ele não converte resultados sem
-documento em vínculos documentais.
+documento em vínculos documentais. `cpf` e `cnpj` são aceitos como apelidos de
+`documento`; informe um só valor.
+
+### Partes que já têm CPF ou CNPJ
+
+A busca por nome também traz o processo em que a parte encontrada já tem CPF ou
+CNPJ cadastrado na base. O documento aparece em `partes[].documento`, e a parte
+cujo nome, sem acento e sem pontuação, é igual ao buscado vem marcada com
+`bate_nome: true`:
+
+```json
+{
+  "origem": "base",
+  "nome_buscado": "Comércio Exemplo Ltda",
+  "similaridade_max": 1,
+  "cpf_cnpj": "11.222.333/0001-81",
+  "partes": [
+    {
+      "nome": "Comercio Exemplo Ltda",
+      "polo": "passivo",
+      "documento": "11.222.333/0001-81",
+      "tipo": "Pessoa Jurídica",
+      "bate_nome": true
+    },
+    { "nome": "Outra Parte", "polo": "ativo", "documento": "", "tipo": "" }
+  ]
+}
+```
+
+- `bate_nome` só aparece na origem `base` e só quando o nome é igual ao buscado.
+  Uma parte apenas parecida (a busca aceita similaridade a partir de 0,7) traz o
+  processo, mas não recebe a marca.
+- O documento da parte marcada pode ser o da pessoa ou empresa procurada ou o
+  de um homônimo. Compare-o com o documento que você procura.
+- Sem `documento` na consulta, esses processos entram no resultado.
+- Com `documento`, o desempate é feito por processo. Se alguma parte de nome
+  parecido tem CPF ou CNPJ e nenhuma tem o documento informado, a parte é
+  tratada como homônimo e **o processo sai** do resultado. Se alguma tem o
+  documento informado, o processo continua.
+- Quando a parte com `bate_nome` tem documento, ele também aparece no nível do
+  processo, em `cpf_cnpj`. Por isso uma pessoa com dados suprimidos (LGPD) ou
+  protegida como menor de idade tira o processo inteiro da resposta, e não só a
+  parte.
+- Na origem `comunica`, `documento` vem vazio: o DJEN publica nome e polo, sem
+  CPF ou CNPJ.
 
 ## Regra prática
 
