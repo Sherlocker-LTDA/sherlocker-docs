@@ -1,0 +1,54 @@
+---
+title: "Saldo de tokens"
+description: "Consulte o saldo de tokens da sua conta pela API"
+icon: "wallet"
+---
+
+Retorna o saldo atual de tokens do workspace dono da API key usada na chamada. A consulta **não consome tokens** e não recebe parâmetros.
+
+<Note>
+O saldo é **compartilhado no workspace**: todas as API keys e todos os membros do workspace consomem do mesmo saldo. Cada chave enxerga apenas o saldo do próprio workspace.
+</Note>
+
+## Consultar
+
+`GET /conta/saldo`
+
+<CodeGroup>
+```bash cURL
+curl "https://221b-api.sherlocker.com.br/api/v1/conta/saldo" \
+  -H "Authorization: Bearer SEU_TOKEN"
+```
+
+```json Resposta 200
+{
+  "saldo": 1234,
+  "unidade": "tokens",
+  "consultado_em": "2026-11-25T14:03:00.000Z"
+}
+```
+</CodeGroup>
+
+## Resposta
+
+<ResponseField name="saldo" type="integer">
+  Saldo de tokens disponível no workspace.
+</ResponseField>
+
+<ResponseField name="unidade" type="string">
+  Unidade do saldo. Sempre `tokens`.
+</ResponseField>
+
+<ResponseField name="consultado_em" type="string">
+  Momento da consulta (ISO 8601, UTC).
+</ResponseField>
+
+## Erros
+
+| Status | Quando |
+| --- | --- |
+| `400` | A chamada não usa uma API key de cliente |
+| `401` | Token ausente ou inválido |
+| `503` | Saldo temporariamente indisponível. Tente novamente em instantes |
+
+O custo de cada consulta está em [Custos](/custos).
