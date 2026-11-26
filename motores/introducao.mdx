@@ -49,11 +49,14 @@ Os Motores usam a **mesma base** da API 221b (`https://221b-api.sherlocker.com.b
 Disponibilizamos uma collection do Postman **só para os Motores**, com as requests dos dois motores (`POST`/`GET /analyses` e `POST`/`GET /operations`), autenticação `Bearer slhk_` já configurada e captura automática do `analysis_id`/`operation_id`.
 
 <Steps>
-  <Step title="Baixar a collection">
-    Faça download do arquivo [sherlocker-motores-postman-collection.json](https://raw.githubusercontent.com/Sherlocker-LTDA/sherlocker-docs/refs/heads/main/sherlocker-motores-postman-collection.json).
-  </Step>
   <Step title="Importar no Postman">
-    No [Postman](https://www.postman.com/downloads/), clique em **Import** e selecione o arquivo. Você verá a collection **Sherlocker Motores de Análise v1** com as pastas **Motor de CPF/CNPJ** e **Motor de Borderô (CNAB 400)**.
+    No [Postman](https://www.postman.com/downloads/), clique em **Import** e cole a URL da collection:
+
+    ```text
+    https://docs.sherlocker.com.br/postman/sherlocker-motores-postman-collection.json
+    ```
+
+    Você verá a collection **Sherlocker Motores de Análise v1** com as pastas **Motor de CPF/CNPJ** e **Motor de Borderô (CNAB 400)**.
   </Step>
   <Step title="Configurar a chave slhk_">
     Abra a aba **Variables** da collection e preencha `token` com sua chave `slhk_`. A collection já usa `Authorization: Bearer {{token}}` — **não** use `?token=`.
