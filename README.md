@@ -17,7 +17,7 @@ Publicada em **[docs.sherlocker.com.br](https://docs.sherlocker.com.br)** · Con
 ├── areas/                     # Contatos, patrimônio, jurídico
 ├── entidades/                 # Schemas de cada entidade da API
 ├── openapi/                   # Specs OpenAPI por módulo
-└── sherlocker-postman-collection.json
+└── postman/                   # Collections do Postman (servidas pelo nginx)
 ```
 
 ## Módulos cobertos
@@ -39,4 +39,7 @@ Acesse em `http://localhost:3000`.
 
 ## Postman
 
-A collection completa está em `sherlocker-postman-collection.json`
+As collections ficam em `postman/` e são servidas direto pelo nginx (o Mintlify não serve `.json`):
+
+- `https://docs.sherlocker.com.br/postman/sherlocker-postman-collection.json`
+- `https://docs.sherlocker.com.br/postman/sherlocker-motores-postman-collection.json`
