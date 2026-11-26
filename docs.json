@@ -52,6 +52,12 @@
             ]
           },
           {
+            "group": "Conta",
+            "pages": [
+              "conta/saldo"
+            ]
+          },
+          {
             "group": "Áreas da API",
             "pages": [
               "areas/contatos",
